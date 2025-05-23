@@ -49,6 +49,56 @@ def create_vector_indexes():
         except Exception as e:
             print(f"Error creating vector index for {JOBS_COLLECTION}: {str(e)}")
         
+        # Create Atlas Search index for candidates collection
+        try:
+            print(f"\nTo create a vector search index for {CANDIDATES_COLLECTION}, use the MongoDB Atlas UI:")
+            print("1. Go to the Atlas UI")
+            print("2. Select your cluster")
+            print("3. Go to the Search tab")
+            print("4. Create an index with the following JSON configuration:")
+            print("""
+            {
+              "mappings": {
+                "dynamic": false,
+                "fields": {
+                  "embedding": {
+                    "dimensions": 3072,
+                    "similarity": "cosine",
+                    "type": "vector"
+                  }
+                }
+              }
+            }
+            """)
+            print(f"Name the index: {CANDIDATES_COLLECTION}_vector_index")
+        except Exception as e:
+            print(f"Error creating vector index for {CANDIDATES_COLLECTION}: {str(e)}")
+        
+        # Create Atlas Search index for projects collection
+        try:
+            print(f"\nTo create a vector search index for {PROJECTS_COLLECTION}, use the MongoDB Atlas UI:")
+            print("1. Go to the Atlas UI")
+            print("2. Select your cluster")
+            print("3. Go to the Search tab")
+            print("4. Create an index with the following JSON configuration:")
+            print("""
+            {
+              "mappings": {
+                "dynamic": false,
+                "fields": {
+                  "embedding": {
+                    "dimensions": 3072,
+                    "similarity": "cosine",
+                    "type": "vector"
+                  }
+                }
+              }
+            }
+            """)
+            print(f"Name the index: {PROJECTS_COLLECTION}_vector_index")
+        except Exception as e:
+            print(f"Error creating vector index for {PROJECTS_COLLECTION}: {str(e)}")
+        
         # Create regular indexes for faster lookups
         try:
             db[JOBS_COLLECTION].create_index("is_active")

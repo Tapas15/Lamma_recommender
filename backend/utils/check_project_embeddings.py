@@ -4,7 +4,7 @@ from tabulate import tabulate
 import numpy as np
 
 # MongoDB connection details
-MONGODB_URL = "mongodb+srv://tapu199824:1234567890@cluster0.5q7vyy1.mongodb.net/?retryWrites=true&w=majority"
+MONGODB_URL = "mongodb+srv://lamma:1234567890@cluster0.eetq9gm.mongodb.net/"
 DATABASE_NAME = "job_recommender"
 PROJECTS_COLLECTION = "projects"
 
