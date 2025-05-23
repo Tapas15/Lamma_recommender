@@ -766,14 +766,45 @@ async def create_job(job: JobCreate, current_user: dict = Depends(get_current_us
     job_dict["id"] = str(ObjectId())
     job_dict["is_active"] = True
     
+    # Process salary_range if it's a string
+    if "salary_range" in job_dict and isinstance(job_dict["salary_range"], str):
+        try:
+            # Parse salary range string like "120,000-160,000 USD"
+            salary_str = job_dict["salary_range"].split(" ")[0]  # Get "120,000-160,000"
+            min_max = salary_str.split("-")  # Split into ["120,000", "160,000"]
+            
+            # Remove commas and convert to integers
+            min_salary = int(min_max[0].replace(",", ""))
+            max_salary = int(min_max[1].replace(",", ""))
+            
+            # Get currency if available
+            currency = "USD"
+            if len(job_dict["salary_range"].split(" ")) > 1:
+                currency = job_dict["salary_range"].split(" ")[1]
+                
+            # Update with object format
+            job_dict["salary_range"] = {
+                "min": min_salary,
+                "max": max_salary,
+                "currency": currency
+            }
+        except Exception as e:
+            print(f"Error parsing salary range: {str(e)}")
+            # Keep as string if parsing fails
+            pass
+    
     # Create embedding for semantic search
     job_dict["embedding"] = create_job_embedding(job_dict)
     
-    await Database.get_collection(JOBS_COLLECTION).insert_one(job_dict)
-    
-    # Remove embedding from returned data to reduce response size
-    job_dict.pop("embedding", None)
-    return job_dict
+    try:
+        await Database.get_collection(JOBS_COLLECTION).insert_one(job_dict)
+        
+        # Remove embedding from returned data to reduce response size
+        job_dict.pop("embedding", None)
+        return job_dict
+    except Exception as e:
+        print(f"Error creating job: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error creating job: {str(e)}")
 
 
 @app.get("/jobs", response_model=List[Job])
@@ -849,6 +880,33 @@ async def update_job(
         "is_active",
     ]
     
+    # Process salary_range if it's a string
+    if "salary_range" in update_data and isinstance(update_data["salary_range"], str):
+        try:
+            # Parse salary range string like "120,000-160,000 USD"
+            salary_str = update_data["salary_range"].split(" ")[0]  # Get "120,000-160,000"
+            min_max = salary_str.split("-")  # Split into ["120,000", "160,000"]
+            
+            # Remove commas and convert to integers
+            min_salary = int(min_max[0].replace(",", ""))
+            max_salary = int(min_max[1].replace(",", ""))
+            
+            # Get currency if available
+            currency = "USD"
+            if len(update_data["salary_range"].split(" ")) > 1:
+                currency = update_data["salary_range"].split(" ")[1]
+                
+            # Update with object format
+            update_data["salary_range"] = {
+                "min": min_salary,
+                "max": max_salary,
+                "currency": currency
+            }
+        except Exception as e:
+            print(f"Error parsing salary range: {str(e)}")
+            # Keep as string if parsing fails
+            pass
+    
     # Filter update_data to only include valid fields
     filtered_update_data = {
         k: v for k, v in update_data.items() if k in updatable_fields
@@ -872,50 +930,62 @@ async def update_job(
         "preferred_qualifications",
         "work_mode",
     ]
-    if any(field in filtered_update_data for field in semantic_fields):
-        # Create updated job data by merging current job with updates
-        updated_job = {**job}
-        updated_job.update(filtered_update_data)
-        # Generate new embedding
-        filtered_update_data["embedding"] = create_job_embedding(updated_job)
+    try:
+        if any(field in filtered_update_data for field in semantic_fields):
+            # Create updated job data by merging current job with updates
+            updated_job = {**job}
+            updated_job.update(filtered_update_data)
+            # Generate new embedding
+            try:
+                filtered_update_data["embedding"] = create_job_embedding(updated_job)
+            except Exception as e:
+                print(f"Error generating embedding: {str(e)}")
+                # Continue without updating embedding if there's an error
+                pass
+    except Exception as e:
+        print(f"Error in embedding generation logic: {str(e)}")
+        # Continue without updating embedding
+        pass
     
     # Update the job
-    result = await Database.get_collection(JOBS_COLLECTION).update_one(
-        {"id": job_id}, {"$set": filtered_update_data}
-    )
-    
-    if result.modified_count == 0:
-        raise HTTPException(
-            status_code=500, detail="Failed to update job or no changes made"
+    try:
+        result = await Database.get_collection(JOBS_COLLECTION).update_one(
+            {"id": job_id}, {"$set": filtered_update_data}
         )
-    
-    # Return updated job
-    updated_job = await Database.get_collection(JOBS_COLLECTION).find_one(
-        {"id": job_id}
-    )
-    if not updated_job:
-        raise HTTPException(status_code=404, detail="Job not found after update")
-    
-    # Remove MongoDB's _id and embedding vector from response
-    updated_job.pop("_id", None)
-    updated_job.pop("embedding", None)
-    
-    return updated_job
+        
+        if result.modified_count == 0:
+            # The document might not have been modified if the values are the same
+            # But we should still return the job data
+            pass
+        
+        # Return updated job
+        updated_job = await Database.get_collection(JOBS_COLLECTION).find_one(
+            {"id": job_id}
+        )
+        if not updated_job:
+            raise HTTPException(status_code=404, detail="Job not found after update")
+        
+        # Remove MongoDB's _id and embedding vector from response
+        updated_job.pop("_id", None)
+        updated_job.pop("embedding", None)
+        
+        return updated_job
+    except Exception as e:
+        print(f"Error updating job: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error updating job: {str(e)}")
 
 
 # Project endpoints
 @app.post("/projects", response_model=Project, status_code=status.HTTP_201_CREATED)
 async def create_project(
-    project: ProjectCreate, current_user: dict = Depends(get_current_user)
+    project: dict, current_user: dict = Depends(get_current_user)
 ):
     if current_user["user_type"] != UserType.EMPLOYER:
         raise HTTPException(status_code=403, detail="Only employers can post projects")
     
     try:
-        # Convert project to dict and add required fields
-        project_dict = project.dict(
-            exclude_none=True
-        )  # Exclude None values to prevent validation errors
+        # Convert project to dict if it's not already
+        project_dict = project if isinstance(project, dict) else project.dict(exclude_none=True)
         
         # Generate a unique ID
         project_id = str(ObjectId())
@@ -926,7 +996,7 @@ async def create_project(
         project_dict["employer_id"] = current_user["id"]
         
         print(
-            f"DEBUG - Creating project: employer_id={current_user['id']}, title={project_dict['title']}, id={project_id}"
+            f"DEBUG - Creating project: employer_id={current_user['id']}, title={project_dict.get('title', 'Unknown')}, id={project_id}"
         )
         
         # Validate required fields
@@ -957,6 +1027,7 @@ async def create_project(
             "objectives",
             "preferred_qualifications",
             "tools_technologies",
+            "deliverables"
         ]
         for field in list_fields:
             if (
@@ -967,6 +1038,34 @@ async def create_project(
                 project_dict[field] = [
                     project_dict[field]
                 ]  # Convert to list if it's not already
+        
+        # Handle complex fields
+        # Timeline - special handling for milestones array
+        if "timeline" in project_dict and isinstance(project_dict["timeline"], dict):
+            if "milestones" in project_dict["timeline"] and isinstance(project_dict["timeline"]["milestones"], list):
+                # Keep the milestones array as is, it will be stored in MongoDB without issues
+                pass
+            
+        # Budget range
+        if "budget_range" in project_dict and isinstance(project_dict["budget_range"], dict):
+            try:
+                min_val = project_dict["budget_range"].get("min", 0)
+                max_val = project_dict["budget_range"].get("max", 0)
+                currency = project_dict["budget_range"].get("currency", "USD")
+                project_dict["budget_range"] = f"{min_val}-{max_val} {currency}"
+            except Exception as e:
+                print(f"Error formatting budget_range: {str(e)}")
+                # Keep as is if there's an error
+        
+        # Duration
+        if "duration" in project_dict and isinstance(project_dict["duration"], dict):
+            try:
+                time_frame = project_dict["duration"].get("time_frame", "")
+                hours = project_dict["duration"].get("estimated_hours", "")
+                project_dict["duration"] = f"{time_frame} ({hours} hours)"
+            except Exception as e:
+                print(f"Error formatting duration: {str(e)}")
+                # Keep as is if there's an error
         
         # Handle dictionary fields
         dict_fields = ["experience", "timeline"]
@@ -980,7 +1079,6 @@ async def create_project(
                 if isinstance(project_dict[field], str):
                     try:
                         import json
-
                         project_dict[field] = json.loads(project_dict[field])
                     except:
                         project_dict[field] = {"value": project_dict[field]}  # Fallback
@@ -1021,8 +1119,12 @@ async def create_project(
             
         if "location" in project_dict:
             searchable_text += f" {project_dict['location']}"
-            
-        project_dict["embedding"] = get_embedding(searchable_text)
+        
+        try:
+            project_dict["embedding"] = get_embedding(searchable_text)
+        except Exception as e:
+            print(f"Error generating embedding: {str(e)}")
+            # Continue without embedding if there's an error
         
         # Insert the project
         await Database.get_collection(PROJECTS_COLLECTION).insert_one(project_dict)
@@ -1316,6 +1418,71 @@ async def update_project_status(
                     detail=f"Invalid status. Must be one of: {', '.join(valid_statuses)}",
                 )
         
+        # Handle complex fields
+        # Timeline - special handling for milestones array
+        if "timeline" in update_data and isinstance(update_data["timeline"], dict):
+            if "milestones" in update_data["timeline"] and isinstance(update_data["timeline"]["milestones"], list):
+                # Keep the milestones array as is, it will be stored in MongoDB without issues
+                pass
+            
+        # Budget range
+        if "budget_range" in update_data and isinstance(update_data["budget_range"], dict):
+            try:
+                min_val = update_data["budget_range"].get("min", 0)
+                max_val = update_data["budget_range"].get("max", 0)
+                currency = update_data["budget_range"].get("currency", "USD")
+                update_data["budget_range"] = f"{min_val}-{max_val} {currency}"
+            except Exception as e:
+                print(f"Error formatting budget_range: {str(e)}")
+                # Keep as is if there's an error
+        
+        # Duration
+        if "duration" in update_data and isinstance(update_data["duration"], dict):
+            try:
+                time_frame = update_data["duration"].get("time_frame", "")
+                hours = update_data["duration"].get("estimated_hours", "")
+                update_data["duration"] = f"{time_frame} ({hours} hours)"
+            except Exception as e:
+                print(f"Error formatting duration: {str(e)}")
+                # Keep as is if there's an error
+        
+        # Handle dictionary fields
+        dict_fields = ["experience", "timeline"]
+        for field in dict_fields:
+            if (
+                field in update_data
+                and update_data[field] is not None
+                and not isinstance(update_data[field], dict)
+            ):
+                # If it's not a dict, try to convert from string (JSON)
+                if isinstance(update_data[field], str):
+                    try:
+                        import json
+                        update_data[field] = json.loads(update_data[field])
+                    except:
+                        update_data[field] = {"value": update_data[field]}  # Fallback
+                else:
+                    update_data[field] = {"value": update_data[field]}  # Fallback
+        
+        # Ensure list fields are actually lists
+        list_fields = [
+            "requirements",
+            "skills_required",
+            "objectives",
+            "preferred_qualifications",
+            "tools_technologies",
+            "deliverables"
+        ]
+        for field in list_fields:
+            if (
+                field in update_data
+                and update_data[field] is not None
+                and not isinstance(update_data[field], list)
+            ):
+                update_data[field] = [
+                    update_data[field]
+                ]  # Convert to list if it's not already
+        
         # Remove any invalid fields from update_data
         allowed_fields = [
             "status",
@@ -1328,6 +1495,12 @@ async def update_project_status(
             "skills_required",
             "is_active",
             "project_type",
+            "objectives",
+            "preferred_qualifications",
+            "tools_technologies",
+            "timeline",
+            "experience",
+            "deliverables"
         ]
         invalid_fields = [
             key for key in update_data.keys() if key not in allowed_fields
@@ -1352,13 +1525,19 @@ async def update_project_status(
             "skills_required",
             "project_type",
             "location",
+            "tools_technologies",
+            "objectives"
         ]
         if any(field in update_data for field in semantic_fields):
             # Create updated project data by merging current project with updates
             updated_project = {**project}
             updated_project.update(update_data)
             # Generate new embedding
-            update_data["embedding"] = create_project_embedding(updated_project)
+            try:
+                update_data["embedding"] = create_project_embedding(updated_project)
+            except Exception as e:
+                print(f"Error generating embedding: {str(e)}")
+                # Continue without updating embedding if there's an error
         
         print(f"DEBUG: Update data: {update_data}")
     

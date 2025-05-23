@@ -139,7 +139,7 @@ class JobBase(BaseModel):
     tech_stack: Optional[List[str]] = None
     remote_option: Optional[bool] = None
     work_mode: Optional[List[str]] = None
-    salary_range: Optional[str] = None
+    salary_range: Optional[Union[str, Dict[str, Any]]] = None
     benefits: Optional[List[str]] = None
     application_deadline: Optional[str] = None
     posted_date: Optional[str] = None
@@ -159,8 +159,8 @@ class ProjectBase(BaseModel):
     company: str
     description: str
     requirements: List[str]
-    budget_range: Optional[str] = None
-    duration: Optional[str] = None
+    budget_range: Optional[Union[str, Dict[str, Any]]] = None
+    duration: Optional[Union[str, Dict[str, Any]]] = None
     location: Optional[str] = None
     project_type: str
     skills_required: List[str]
@@ -170,8 +170,9 @@ class ProjectBase(BaseModel):
     preferred_qualifications: Optional[List[str]] = None
     experience: Optional[Dict[str, Any]] = None
     tools_technologies: Optional[List[str]] = None
-    timeline: Optional[Dict[str, str]] = None
+    timeline: Optional[Dict[str, Any]] = None
     contact_email: Optional[str] = None
+    deliverables: Optional[List[str]] = None
 
 class ProjectCreate(ProjectBase):
     employer_id: Optional[str] = None
