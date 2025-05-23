@@ -18,6 +18,12 @@
    - Async database operations
    - Background tasks for heavy computations
 
+4. **Vector Search Architecture**
+   - Embedding generation pipeline
+   - MongoDB Atlas vector indexes
+   - Semantic search functionality
+   - Fallback text search mechanisms
+
 ## Design Patterns
 1. **Repository Pattern**
    - Abstracted database operations
@@ -45,6 +51,7 @@
    - Recommendation service
    - Profile management service
    - Job posting service
+   - Vector search service
 
 3. **Data Flow**
    - Client request → API Gateway
@@ -58,6 +65,11 @@
    Latest_lamma/
    ├── backend/
    │   ├── app.py               # Main FastAPI application
+   │   ├── tests/               # Test scripts
+   │   │   ├── README.md        # Test documentation
+   │   │   ├── test_search_recommender.py # Search and recommendation tests
+   │   │   ├── test_recommendation_system.py # Recommendation system tests
+   │   │   └── check_all_embeddings.py # Embedding verification tool
    │   └── utils/               # Utility modules
    │       ├── __init__.py      # Package initialization
    │       ├── models.py        # Pydantic models
@@ -95,6 +107,19 @@
    - Visual demonstration
    - Automated scenarios
 
+4. **Search & Recommendation Tests**
+   - Embedding generation verification
+   - Semantic search functionality testing
+   - Recommendation algorithm validation
+   - Vector index verification
+   - Fallback mechanism testing
+
+5. **Test Reporting**
+   - Tabulated test results
+   - Visual progress indicators
+   - Detailed error reporting
+   - Actionable recommendations
+
 ## Error Handling
 1. **Exception Hierarchy**
    - Custom exceptions
@@ -127,6 +152,11 @@
    - **Decision**: Streamlit for interactive web UI
    - **Consequences**: Fast development, some limitations in customization
 
+5. **Testing Approach**
+   - **Context**: Need to verify complex search and recommendation functionality
+   - **Decision**: Comprehensive automated test scripts with detailed reporting
+   - **Consequences**: Better quality assurance, early issue detection, requires test environment setup
+
 ## Security Patterns
 - JWT token validation on protected endpoints
 - Password hashing with bcrypt
@@ -138,18 +168,23 @@
 - Optimized embedding generation
 - Caching for frequently accessed data
 - Pagination for large result sets
+- Vector search optimization
 
 ## Error Handling
 - Structured exception hierarchy
 - Consistent error response format
 - Detailed logging
 - Graceful degradation
+- Fallback search mechanisms
 
 ## Testing Patterns
 - Automated test suite
 - Visual demonstration tests
 - Comprehensive API testing
 - Environment isolation for tests
+- Tabulated test results
+- Actionable test recommendations
+- Embedding verification tools
 
 ## Notes
-The system is designed with modularity and scalability in mind, allowing for easy extension of features and integration with additional services. 
+The system is designed with modularity and scalability in mind, allowing for easy extension of features and integration with additional services. The testing infrastructure provides comprehensive verification of critical functionality. 

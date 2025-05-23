@@ -18,6 +18,9 @@
 - Pytest - Unit testing
 - Selenium - E2E testing
 - Webdriver-manager - Browser automation
+- Tabulate - Formatted test output
+- Requests - API testing
+- NumPy - Data analysis in tests
 
 ## Development Environment
 - Python 3.8+ required
@@ -43,6 +46,7 @@
    - Job listings
    - Application data
    - Vector embeddings storage
+   - Vector search indexes
 
 4. Ollama Service
    - Local embedding generation
@@ -72,6 +76,30 @@
 - Async database operations
 - Local embedding generation
 - Browser-based automation for testing
+- Vector search optimization
+
+## Testing Infrastructure
+### Test Directory Structure
+```
+backend/tests/
+├── README.md                    # Testing documentation
+├── test_search_recommender.py   # Comprehensive search and recommendation tests
+├── test_recommendation_system.py # Focused recommendation system tests
+└── check_all_embeddings.py      # Vector embedding verification tool
+```
+
+### Test Types
+- **Search & Recommendation Tests**: Verify semantic search and recommendation functionality
+- **Embedding Verification**: Check vector embeddings across all collections
+- **API Tests**: Verify API endpoint functionality
+- **Integration Tests**: Test system component interactions
+- **Unit Tests**: Test individual functions and modules
+
+### Test Environment
+- Environment variables for test configuration
+- Test user accounts for authentication
+- MongoDB test collections
+- Ollama for embedding generation during tests
 
 ## Development Setup
 ### Prerequisites
@@ -104,12 +132,16 @@
 - pytest-asyncio (>= 0.21.0) - Async testing support
 - selenium (>= 4.10.0) - Browser automation
 - webdriver-manager (>= 3.8.6) - WebDriver management
+- tabulate (>= 0.9.0) - Formatted test output
+- requests (>= 2.28.0) - API testing
+- numpy (>= 1.24.0) - Data analysis in tests
 
 ## Technical Constraints
 - MongoDB connection stability
 - Embedding generation performance
 - Memory usage optimization
 - Cross-platform compatibility
+- MongoDB Atlas vector index setup
 
 ## Environment Configuration
 Environment variables are stored in a .env file in the backend directory:
@@ -118,6 +150,11 @@ Environment variables are stored in a .env file in the backend directory:
 - SECRET_KEY - JWT secret key
 - MONGODB_URL - MongoDB connection string (default: mongodb://localhost:27017)
 - DATABASE_NAME - MongoDB database name (default: job_recommender)
+- API_BASE_URL - URL for API testing (default: http://localhost:8000)
+- TEST_CANDIDATE_EMAIL - Test candidate email for authentication
+- TEST_CANDIDATE_PASSWORD - Test candidate password
+- TEST_EMPLOYER_EMAIL - Test employer email for authentication
+- TEST_EMPLOYER_PASSWORD - Test employer password
 
 ## Build Process
 The project uses automated setup scripts that:
@@ -138,3 +175,4 @@ The project uses automated setup scripts that:
 - Request logging for API calls
 - Error tracking and reporting
 - Performance monitoring 
+- Test result reporting and visualization 
