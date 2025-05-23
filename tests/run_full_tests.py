@@ -49,6 +49,11 @@ def parse_args():
         default=5,
         help="Additional time to wait for services to fully initialize (seconds)"
     )
+    parser.add_argument(
+        "--show-requests",
+        action="store_true",
+        help="Show detailed HTTP request information for each API call"
+    )
     
     return parser.parse_args()
 
@@ -61,9 +66,16 @@ def main():
     console.print("=============================================")
     console.print(f"API URL: {args.api_url}")
     console.print(f"Streamlit URL: {args.streamlit_url}")
+    console.print(f"Show detailed requests: {'Yes' if args.show_requests else 'No'}")
     
     python_path = sys.executable
     console.print(f"Using Python executable:\n{python_path}")
+    
+    # Set environment variable for request logging
+    if args.show_requests:
+        os.environ["SHOW_API_REQUESTS"] = "1"
+    else:
+        os.environ["SHOW_API_REQUESTS"] = "0"
     
     service_manager = None
     if not args.no_services:

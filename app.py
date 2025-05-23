@@ -1971,12 +1971,6 @@ async def update_profile(
     profile_data: dict, current_user: dict = Depends(get_current_user)
 ):
     if current_user["user_type"] == UserType.CANDIDATE:
-        # Update both user and candidate profiles
-        # Update user profile
-        await Database.get_collection(USERS_COLLECTION).update_one(
-            {"email": current_user["email"]}, {"$set": profile_data}
-        )
-        
         # Check if any field affects candidate embedding
         semantic_fields = [
             "full_name",
@@ -2016,13 +2010,7 @@ async def update_profile(
             
         return updated_profile
     else:
-        # Update both user and employer profiles
-        # Update user profile
-        await Database.get_collection(USERS_COLLECTION).update_one(
-            {"email": current_user["email"]}, {"$set": profile_data}
-        )
-        
-        # Update employer profile
+        # Update employer profile only
         await Database.get_collection(EMPLOYERS_COLLECTION).update_one(
             {"email": current_user["email"]}, {"$set": profile_data}
         )
@@ -2152,6 +2140,63 @@ async def delete_user(current_user: dict = Depends(get_current_user)):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.patch("/profile", response_model=User)
+async def update_profile_patch(
+    profile_data: dict, current_user: dict = Depends(get_current_user)
+):
+    """PATCH endpoint for profile updates with the same functionality as PUT"""
+    if current_user["user_type"] == UserType.CANDIDATE:
+        # Check if any field affects candidate embedding
+        semantic_fields = [
+            "full_name",
+            "skills",
+            "experience",
+            "education",
+            "location",
+            "bio",
+        ]
+        if any(field in profile_data for field in semantic_fields):
+            # Get the current candidate data
+            candidate = await Database.get_collection(CANDIDATES_COLLECTION).find_one(
+                {"email": current_user["email"]}
+            )
+            if candidate:
+                # Create updated candidate data by merging
+                updated_candidate = {**candidate}
+                updated_candidate.update(profile_data)
+                # Generate new embedding
+                profile_data["embedding"] = create_candidate_embedding(
+                    updated_candidate
+                )
+        
+        # Update candidate profile with new data including potential new embedding
+        await Database.get_collection(CANDIDATES_COLLECTION).update_one(
+            {"email": current_user["email"]}, {"$set": profile_data}
+        )
+        
+        # Get updated candidate profile
+        updated_profile = await Database.get_collection(CANDIDATES_COLLECTION).find_one(
+            {"email": current_user["email"]}
+        )
+        
+        # Remove embedding from response
+        if updated_profile and "embedding" in updated_profile:
+            updated_profile.pop("embedding", None)
+            
+        return updated_profile
+    else:
+        # Update employer profile only
+        await Database.get_collection(EMPLOYERS_COLLECTION).update_one(
+            {"email": current_user["email"]}, {"$set": profile_data}
+        )
+        
+        # Get updated employer profile
+        updated_profile = await Database.get_collection(EMPLOYERS_COLLECTION).find_one(
+            {"email": current_user["email"]}
+        )
+        return updated_profile
 
 
 # Application endpoints

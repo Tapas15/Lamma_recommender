@@ -30,7 +30,7 @@ A comprehensive job recommendation system that combines FastAPI backend with Str
 ## Constraints
 - Requires Python 3.8+
 - MongoDB for data storage
-- Ollama for local embeddings
+- Ollama for local embeddings (using llama3.2 model)
 - System performance dependent on embedding model quality
 
 ## Timeline
@@ -40,16 +40,25 @@ A comprehensive job recommendation system that combines FastAPI backend with Str
 
 ## Project Scope
 ### In Scope
-- [In-scope item 1]
-- [In-scope item 2]
+- User authentication and profile management
+- Job posting and application system
+- Vector embedding-based recommendation engine
+- Skill gap analysis and visualization
+- Career path recommendations
+- Project recommendations
+- Automated testing framework
 
 ### Out of Scope
-- [Out-of-scope item 1]
-- [Out-of-scope item 2]
+- Mobile application development
+- Third-party job board integrations
+- Payment processing
+- Advanced analytics dashboard (for initial release)
 
 ## Key Stakeholders
-- [Stakeholder 1]
-- [Stakeholder 2]
+- Employers seeking qualified candidates
+- Job seekers looking for career opportunities
+- Career development professionals
+- HR departments and recruiters
 
 ## Notes
-[Any additional important information about the project] 
+The project aims to provide a comprehensive solution for job matching and career development, leveraging modern ML techniques while maintaining a user-friendly interface. 

@@ -57,11 +57,21 @@
    ```
    Latest_lamma/
    ├── backend/
-   │   ├── app.py
-   │   └── utils/
-   ├── pages/
-   ├── streamlit_app.py
-   └── setup scripts
+   │   ├── app.py               # Main FastAPI application
+   │   └── utils/               # Utility modules
+   │       ├── __init__.py      # Package initialization
+   │       ├── models.py        # Pydantic models
+   │       ├── extended_models.py # Extended Pydantic models
+   │       ├── database.py      # Database connection and operations
+   │       └── embedding.py     # Vector embedding functions
+   ├── pages/                   # Streamlit pages
+   │   ├── profile.py           # User profile page
+   │   ├── job_recommendations.py # Job recommendations page
+   │   └── ...                  # Other pages
+   ├── streamlit_app.py         # Main Streamlit application
+   ├── run_backend.py           # Script to run the backend
+   ├── run_app.py               # Script to run both backend and frontend
+   └── setup scripts            # Various setup and run scripts
    ```
 
 2. **Module Separation**
@@ -97,22 +107,49 @@
    - Detailed error information
 
 ## Key Technical Decisions
-1. [Decision 1]
-   - **Context**: [Why this decision was needed]
-   - **Decision**: [What was decided]
-   - **Consequences**: [Impact of this decision]
+1. **Database Selection**
+   - **Context**: Need for flexible schema and document storage
+   - **Decision**: MongoDB for document-based storage
+   - **Consequences**: Flexible schema, good for JSON data, requires connection management
+
+2. **Authentication Method**
+   - **Context**: Need secure, stateless authentication
+   - **Decision**: JWT with refresh tokens
+   - **Consequences**: Stateless auth, token management required
+
+3. **Embedding Generation**
+   - **Context**: Need vector embeddings for recommendation
+   - **Decision**: Ollama with llama3.2 model
+   - **Consequences**: Local processing, no API costs, requires local setup
+
+4. **Frontend Framework**
+   - **Context**: Need rapid UI development
+   - **Decision**: Streamlit for interactive web UI
+   - **Consequences**: Fast development, some limitations in customization
 
 ## Security Patterns
-[Description of security measures and patterns implemented]
+- JWT token validation on protected endpoints
+- Password hashing with bcrypt
+- Environment variable-based secrets
+- Input validation with Pydantic
 
 ## Performance Patterns
-[Description of performance optimization patterns]
+- Async database operations
+- Optimized embedding generation
+- Caching for frequently accessed data
+- Pagination for large result sets
 
 ## Error Handling
-[Description of error handling patterns]
+- Structured exception hierarchy
+- Consistent error response format
+- Detailed logging
+- Graceful degradation
 
 ## Testing Patterns
-[Description of testing strategies and patterns]
+- Automated test suite
+- Visual demonstration tests
+- Comprehensive API testing
+- Environment isolation for tests
 
 ## Notes
-[Any additional technical patterns or considerations] 
+The system is designed with modularity and scalability in mind, allowing for easy extension of features and integration with additional services. 

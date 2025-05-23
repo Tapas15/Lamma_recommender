@@ -1,0 +1,66 @@
+# Cursor Rules - Project Intelligence
+
+## Project Patterns
+
+### Architecture Patterns
+- Microservices architecture with FastAPI backend and Streamlit frontend
+- RESTful API design with JWT authentication
+- MongoDB for data storage
+- Ollama for local embeddings
+
+### Code Organization
+- Backend code in `backend/` directory
+- Frontend pages in `pages/` directory
+- Main Streamlit app in `streamlit_app.py`
+- Utility functions in `utils/` directory
+- Setup scripts in root directory
+
+### Naming Conventions
+- Snake_case for Python files and functions
+- CamelCase for class names
+- Descriptive function and variable names
+- Prefix test files with `test_`
+
+### Development Workflow
+- Modular development approach
+- Regular testing implementation
+- Documentation updates alongside code changes
+- Focus on core functionality first
+
+### Technical Decisions
+- MongoDB for flexible data storage
+- JWT with refresh tokens for authentication
+- Local embedding generation with Ollama
+- Streamlit for rapid UI development
+
+## Project Intelligence
+
+### Critical Implementation Paths
+- Authentication flow
+- Profile management
+- Job posting system
+- Recommendation engine using vector embeddings
+- Skill gap analysis
+
+### Known Challenges
+- MongoDB connection stability
+- Embedding generation performance
+- Memory usage optimization
+- Complex user flows
+
+### Tool Usage
+- Virtual environment for dependency management
+- Platform-independent setup scripts
+- Automated testing framework
+- Batch files for service management
+
+## User Preferences
+- Modular code organization
+- Clear documentation
+- Performance-optimized implementations
+- Cross-platform compatibility
+
+## Evolution Notes
+- Project is in active development
+- Focus on core functionality implementation
+- Testing and documentation are ongoing processes 

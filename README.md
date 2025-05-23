@@ -192,6 +192,64 @@ The demo will:
 
 For more options and details, see [tests/VISUAL_DEMO_README.md](tests/VISUAL_DEMO_README.md).
 
+## Testing
+
+### Comprehensive Test Suite
+
+The application includes a comprehensive test suite that tests all API endpoints and user flows. To run the tests:
+
+```bash
+python tests/run_full_tests.py
+```
+
+### Test Logging
+
+To see detailed information about the API requests being made during tests, use the `--show-requests` flag:
+
+```bash
+python tests/run_full_tests.py --show-requests
+```
+
+Or use the provided convenience scripts:
+
+On Windows:
+```bash
+run_tests_with_logging.bat
+```
+
+On Linux/Mac:
+```bash
+./run_tests_with_logging.sh
+```
+
+This will display:
+- Formatted JSON data being sent in each request
+- HTTP method and URL for each API call
+- Headers included in each request
+- Complete request body
+
+This feature is particularly useful for:
+- Debugging API issues
+- Understanding the data flow
+- Verifying correct request formatting
+- Learning how the API works
+
+### Additional Test Options
+
+The test runner supports several command-line options:
+
+```bash
+python tests/run_full_tests.py --help
+```
+
+Options include:
+- `--api-url`: Specify a custom API URL
+- `--streamlit-url`: Specify a custom Streamlit URL
+- `--no-services`: Don't start or manage services (assumes they are already running)
+- `--no-cleanup`: Don't stop services after tests complete
+- `--wait-time`: Additional time to wait for services to fully initialize (seconds)
+- `--show-requests`: Show detailed HTTP request information
+
 ## Troubleshooting
 
 ### "No module named 'utils'" Error

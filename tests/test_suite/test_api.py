@@ -8,11 +8,20 @@ import requests
 import json
 import time
 from typing import Dict, List, Any, Optional, Union
+from rich.console import Console
+from rich.panel import Panel
+from rich.syntax import Syntax
 
 # Add parent directory to path to find the test_suite module
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from test_suite.test_config import API_BASE_URL
+
+# Console for rich output
+console = Console()
+
+# Check if we should show detailed API requests
+SHOW_API_REQUESTS = os.environ.get("SHOW_API_REQUESTS", "0") == "1"
 
 class JobRecommenderAPI:
     """API wrapper for the Job Recommender System"""
@@ -22,18 +31,50 @@ class JobRecommenderAPI:
         self.base_url = base_url
         self.token = None
     
+    def _display_request(self, method: str, url: str, headers: Dict[str, str], data: Any = None) -> None:
+        """Display the HTTP request details"""
+        if not SHOW_API_REQUESTS:
+            return
+            
+        request_info = {
+            "method": method,
+            "url": url,
+            "headers": headers
+        }
+        
+        if data:
+            if isinstance(data, dict):
+                request_info["body"] = data
+            elif isinstance(data, str):
+                # Try to parse as JSON if it's a string
+                try:
+                    request_info["body"] = json.loads(data)
+                except:
+                    request_info["body"] = data
+        
+        console.print(Panel.fit(
+            Syntax(json.dumps(request_info, indent=2), "json", theme="monokai"),
+            title=f"[bold blue]HTTP Request: {method} {url.split('/')[-1]}[/bold blue]",
+            border_style="blue"
+        ))
+    
     def login(self, email: str, password: str) -> bool:
         """Login and get access token"""
+        url = f"{self.base_url}/token"
         data = {
             "username": email,
             "password": password
         }
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        
+        # Display request
+        self._display_request("POST", url, headers, data)
         
         try:
             response = requests.post(
-                f"{self.base_url}/token", 
+                url, 
                 data=data,
-                headers={"Content-Type": "application/x-www-form-urlencoded"},
+                headers=headers,
                 timeout=10
             )
             
@@ -199,6 +240,9 @@ class JobRecommenderAPI:
             headers["Authorization"] = f"Bearer {self.token}"
         
         url = f"{self.base_url}/{endpoint}"
+        
+        # Display the request
+        self._display_request(method, url, headers, data)
         
         try:
             if method == "GET":

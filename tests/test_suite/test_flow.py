@@ -11,6 +11,7 @@ import random
 from typing import Dict, Any, List, Tuple, Optional
 from rich.console import Console
 from rich.panel import Panel
+from rich.syntax import Syntax
 
 # Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -26,6 +27,9 @@ from test_suite.test_config import (
 
 # Console for rich output
 console = Console()
+
+# Check if we should show detailed API requests
+SHOW_API_REQUESTS = os.environ.get("SHOW_API_REQUESTS", "0") == "1"
 
 class JobRecommenderTestFlow:
     """Complete test flow for the Job Recommender System"""
@@ -51,6 +55,17 @@ class JobRecommenderTestFlow:
         # Hardcoded employer ID for testing
         # We use this because the employer registration endpoint doesn't return the ID
         self.fallback_employer_id = "682ed450f1e25e775063d4bb"  # Known good employer ID from test_flow_results.json
+    
+    def _display_request_data(self, title: str, data: Dict[str, Any]) -> None:
+        """Display request data in a formatted panel"""
+        if not SHOW_API_REQUESTS:
+            return
+            
+        console.print(Panel.fit(
+            Syntax(json.dumps(data, indent=2), "json", theme="monokai"),
+            title=f"[bold yellow]{title}[/bold yellow]",
+            border_style="yellow"
+        ))
     
     def run_complete_flow(self) -> bool:
         """Run a complete test flow with both employer and candidate paths"""
@@ -86,6 +101,9 @@ class JobRecommenderTestFlow:
         employer_data["password"] = "test_password123"
         employer_data["user_type"] = "employer"
         
+        # Display the request data
+        self._display_request_data("Employer Registration Data", employer_data)
+        
         result = self.api.register_employer(employer_data)
         if "error" in result:
             self._record_test("Employer Registration", False, result.get("error", "Unknown error"))
@@ -119,6 +137,12 @@ class JobRecommenderTestFlow:
         
         # 2. Login as employer
         console.print("\n[bold]2. Logging in as employer...[/bold]")
+        login_data = {
+            "username": employer_data["email"],
+            "password": employer_data["password"]
+        }
+        self._display_request_data("Employer Login Data", login_data)
+        
         login_success = self.api.login(employer_data["email"], employer_data["password"])
         
         if not login_success:
@@ -142,6 +166,9 @@ class JobRecommenderTestFlow:
                 job_data["employer_id"] = self.test_data["employer_id"]
                 
             console.print(f"[dim]Creating job with employer_id: {job_data.get('employer_id')}[/dim]")
+            
+            # Display the request data
+            self._display_request_data(f"Job Creation Data #{i+1}", job_data)
             
             result = self.api.create_job(job_data)
             if "error" in result:
@@ -168,6 +195,9 @@ class JobRecommenderTestFlow:
                 
             console.print(f"[dim]Creating project with employer_id: {project_data.get('employer_id')}[/dim]")
             
+            # Display the request data
+            self._display_request_data(f"Project Creation Data #{i+1}", project_data)
+            
             result = self.api.create_project(project_data)
             if "error" in result:
                 self._record_test(f"Create Project {i+1}", False, result.get("error", "Unknown error"))
@@ -189,6 +219,9 @@ class JobRecommenderTestFlow:
                 "tech_stack": ["Python", "React", "AWS", "Docker"]
             }
         }
+        
+        # Display the request data
+        self._display_request_data("Employer Profile Update Data", update_data)
         
         result = self.api.update_profile(update_data)
         if "error" in result:
@@ -223,6 +256,9 @@ class JobRecommenderTestFlow:
         
         console.print("[dim]Using simplified candidate data to avoid server errors[/dim]")
         
+        # Display the request data
+        self._display_request_data("Candidate Registration Data", simplified_candidate)
+        
         result = self.api.register_candidate(simplified_candidate)
         if "error" in result:
             self._record_test("Candidate Registration", False, result.get("error", "Unknown error"))
@@ -248,6 +284,12 @@ class JobRecommenderTestFlow:
         
         # 2. Login as candidate
         console.print("\n[bold]2. Logging in as candidate...[/bold]")
+        login_data = {
+            "username": candidate_email,
+            "password": "test_password123"
+        }
+        self._display_request_data("Candidate Login Data", login_data)
+        
         login_success = self.api.login(candidate_email, "test_password123")
         
         if not login_success:
@@ -260,6 +302,9 @@ class JobRecommenderTestFlow:
         
         # 3. Search for jobs
         console.print("\n[bold]3. Searching for jobs...[/bold]")
+        search_data = {"query": "Software"}
+        self._display_request_data("Job Search Data", search_data)
+        
         result = self.api.search_jobs("Software")
         
         if "error" in result:
@@ -272,6 +317,8 @@ class JobRecommenderTestFlow:
         
         # 4. Get job recommendations
         console.print("\n[bold]4. Getting job recommendations...[/bold]")
+        console.print("[dim]Requesting job recommendations for current candidate[/dim]")
+        
         result = self.api.get_job_recommendations()
         
         if "error" in result:
@@ -296,6 +343,9 @@ class JobRecommenderTestFlow:
                     "resume_url": "https://example.com/resume.pdf",
                     "notes": "Available to start immediately"
                 }
+                
+                # Display the request data
+                self._display_request_data(f"Job Application Data #{i+1}", application_data)
                 
                 result = self.api.apply_for_job(application_data)
                 if "error" in result:
@@ -324,6 +374,9 @@ class JobRecommenderTestFlow:
                     "availability": random.choice(["Full-time", "Part-time", "Weekends"])
                 }
                 
+                # Display the request data
+                self._display_request_data(f"Project Application Data #{i+1}", application_data)
+                
                 result = self.api.apply_for_project(application_data)
                 if "error" in result:
                     self._record_test(f"Apply for Project {i+1}", False, result.get("error", "Unknown error"))
@@ -346,6 +399,9 @@ class JobRecommenderTestFlow:
                     "notes": "Interesting opportunity to apply for later"
                 }
                 
+                # Display the request data
+                self._display_request_data("Save Job Data", save_data)
+                
                 result = self.api.save_job(save_data)
                 if "error" in result:
                     self._record_test("Save Job", False, result.get("error", "Unknown error"))
@@ -358,6 +414,8 @@ class JobRecommenderTestFlow:
         
         # 8. Check saved jobs
         console.print("\n[bold]8. Checking saved jobs...[/bold]")
+        console.print("[dim]Requesting saved jobs for current candidate[/dim]")
+        
         result = self.api.get_saved_jobs()
         
         if "error" in result:
@@ -370,6 +428,9 @@ class JobRecommenderTestFlow:
         
         # 9. Get skill gap analysis
         console.print("\n[bold]9. Getting skill gap analysis...[/bold]")
+        skill_gap_data = {"target_role": "Software Engineer"}
+        self._display_request_data("Skill Gap Analysis Request", skill_gap_data)
+        
         result = self.api.get_skill_gap_analysis("Software Engineer")
         
         if "error" in result:
