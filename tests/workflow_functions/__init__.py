@@ -1,0 +1,1 @@
+# Workflow functions package for Job Recommender Platform visual testing 

@@ -1,0 +1,997 @@
+{
+	"info": {
+		"_postman_id": "12345678-abcd-9876-efgh-123456789abc",
+		"name": "Job Recommender API - Recommendation System",
+		"description": "A focused API collection for the recommendation system functionality of the Job Recommender API.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register Candidate",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"candidate@example.com\",\n    \"password\": \"password123\",\n    \"full_name\": \"John Doe\",\n    \"user_type\": \"candidate\",\n    \"experience_years\": 5,\n    \"education_summary\": \"BS in Computer Science, Stanford University\",\n    \"bio\": \"Experienced software engineer with a passion for AI and machine learning\",\n    \"location\": \"San Francisco, CA\",\n    \"skills\": {\n        \"languages_frameworks\": [\"JavaScript\", \"Python\", \"React\", \"Node.js\", \"TensorFlow\"],\n        \"tools\": [\"Git\", \"Docker\", \"AWS\", \"Jenkins\"],\n        \"soft_skills\": [\"Communication\", \"Team Leadership\", \"Problem Solving\"]\n    },\n    \"preferred_job_types\": [\"Full-time\", \"Remote\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/register/candidate",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"register",
+								"candidate"
+							]
+						},
+						"description": "Register a new candidate user"
+					},
+					"response": []
+				},
+				{
+					"name": "Register Employer",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"employer@example.com\",\n    \"password\": \"password456\",\n    \"full_name\": \"Jane Smith\",\n    \"user_type\": \"employer\",\n    \"position\": \"HR Manager\", \n    \"company_details\": {\n        \"company_name\": \"Tech Company Inc.\",\n        \"industry\": \"Technology\",\n        \"company_size\": \"51-200 employees\",\n        \"website\": \"https://techcompany.com\",\n        \"location\": \"San Francisco, CA\"\n    },\n    \"hiring_needs\": [\"Software Engineers\", \"Data Scientists\", \"Product Managers\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/register/employer",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"register",
+								"employer"
+							]
+						},
+						"description": "Register a new employer user"
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData && jsonData.access_token) {",
+									"    pm.environment.set(\"access_token\", jsonData.access_token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "username",
+									"value": "{{email}}",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "{{password}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/token",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"token"
+							]
+						},
+						"description": "Get an access token for authentication"
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication endpoints required for accessing the recommendation system"
+		},
+		{
+			"name": "Profile Management",
+			"item": [
+				{
+					"name": "Update Candidate Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"skills\": {\n        \"languages_frameworks\": [\"JavaScript\", \"Python\", \"React\", \"Node.js\", \"TensorFlow\", \"Vue.js\"],\n        \"tools\": [\"Git\", \"Docker\", \"AWS\", \"Jenkins\", \"CircleCI\"],\n        \"soft_skills\": [\"Communication\", \"Team Leadership\", \"Problem Solving\", \"Agile Methodologies\"]\n    },\n    \"experience\": [\n        {\n            \"title\": \"Senior Software Engineer\",\n            \"company\": \"Tech Company Inc.\",\n            \"location\": \"San Francisco, CA\",\n            \"start_date\": \"2019-06-01\",\n            \"end_date\": null,\n            \"description\": \"Leading frontend development team and implementing machine learning features\",\n            \"technologies\": [\"React\", \"Python\", \"TensorFlow\"]\n        },\n        {\n            \"title\": \"Software Engineer\",\n            \"company\": \"Startup XYZ\",\n            \"location\": \"New York, NY\",\n            \"start_date\": \"2016-03-01\",\n            \"end_date\": \"2019-05-30\",\n            \"description\": \"Full stack development for e-commerce platform\",\n            \"technologies\": [\"JavaScript\", \"Node.js\", \"MongoDB\"]\n        }\n    ],\n    \"education\": [\n        {\n            \"degree\": \"BS in Computer Science\",\n            \"institution\": \"Stanford University\",\n            \"location\": \"Stanford, CA\",\n            \"graduation_year\": 2016,\n            \"gpa\": 3.8\n        }\n    ],\n    \"certifications\": [\n        {\n            \"name\": \"AWS Certified Solutions Architect\",\n            \"issuer\": \"Amazon Web Services\",\n            \"date_obtained\": \"2020-02-15\",\n            \"expiry_date\": \"2023-02-15\"\n        },\n        {\n            \"name\": \"TensorFlow Developer Certificate\",\n            \"issuer\": \"Google\",\n            \"date_obtained\": \"2021-05-20\",\n            \"expiry_date\": null\n        }\n    ],\n    \"projects\": [\n        {\n            \"title\": \"E-commerce Recommendation Engine\",\n            \"description\": \"Developed a recommendation engine for an e-commerce platform using collaborative filtering\",\n            \"url\": \"https://github.com/johndoe/ecommerce-recommendations\",\n            \"technologies\": [\"Python\", \"TensorFlow\", \"Flask\"]\n        }\n    ],\n    \"preferred_job_types\": [\"Full-time\", \"Remote\"],\n    \"preferred_industries\": [\"Technology\", \"E-commerce\", \"Finance\"],\n    \"preferred_locations\": [\"San Francisco, CA\", \"New York, NY\", \"Remote\"],\n    \"salary_expectations\": {\n        \"minimum\": 130000,\n        \"currency\": \"USD\"\n    },\n    \"availability\": \"2 weeks notice\",\n    \"recommendation_preferences\": {\n        \"skills_weight\": 0.7,\n        \"location_weight\": 0.3,\n        \"industry_weight\": 0.5,\n        \"company_size_preferences\": [\"Startup\", \"Mid-size\"],\n        \"exclude_companies\": [\"Competitor Inc.\"]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"profile"
+							]
+						},
+						"description": "Update candidate profile with detailed information for better recommendations"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Employer Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"company_details\": {\n        \"company_name\": \"Tech Company Inc.\",\n        \"industry\": \"Technology\",\n        \"company_size\": \"51-200 employees\",\n        \"website\": \"https://techcompany.com\",\n        \"location\": \"San Francisco, CA\",\n        \"year_founded\": 2010,\n        \"description\": \"We build cutting-edge software solutions for enterprise clients\",\n        \"culture\": [\"Innovative\", \"Collaborative\", \"Fast-paced\", \"Remote-friendly\"],\n        \"benefits\": [\"Health insurance\", \"401k matching\", \"Unlimited PTO\", \"Professional development budget\"]\n    },\n    \"hiring_preferences\": {\n        \"preferred_skills\": [\"JavaScript\", \"React\", \"Node.js\", \"Python\", \"AWS\"],\n        \"preferred_education\": [\"Bachelor's degree\", \"Master's degree\"],\n        \"preferred_experience_years\": {\n            \"min\": 3,\n            \"max\": 10\n        },\n        \"remote_work_policy\": \"Hybrid\",\n        \"hiring_timeline\": \"1-3 months\",\n        \"candidate_evaluation_criteria\": {\n            \"technical_skills\": 0.7,\n            \"cultural_fit\": 0.5,\n            \"communication_skills\": 0.6,\n            \"experience\": 0.5,\n            \"education\": 0.3\n        }\n    },\n    \"recommendation_preferences\": {\n        \"skills_match_threshold\": 0.7,\n        \"experience_weight\": 0.6,\n        \"cultural_fit_weight\": 0.4,\n        \"prioritize_active_candidates\": true,\n        \"candidate_diversity_preferences\": true\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"profile"
+							]
+						},
+						"description": "Update employer profile with detailed information for better candidate recommendations"
+					},
+					"response": []
+				}
+			],
+			"description": "Profile management endpoints relevant for recommendation system"
+		},
+		{
+			"name": "Candidate Recommendations",
+			"item": [
+				{
+					"name": "Get Job Recommendations",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/recommendations/jobs?limit=20&offset=0&min_match_score=75&include_details=true&sort_by=match_score&location_radius=50&remote_only=false&salary_min=100000&employment_types=Full-time,Contract&industries=Technology,Finance&exclude_applied=true",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"recommendations",
+								"jobs"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								},
+								{
+									"key": "min_match_score",
+									"value": "75"
+								},
+								{
+									"key": "include_details",
+									"value": "true"
+								},
+								{
+									"key": "sort_by",
+									"value": "match_score"
+								},
+								{
+									"key": "location_radius",
+									"value": "50"
+								},
+								{
+									"key": "remote_only",
+									"value": "false"
+								},
+								{
+									"key": "salary_min",
+									"value": "100000"
+								},
+								{
+									"key": "employment_types",
+									"value": "Full-time,Contract"
+								},
+								{
+									"key": "industries",
+									"value": "Technology,Finance"
+								},
+								{
+									"key": "exclude_applied",
+									"value": "true"
+								}
+							]
+						},
+						"description": "Get personalized job recommendations for the candidate with filtering options"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Project Recommendations",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/recommendations/projects?limit=20&offset=0&min_match_score=75&include_details=true&sort_by=match_score&project_types=Mobile Application,Web Application&duration_max=6&budget_min=10000&remote_only=true&exclude_applied=true",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"recommendations",
+								"projects"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								},
+								{
+									"key": "min_match_score",
+									"value": "75"
+								},
+								{
+									"key": "include_details",
+									"value": "true"
+								},
+								{
+									"key": "sort_by",
+									"value": "match_score"
+								},
+								{
+									"key": "project_types",
+									"value": "Mobile Application,Web Application"
+								},
+								{
+									"key": "duration_max",
+									"value": "6"
+								},
+								{
+									"key": "budget_min",
+									"value": "10000"
+								},
+								{
+									"key": "remote_only",
+									"value": "true"
+								},
+								{
+									"key": "exclude_applied",
+									"value": "true"
+								}
+							]
+						},
+						"description": "Get personalized project recommendations for the candidate with filtering options"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Similar Jobs",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/recommendations/similar-jobs/{{job_id}}?limit=10&exclude_applied=true&exclude_company=false",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"recommendations",
+								"similar-jobs",
+								"{{job_id}}"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "exclude_applied",
+									"value": "true"
+								},
+								{
+									"key": "exclude_company",
+									"value": "false"
+								}
+							]
+						},
+						"description": "Get jobs similar to a specific job the candidate is viewing"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Skill Gap Analysis",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/recommendations/skill-gap?target_role=Senior Software Engineer&industry=Technology&include_learning_resources=true",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"recommendations",
+								"skill-gap"
+							],
+							"query": [
+								{
+									"key": "target_role",
+									"value": "Senior Software Engineer"
+								},
+								{
+									"key": "industry",
+									"value": "Technology"
+								},
+								{
+									"key": "include_learning_resources",
+									"value": "true"
+								}
+							]
+						},
+						"description": "Get skill gap analysis comparing candidate's skills with requirements for target roles"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Career Path Recommendations",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/recommendations/career-paths?timeframe_years=5&include_skill_requirements=true&include_salary_data=true",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"recommendations",
+								"career-paths"
+							],
+							"query": [
+								{
+									"key": "timeframe_years",
+									"value": "5"
+								},
+								{
+									"key": "include_skill_requirements",
+									"value": "true"
+								},
+								{
+									"key": "include_salary_data",
+									"value": "true"
+								}
+							]
+						},
+						"description": "Get career path recommendations based on candidate's current profile and market trends"
+					},
+					"response": []
+				}
+			],
+			"description": "Recommendations for candidates (jobs, projects, skills, career paths)"
+		},
+		{
+			"name": "Employer Recommendations",
+			"item": [
+				{
+					"name": "Get Candidate Recommendations for Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/recommendations/candidates/{{job_id}}?limit=20&min_match_score=80&include_details=true&sort_by=match_score&experience_min=3&experience_max=10&location_radius=50&include_remote=true&education_level=Bachelors,Masters&availability=Immediate,2 weeks",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"recommendations",
+								"candidates",
+								"{{job_id}}"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "min_match_score",
+									"value": "80"
+								},
+								{
+									"key": "include_details",
+									"value": "true"
+								},
+								{
+									"key": "sort_by",
+									"value": "match_score"
+								},
+								{
+									"key": "experience_min",
+									"value": "3"
+								},
+								{
+									"key": "experience_max",
+									"value": "10"
+								},
+								{
+									"key": "location_radius",
+									"value": "50"
+								},
+								{
+									"key": "include_remote",
+									"value": "true"
+								},
+								{
+									"key": "education_level",
+									"value": "Bachelors,Masters"
+								},
+								{
+									"key": "availability",
+									"value": "Immediate,2 weeks"
+								}
+							]
+						},
+						"description": "Get candidate recommendations for a specific job with filtering options"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Talent Search Results",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"skills\": {\n        \"required\": [\"React\", \"JavaScript\", \"Node.js\"],\n        \"preferred\": [\"TypeScript\", \"AWS\", \"GraphQL\"],\n        \"weights\": {\n            \"React\": 1.0,\n            \"JavaScript\": 0.9,\n            \"Node.js\": 0.8,\n            \"TypeScript\": 0.7,\n            \"AWS\": 0.6,\n            \"GraphQL\": 0.5\n        }\n    },\n    \"experience\": {\n        \"min_years\": 3,\n        \"max_years\": 8,\n        \"preferred_titles\": [\"Software Engineer\", \"Frontend Developer\", \"Full Stack Developer\"],\n        \"required_industries\": [\"Technology\", \"E-commerce\"],\n        \"preferred_industries\": [\"Finance\", \"Healthcare\"]\n    },\n    \"education\": {\n        \"min_level\": \"Bachelors\",\n        \"preferred_fields\": [\"Computer Science\", \"Software Engineering\", \"Information Technology\"],\n        \"preferred_institutions\": []\n    },\n    \"location\": {\n        \"base_location\": \"San Francisco, CA\",\n        \"radius_miles\": 50,\n        \"remote_options\": [\"Remote\", \"Hybrid\"],\n        \"relocation_assistance\": true\n    },\n    \"availability\": {\n        \"start_date_max\": \"2023-12-31\",\n        \"notice_period_max_weeks\": 4\n    },\n    \"salary_range\": {\n        \"min\": 120000,\n        \"max\": 160000,\n        \"currency\": \"USD\"\n    },\n    \"search_parameters\": {\n        \"limit\": 50,\n        \"min_match_score\": 75,\n        \"include_details\": true,\n        \"sort_by\": \"match_score\",\n        \"exclude_previously_interviewed\": true,\n        \"diversity_preferences\": true\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/recommendations/talent-search",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"recommendations",
+								"talent-search"
+							]
+						},
+						"description": "Advanced search for candidates based on specific criteria"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Candidate Recommendations for Project",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/recommendations/project-candidates/{{project_id}}?limit=20&min_match_score=80&include_details=true&sort_by=match_score&availability_min_hours=15&remote_only=true",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"recommendations",
+								"project-candidates",
+								"{{project_id}}"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "min_match_score",
+									"value": "80"
+								},
+								{
+									"key": "include_details",
+									"value": "true"
+								},
+								{
+									"key": "sort_by",
+									"value": "match_score"
+								},
+								{
+									"key": "availability_min_hours",
+									"value": "15"
+								},
+								{
+									"key": "remote_only",
+									"value": "true"
+								}
+							]
+						},
+						"description": "Get candidate recommendations for a specific project"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Salary Recommendations",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"job_title\": \"Senior Software Engineer\",\n    \"required_skills\": [\"JavaScript\", \"React\", \"Node.js\", \"AWS\"],\n    \"experience_years\": 5,\n    \"location\": \"San Francisco, CA\",\n    \"remote_position\": false,\n    \"industry\": \"Technology\",\n    \"company_size\": \"51-200 employees\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/recommendations/salary",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"recommendations",
+								"salary"
+							]
+						},
+						"description": "Get salary recommendations for a specific role and requirements"
+					},
+					"response": []
+				}
+			],
+			"description": "Recommendations for employers (candidates, salary data)"
+		},
+		{
+			"name": "Analytics",
+			"item": [
+				{
+					"name": "Get Recommendation Impact Metrics",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/analytics/recommendations/impact?period=last_30_days",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"analytics",
+								"recommendations",
+								"impact"
+							],
+							"query": [
+								{
+									"key": "period",
+									"value": "last_30_days"
+								}
+							]
+						},
+						"description": "Get metrics about the effectiveness of recommendations (view rates, application rates, etc.)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Recommendation Algorithm Performance",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/analytics/recommendations/performance?algorithm_version=latest",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"analytics",
+								"recommendations",
+								"performance"
+							],
+							"query": [
+								{
+									"key": "algorithm_version",
+									"value": "latest"
+								}
+							]
+						},
+						"description": "Get performance metrics for the recommendation algorithm"
+					},
+					"response": []
+				}
+			],
+			"description": "Analytics endpoints related to recommendation system performance"
+		},
+		{
+			"name": "Feedback",
+			"item": [
+				{
+					"name": "Submit Recommendation Feedback",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"recommendation_id\": \"{{recommendation_id}}\",\n    \"recommendation_type\": \"job\",\n    \"relevance_score\": 4,\n    \"accuracy_score\": 5,\n    \"is_helpful\": true,\n    \"feedback_text\": \"This job recommendation matched my skills well, but the location wasn't ideal.\",\n    \"action_taken\": \"viewed_details\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/recommendations/feedback",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"recommendations",
+								"feedback"
+							]
+						},
+						"description": "Submit feedback about a specific recommendation"
+					},
+					"response": []
+				},
+				{
+					"name": "Adjust Recommendation Preferences",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"candidate_preferences\": {\n        \"skills_weight\": 0.8,\n        \"location_weight\": 0.4,\n        \"company_culture_weight\": 0.6,\n        \"salary_range_weight\": 0.7,\n        \"industries\": {\n            \"preferred\": [\"Technology\", \"Finance\", \"Healthcare\"],\n            \"excluded\": [\"Oil & Gas\"]\n        },\n        \"company_sizes\": {\n            \"preferred\": [\"Startup\", \"Mid-size\"],\n            \"excluded\": []\n        },\n        \"job_types\": {\n            \"preferred\": [\"Full-time\", \"Remote\"],\n            \"excluded\": [\"Part-time\"]\n        },\n        \"excluded_companies\": [\"Competitor Inc.\", \"Bad Experience Corp.\"]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/recommendations/preferences",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"recommendations",
+								"preferences"
+							]
+						},
+						"description": "Update preferences for recommendation algorithm"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for providing feedback on recommendations"
+		},
+		{
+			"name": "Machine Learning",
+			"item": [
+				{
+					"name": "Get Skill Clustering Analysis",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/ml/skills/clusters?min_confidence=0.7",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ml",
+								"skills",
+								"clusters"
+							],
+							"query": [
+								{
+									"key": "min_confidence",
+									"value": "0.7"
+								}
+							]
+						},
+						"description": "Get ML-based skill cluster analysis and recommendations"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Market Trend Predictions",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/ml/market-trends?timeframe=6_months&skill_category=software_development",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ml",
+								"market-trends"
+							],
+							"query": [
+								{
+									"key": "timeframe",
+									"value": "6_months"
+								},
+								{
+									"key": "skill_category",
+									"value": "software_development"
+								}
+							]
+						},
+						"description": "Get predicted market trends based on ML analysis"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Personalized Learning Recommendations",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/ml/learning-recommendations?career_goal=Senior Software Engineer&timeframe=6_months",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ml",
+								"learning-recommendations"
+							],
+							"query": [
+								{
+									"key": "career_goal",
+									"value": "Senior Software Engineer"
+								},
+								{
+									"key": "timeframe",
+									"value": "6_months"
+								}
+							]
+						},
+						"description": "Get personalized learning recommendations based on career goals"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints related to ML capabilities of the recommendation system"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000/api/v1"
+		}
+	]
+} 

@@ -1,0 +1,965 @@
+{
+	"info": {
+		"_postman_id": "98765432-abcd-4321-efgh-0123456789cd",
+		"name": "Job Recommender API Basic Complete",
+		"description": "A basic but complete collection for the Job Recommender API with moderately detailed payloads.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register Candidate",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"candidate@example.com\",\n    \"password\": \"password123\",\n    \"full_name\": \"John Doe\",\n    \"user_type\": \"candidate\",\n    \"experience_years\": 5,\n    \"education_summary\": \"BS in Computer Science, Stanford University\",\n    \"bio\": \"Experienced software engineer with a passion for AI and machine learning\",\n    \"location\": \"San Francisco, CA\",\n    \"skills\": {\n        \"languages_frameworks\": [\"JavaScript\", \"Python\", \"React\", \"Node.js\", \"TensorFlow\"],\n        \"tools\": [\"Git\", \"Docker\", \"AWS\", \"Jenkins\"],\n        \"soft_skills\": [\"Communication\", \"Team Leadership\", \"Problem Solving\"]\n    },\n    \"preferred_job_types\": [\"Full-time\", \"Remote\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/register/candidate",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"register",
+								"candidate"
+							]
+						},
+						"description": "Register a new candidate user"
+					},
+					"response": []
+				},
+				{
+					"name": "Register Employer",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"employer@example.com\",\n    \"password\": \"password456\",\n    \"full_name\": \"Jane Smith\",\n    \"user_type\": \"employer\",\n    \"position\": \"HR Manager\", \n    \"company_details\": {\n        \"company_name\": \"Tech Company Inc.\",\n        \"industry\": \"Technology\",\n        \"company_size\": \"51-200 employees\",\n        \"website\": \"https://techcompany.com\",\n        \"location\": \"San Francisco, CA\"\n    },\n    \"hiring_needs\": [\"Software Engineers\", \"Data Scientists\", \"Product Managers\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/register/employer",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"register",
+								"employer"
+							]
+						},
+						"description": "Register a new employer user"
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData && jsonData.access_token) {",
+									"    pm.environment.set(\"access_token\", jsonData.access_token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "username",
+									"value": "{{email}}",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "{{password}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/token",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"token"
+							]
+						},
+						"description": "Get an access token for authentication"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"profile"
+							]
+						},
+						"description": "Get the current user's profile"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"bio\": \"Updated professional bio with 7+ years of experience in software development\",\n    \"location\": \"New York, NY\",\n    \"skills\": {\n        \"languages_frameworks\": [\"JavaScript\", \"Python\", \"React\", \"Vue.js\", \"Django\"],\n        \"tools\": [\"Git\", \"Docker\", \"AWS\", \"CircleCI\"]\n    },\n    \"preferred_job_types\": [\"Full-time\", \"Remote\", \"Contract\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"profile"
+							]
+						},
+						"description": "Update the current user's profile"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Jobs",
+			"item": [
+				{
+					"name": "Create Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Senior Software Engineer\",\n    \"company\": \"Tech Company Inc.\",\n    \"description\": \"We are looking for an experienced Software Engineer to join our web development team.\",\n    \"requirements\": [\"JavaScript\", \"React\", \"Node.js\", \"5+ years experience\"],\n    \"responsibilities\": [\"Develop web applications\", \"Work with product team\", \"Review code\", \"Mentor junior developers\"],\n    \"location\": \"San Francisco, CA\",\n    \"employment_type\": \"Full-time\",\n    \"salary_range\": {\n        \"min\": 120000,\n        \"max\": 160000,\n        \"currency\": \"USD\"\n    },\n    \"employer_id\": \"{{employer_id}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/jobs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"jobs"
+							]
+						},
+						"description": "Create a new job posting (for employers only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Jobs",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/jobs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"jobs"
+							]
+						},
+						"description": "Get all active jobs"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Job by ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/jobs/{{job_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"jobs",
+								"{{job_id}}"
+							]
+						},
+						"description": "Get job details by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Senior Software Engineer - Frontend\",\n    \"description\": \"Updated job description with more details about frontend focus\",\n    \"requirements\": [\"JavaScript\", \"React\", \"TypeScript\", \"CSS\", \"5+ years experience\"],\n    \"salary_range\": {\n        \"min\": 130000,\n        \"max\": 170000,\n        \"currency\": \"USD\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/jobs/{{job_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"jobs",
+								"{{job_id}}"
+							]
+						},
+						"description": "Update an existing job posting"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/jobs/{{job_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"jobs",
+								"{{job_id}}"
+							]
+						},
+						"description": "Delete a job posting"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Projects",
+			"item": [
+				{
+					"name": "Create Project",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"E-Commerce Mobile App\",\n    \"company\": \"Tech Company Inc.\",\n    \"description\": \"Building a mobile app for e-commerce with product browsing and checkout features\",\n    \"project_type\": \"Mobile Application\",\n    \"requirements\": [\"React Native\", \"JavaScript\", \"API Integration\"],\n    \"skills_required\": [\"Mobile Development\", \"API Integration\", \"UI/UX Design\"],\n    \"duration\": {\n        \"estimated_months\": 3,\n        \"start_date\": \"2023-10-15\"\n    },\n    \"budget\": {\n        \"amount\": 15000,\n        \"currency\": \"USD\",\n        \"type\": \"fixed\"\n    },\n    \"location\": \"Remote\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/projects",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects"
+							]
+						},
+						"description": "Create a new project posting"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Projects",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/projects",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects"
+							]
+						},
+						"description": "Get all active projects"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Project by ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/projects/{{project_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects",
+								"{{project_id}}"
+							]
+						},
+						"description": "Get details of a specific project"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Project",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"in_progress\",\n    \"description\": \"Updated project description with additional UI/UX requirements\",\n    \"skills_required\": [\"Mobile Development\", \"React Native\", \"API Integration\", \"UI/UX Design\", \"Testing\"],\n    \"budget\": {\n        \"amount\": 18000,\n        \"currency\": \"USD\",\n        \"type\": \"fixed\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/projects/{{project_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects",
+								"{{project_id}}"
+							]
+						},
+						"description": "Update an existing project"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Applications",
+			"item": [
+				{
+					"name": "Create Job Application",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"job_id\": \"{{job_id}}\",\n    \"cover_letter\": \"I am interested in this position and believe my skills match your requirements. I have experience with all the technologies listed and would love to join your team.\",\n    \"resume_url\": \"https://example.com/resume.pdf\",\n    \"availability\": \"Immediate\",\n    \"salary_expectation\": {\n        \"amount\": 145000,\n        \"currency\": \"USD\"\n    },\n    \"additional_documents\": [\n        {\n            \"name\": \"Portfolio\",\n            \"url\": \"https://example.com/portfolio\"\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/applications",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"applications"
+							]
+						},
+						"description": "Create a new job application"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Project Application",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"project_id\": \"{{project_id}}\",\n    \"cover_letter\": \"I am interested in this project and have relevant experience with React Native and e-commerce applications.\",\n    \"resume_url\": \"https://example.com/portfolio.pdf\",\n    \"availability\": {\n        \"start_date\": \"2023-10-01\",\n        \"hours_per_week\": 20\n    },\n    \"rate\": {\n        \"amount\": 75,\n        \"currency\": \"USD\",\n        \"per\": \"hour\"\n    },\n    \"similar_projects\": [\n        {\n            \"name\": \"Previous E-commerce App\",\n            \"url\": \"https://example.com/previous-project\"\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/project-applications",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"project-applications"
+							]
+						},
+						"description": "Create a new project application"
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Applications",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/applications",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"applications"
+							]
+						},
+						"description": "Get job applications for the current user"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Application Status",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"interview_scheduled\",\n    \"notes\": \"Interview scheduled for October 15, 2023\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/applications/{{application_id}}/status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"applications",
+								"{{application_id}}",
+								"status"
+							]
+						},
+						"description": "Update the status of an application (for employers)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Saved Items",
+			"item": [
+				{
+					"name": "Save Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"job_id\": \"{{job_id}}\",\n    \"notes\": \"Interesting position to apply for later\",\n    \"reminder_date\": \"2023-10-10\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/saved-jobs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"saved-jobs"
+							]
+						},
+						"description": "Save a job for later reference"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Saved Jobs",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/saved-jobs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"saved-jobs"
+							]
+						},
+						"description": "Get all jobs saved by the current candidate"
+					},
+					"response": []
+				},
+				{
+					"name": "Save Project",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"project_id\": \"{{project_id}}\",\n    \"notes\": \"Interesting project to apply for later\",\n    \"reminder_date\": \"2023-10-05\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/saved-projects",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"saved-projects"
+							]
+						},
+						"description": "Save a project for later reference"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Recommendations",
+			"item": [
+				{
+					"name": "Get Job Recommendations",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/recommendations/jobs?limit=10&offset=0",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"recommendations",
+								"jobs"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								}
+							]
+						},
+						"description": "Get personalized job recommendations for the candidate"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Project Recommendations",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/recommendations/projects?limit=10&offset=0",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"recommendations",
+								"projects"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								}
+							]
+						},
+						"description": "Get personalized project recommendations for the candidate"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Candidate Recommendations for Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/recommendations/candidates/{{job_id}}?limit=10&match_threshold=75",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"recommendations",
+								"candidates",
+								"{{job_id}}"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "match_threshold",
+									"value": "75"
+								}
+							]
+						},
+						"description": "Get candidate recommendations for a specific job"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Talent Search Results",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"skills\": [\"React\", \"JavaScript\", \"Node.js\"],\n    \"experience_years\": 3,\n    \"location\": \"San Francisco, CA\",\n    \"availability\": \"Full-time\",\n    \"limit\": 20\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/recommendations/talent-search",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"recommendations",
+								"talent-search"
+							]
+						},
+						"description": "Search for candidates based on specific criteria"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Employer Management",
+			"item": [
+				{
+					"name": "Get Company Analytics",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/employer/analytics",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"employer",
+								"analytics"
+							]
+						},
+						"description": "Get analytics data for employer company"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Applications for Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/employer/jobs/{{job_id}}/applications",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"employer",
+								"jobs",
+								"{{job_id}}",
+								"applications"
+							]
+						},
+						"description": "Get all applications for a specific job posting"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+} 

@@ -1,0 +1,77 @@
+{
+  "email": "candidate@example.com",
+  "password": "securepassword123",
+  "full_name": "Test Candidate",
+  "phone": "+1-555-123-4567",
+  "location": "New York, USA",
+  "experience_years": "5+ years",
+  "education_summary": "MSc Computer Science",
+  "bio": "Software engineer specializing in AI and machine learning applications.",
+  "about": "Experienced Software Engineer with a strong background in Artificial Intelligence and Machine Learning. Skilled in designing, developing, and deploying scalable AI-powered solutions and APIs. Passionate about leveraging data-driven techniques to solve complex problems and deliver impactful business results. Adept at collaborating in agile teams and continuously learning emerging technologies.",
+  "links": {
+    "linkedin": "https://www.linkedin.com/in/testcandidate",
+    "github": "https://github.com/testcandidate",
+    "portfolio": "https://testcandidate.dev",
+    "resume": "https://example.com/resumes/testcandidate_resume.pdf"
+  },
+  "skills": {
+    "languages_frameworks": ["Python", "FastAPI", "Flask", "SQL", "Bash"],
+    "ai_ml_data": ["Machine Learning", "Deep Learning", "Data Analysis", "Scikit-learn", "TensorFlow", "Pandas", "NumPy"],
+    "tools_platforms": ["Docker", "Git", "AWS", "PostgreSQL", "MongoDB", "REST APIs", "CI/CD"],
+    "soft_skills": ["Team collaboration", "Agile development", "Technical documentation"]
+  },
+  "experience": [
+    {
+      "title": "Machine Learning Engineer",
+      "company": "AI Tech Solutions",
+      "location": "New York, NY",
+      "duration": "Jan 2021 – Present",
+      "responsibilities": [
+        "Built and deployed ML models for fraud detection and customer churn prediction",
+        "Created RESTful APIs using FastAPI for AI service delivery",
+        "Collaborated with data engineers to streamline ML pipelines using Docker and PostgreSQL"
+      ]
+    },
+    {
+      "title": "Software Developer",
+      "company": "Innovative Soft Inc.",
+      "location": "Boston, MA",
+      "duration": "Jun 2019 – Dec 2020",
+      "responsibilities": [
+        "Developed analytics dashboards and data tools for internal business intelligence",
+        "Improved system performance by refactoring legacy Python scripts and optimizing queries"
+      ]
+    }
+  ],
+  "education": [
+    {
+      "degree": "MSc in Computer Science",
+      "institution": "Columbia University",
+      "duration": "2017 – 2019"
+    },
+    {
+      "degree": "BSc in Information Technology",
+      "institution": "New York University (NYU)",
+      "duration": "2013 – 2017"
+    }
+  ],
+  "certifications": [
+    "AWS Certified Machine Learning – Specialty",
+    "TensorFlow Developer Certificate",
+    "FastAPI Advanced Developer Workshop"
+  ],
+  "preferred_job_locations": ["New York", "San Francisco", "Remote"],
+  "job_search_status": {
+    "currently_looking": true,
+    "available_from": "2025-06-01",
+    "desired_job_titles": ["Machine Learning Engineer", "Data Scientist", "AI Engineer"],
+    "preferred_employment_type": ["Full-time", "Remote", "Contract"],
+    "salary_expectation_usd": {
+      "min": 90000,
+      "max": 120000
+    },
+    "notice_period_days": 30,
+    "relocation_willingness": true,
+    "additional_notes": "Open to freelance and project-based work, passionate about AI ethics and responsible AI development."
+  }
+} 

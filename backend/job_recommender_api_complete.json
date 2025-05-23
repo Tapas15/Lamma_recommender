@@ -1,0 +1,1310 @@
+{
+	"info": {
+		"_postman_id": "97a62b8d-5f6c-4d4e-9ef7-1cda3b56d14e",
+		"name": "Job Recommender API - Complete",
+		"description": "Full API collection for the Job Recommender System built with FastAPI and MongoDB",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login (Get Token)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "username",
+									"value": "{{email}}",
+									"description": "Email address",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "{{password}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/token",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"token"
+							]
+						},
+						"description": "OAuth2 login endpoint to get JWT token"
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication-related endpoints"
+		},
+		{
+			"name": "Registration",
+			"item": [
+				{
+					"name": "Register Candidate",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"candidate@example.com\",\n    \"password\": \"password123\",\n    \"full_name\": \"John Doe\",\n    \"user_type\": \"candidate\",\n    \"phone\": \"+1234567890\",\n    \"location\": \"San Francisco, CA\",\n    \"experience_years\": \"5\",\n    \"education_summary\": \"BS in Computer Science\",\n    \"bio\": \"Experienced software engineer with a passion for AI\",\n    \"skills\": {\n        \"languages_frameworks\": [\"Python\", \"React\", \"JavaScript\"],\n        \"ai_ml_data\": [\"TensorFlow\", \"PyTorch\"],\n        \"tools_platforms\": [\"AWS\", \"Docker\"],\n        \"soft_skills\": [\"Communication\", \"Problem Solving\"]\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/register/candidate",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"register",
+								"candidate"
+							]
+						},
+						"description": "Register a new candidate user"
+					},
+					"response": []
+				},
+				{
+					"name": "Register Employer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"employer@example.com\",\n    \"password\": \"password123\",\n    \"full_name\": \"Jane Smith\",\n    \"user_type\": \"employer\",\n    \"position\": \"HR Manager\",\n    \"company_details\": {\n        \"company_name\": \"Tech Solutions Inc\",\n        \"industry\": \"Software Development\",\n        \"company_website\": \"https://techsolutions.example.com\",\n        \"company_location\": \"New York, NY\",\n        \"company_size\": \"100-500\",\n        \"company_description\": \"Leading tech company in software development\"\n    },\n    \"hiring_preferences\": {\n        \"job_roles_hiring\": [\"Software Engineer\", \"Data Scientist\"],\n        \"tech_stack\": [\"Python\", \"React\", \"AWS\"]\n    },\n    \"bio\": \"Hiring manager with 8 years of experience\",\n    \"contact_phone\": \"+1234567890\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/register/employer",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"register",
+								"employer"
+							]
+						},
+						"description": "Register a new employer user"
+					},
+					"response": []
+				}
+			],
+			"description": "Registration-related endpoints"
+		},
+		{
+			"name": "Profile",
+			"item": [
+				{
+					"name": "Get Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"profile"
+							]
+						},
+						"description": "Get the profile for the authenticated user"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"bio\": \"Updated professional bio\",\n    \"location\": \"Seattle, WA\",\n    \"skills\": {\n        \"languages_frameworks\": [\"Python\", \"React\", \"TypeScript\"],\n        \"tools_platforms\": [\"AWS\", \"Docker\", \"Kubernetes\"],\n        \"soft_skills\": [\"Communication\", \"Problem Solving\", \"Team Leadership\"]\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"profile"
+							]
+						},
+						"description": "Update the user's profile"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"profile"
+							]
+						},
+						"description": "Delete the user's profile and account"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Candidate Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/candidate/{{candidate_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"candidate",
+								"{{candidate_id}}"
+							]
+						},
+						"description": "Get a candidate's profile by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Employer Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/employer/{{employer_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"employer",
+								"{{employer_id}}"
+							]
+						},
+						"description": "Get an employer's profile by ID"
+					},
+					"response": []
+				}
+			],
+			"description": "User profile related endpoints"
+		},
+		{
+			"name": "Jobs",
+			"item": [
+				{
+					"name": "Create Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Senior Data Scientist\",\n    \"company\": \"Tech Solutions Inc\",\n    \"description\": \"We're looking for a Senior Data Scientist to join our growing AI team.\",\n    \"requirements\": [\"Python\", \"Machine Learning\", \"Data Analysis\"],\n    \"location\": \"Austin, TX\",\n    \"employment_type\": \"Full-time\",\n    \"experience_level\": \"Senior\",\n    \"salary_range\": \"$120,000 - $160,000\",\n    \"employer_id\": \"{{employer_id}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/jobs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"jobs"
+							]
+						},
+						"description": "Create a new job posting (employer only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Jobs",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/jobs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"jobs"
+							]
+						},
+						"description": "Get all active jobs"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"description\": \"Updated job description\",\n    \"salary_range\": \"$130,000 - $170,000\",\n    \"tech_stack\": [\"pandas\", \"scikit-learn\", \"TensorFlow\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/jobs/{{job_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"jobs",
+								"{{job_id}}"
+							]
+						},
+						"description": "Update a job posting (employer only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/jobs/{{job_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"jobs",
+								"{{job_id}}"
+							]
+						},
+						"description": "Delete a job posting (employer only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Jobs",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"query\": \"Python Data Science\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/jobs/search?top_k=5",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"jobs",
+								"search"
+							],
+							"query": [
+								{
+									"key": "top_k",
+									"value": "5"
+								}
+							]
+						},
+						"description": "Search for jobs using semantic search"
+					},
+					"response": []
+				}
+			],
+			"description": "Job-related endpoints"
+		},
+		{
+			"name": "Projects",
+			"item": [
+				{
+					"name": "Create Project",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"AI Recommendation Engine Development\",\n    \"company\": \"Tech Solutions Inc\",\n    \"description\": \"We're seeking skilled developers to help build a recommendation engine.\",\n    \"project_type\": \"Contract\",\n    \"requirements\": [\"Python\", \"Machine Learning\", \"Recommendation Systems\"],\n    \"skills_required\": [\"Python\", \"Machine Learning\", \"PyTorch\"],\n    \"location\": \"Remote\",\n    \"budget_range\": \"$10,000 - $15,000\",\n    \"duration\": \"3 months\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/projects",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects"
+							]
+						},
+						"description": "Create a new project posting (employer only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Projects",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/projects?status=open",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "open",
+									"description": "Filter by status (open, in_progress, completed, cancelled)"
+								}
+							]
+						},
+						"description": "Get all projects with optional status filter"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Project by ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/projects/{{project_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects",
+								"{{project_id}}"
+							]
+						},
+						"description": "Get details of a specific project"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Project",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"description\": \"We're seeking skilled developers to help build a recommendation engine. We've expanded the scope to include integration with our analytics platform.\",\n    \"budget_range\": \"$15,000 - $20,000\",\n    \"status\": \"in_progress\",\n    \"skills_required\": [\"Python\", \"Machine Learning\", \"PyTorch\", \"Data Visualization\", \"API Integration\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/projects/{{project_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects",
+								"{{project_id}}"
+							]
+						},
+						"description": "Update a project posting (employer only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Project",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/projects/{{project_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects",
+								"{{project_id}}"
+							]
+						},
+						"description": "Delete a project posting (employer only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Projects",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"query\": \"Machine Learning Recommendation System\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/projects/search?top_k=5",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects",
+								"search"
+							],
+							"query": [
+								{
+									"key": "top_k",
+									"value": "5"
+								}
+							]
+						},
+						"description": "Search for projects using semantic search"
+					},
+					"response": []
+				}
+			],
+			"description": "Project-related endpoints"
+		},
+		{
+			"name": "Applications",
+			"item": [
+				{
+					"name": "Create Job Application",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"job_id\": \"{{job_id}}\",\n    \"cover_letter\": \"I am excited to apply for this position and believe my skills in data science and machine learning make me an excellent candidate.\",\n    \"resume_url\": null,\n    \"notes\": \"Available for immediate start\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/applications",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"applications"
+							]
+						},
+						"description": "Create a new job application (candidate only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Project Application",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"project_id\": \"{{project_id}}\",\n    \"cover_letter\": \"I am excited to apply for this project and believe my skills make me an ideal contributor.\",\n    \"resume_url\": null,\n    \"notes\": \"Available to start immediately\",\n    \"availability\": \"Full-time\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/project-applications",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"project-applications"
+							]
+						},
+						"description": "Create a new project application (candidate only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Applications",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/applications",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"applications"
+							]
+						},
+						"description": "Get job applications for the current user (filtered by user type)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Project Applications",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/project-applications",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"project-applications"
+							]
+						},
+						"description": "Get project applications for the current user (filtered by user type)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Applications for Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/jobs/{{job_id}}/applications",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"jobs",
+								"{{job_id}}",
+								"applications"
+							]
+						},
+						"description": "Get applications for a specific job (employer only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Applications for Project",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/projects/{{project_id}}/applications",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects",
+								"{{project_id}}",
+								"applications"
+							]
+						},
+						"description": "Get applications for a specific project (employer only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Application-related endpoints"
+		},
+		{
+			"name": "Saved Items",
+			"item": [
+				{
+					"name": "Save Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"job_id\": \"{{job_id}}\",\n    \"notes\": \"Interesting role to consider after gaining more experience\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/saved-jobs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"saved-jobs"
+							]
+						},
+						"description": "Save a job for a candidate (candidate only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Saved Jobs",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/saved-jobs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"saved-jobs"
+							]
+						},
+						"description": "Get saved jobs for the current candidate (candidate only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Saved Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/saved-jobs/{{saved_job_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"saved-jobs",
+								"{{saved_job_id}}"
+							]
+						},
+						"description": "Delete a saved job (candidate only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Save Project",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"project_id\": \"{{project_id}}\",\n    \"notes\": \"Interesting project to consider for future collaboration\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/saved-projects",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"saved-projects"
+							]
+						},
+						"description": "Save a project for a candidate (candidate only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Saved Projects",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/saved-projects",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"saved-projects"
+							]
+						},
+						"description": "Get saved projects for the current candidate (candidate only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Saved Project",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/saved-projects/{{saved_project_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"saved-projects",
+								"{{saved_project_id}}"
+							]
+						},
+						"description": "Delete a saved project (candidate only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Saved jobs and projects-related endpoints"
+		},
+		{
+			"name": "Recommendations",
+			"item": [
+				{
+					"name": "Get Job Recommendations",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/recommendations/jobs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"recommendations",
+								"jobs"
+							]
+						},
+						"description": "Get job recommendations for a candidate (candidate only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Project Recommendations",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/recommendations/projects",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"recommendations",
+								"projects"
+							]
+						},
+						"description": "Get project recommendations for a candidate (candidate only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Candidate Recommendations for Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/recommendations/candidates/{{job_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"recommendations",
+								"candidates",
+								"{{job_id}}"
+							]
+						},
+						"description": "Get candidate recommendations for a specific job (employer only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Candidate Recommendations for Project",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/recommendations/candidates-for-project/{{project_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"recommendations",
+								"candidates-for-project",
+								"{{project_id}}"
+							]
+						},
+						"description": "Get candidate recommendations for a specific project (employer only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Recommendation-related endpoints"
+		},
+		{
+			"name": "Search",
+			"item": [
+				{
+					"name": "Search Candidates",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"query\": \"Python Machine Learning\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/candidates/search?top_k=5",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"candidates",
+								"search"
+							],
+							"query": [
+								{
+									"key": "top_k",
+									"value": "5"
+								}
+							]
+						},
+						"description": "Search for candidates using semantic search (employer only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Search-related endpoints"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "email",
+			"value": "candidate@example.com",
+			"type": "string"
+		},
+		{
+			"key": "password",
+			"value": "password123",
+			"type": "string"
+		},
+		{
+			"key": "job_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "project_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "candidate_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "employer_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "saved_job_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "saved_project_id",
+			"value": "",
+			"type": "string"
+		}
+	]
+} 
