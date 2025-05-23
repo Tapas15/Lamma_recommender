@@ -196,6 +196,7 @@ class JobApplication(BaseModel):
     notes: Optional[str] = None
     last_updated: datetime = Field(default_factory=datetime.utcnow)
     job_details: Optional[Dict[str, Any]] = None
+    candidate_details: Optional[Dict[str, Any]] = None
 
 class JobApplicationCreate(BaseModel):
     job_id: str
@@ -262,6 +263,7 @@ class ProjectApplication(BaseModel):
     notes: Optional[str] = None
     last_updated: datetime = Field(default_factory=datetime.utcnow)
     project_details: Optional[Dict[str, Any]] = None
+    candidate_details: Optional[Dict[str, Any]] = None
 
 class ProjectApplicationCreate(BaseModel):
     project_id: str

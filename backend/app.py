@@ -2353,12 +2353,19 @@ async def create_application(
             if not project:
                 raise HTTPException(status_code=404, detail="Project not found")
 
+            # Get candidate details
+            candidate = await Database.get_collection(CANDIDATES_COLLECTION).find_one(
+                {"id": current_user["id"]}
+            )
+            if not candidate:
+                raise HTTPException(status_code=404, detail="Candidate profile not found")
+
             # Create project application
             application_id = str(ObjectId())
             project_application = {
                 "_id": ObjectId(application_id),
                 "id": application_id,
-            "candidate_id": current_user["id"],
+                "candidate_id": current_user["id"],
                 "project_id": project_id,
                 "employer_id": project["employer_id"],
                 "created_at": datetime.utcnow(),
@@ -2369,6 +2376,17 @@ async def create_application(
                 "last_updated": datetime.utcnow(),
                 "availability": getattr(application_data, "availability", None),
             }
+
+            # Add candidate details to the application
+            candidate_details = {
+                "id": candidate["id"],
+                "full_name": candidate["full_name"],
+                "location": candidate.get("location"),
+                "experience_years": candidate.get("experience_years"),
+                "skills": candidate.get("skills"),
+                "education_summary": candidate.get("education_summary"),
+            }
+            project_application["candidate_details"] = candidate_details
 
             # Save project application to database
             await Database.get_collection(PROJECT_APPLICATIONS_COLLECTION).insert_one(
@@ -2395,6 +2413,13 @@ async def create_application(
         # Generate application ID
         application_id = str(ObjectId())
 
+        # Get candidate details
+        candidate = await Database.get_collection(CANDIDATES_COLLECTION).find_one(
+            {"id": current_user["id"]}
+        )
+        if not candidate:
+            raise HTTPException(status_code=404, detail="Candidate profile not found")
+
         # Create application document
         application = {
             "_id": ObjectId(application_id),
@@ -2409,6 +2434,17 @@ async def create_application(
             "notes": application_data.notes,
             "last_updated": datetime.utcnow(),
         }
+
+        # Add candidate details to the application
+        candidate_details = {
+            "id": candidate["id"],
+            "full_name": candidate["full_name"],
+            "location": candidate.get("location"),
+            "experience_years": candidate.get("experience_years"),
+            "skills": candidate.get("skills"),
+            "education_summary": candidate.get("education_summary"),
+        }
+        application["candidate_details"] = candidate_details
 
         # Save application to database
         await Database.get_collection(JOB_APPLICATIONS_COLLECTION).insert_one(
@@ -2456,6 +2492,13 @@ async def create_project_application(
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
 
+        # Get candidate details
+        candidate = await Database.get_collection(CANDIDATES_COLLECTION).find_one(
+            {"id": current_user["id"]}
+        )
+        if not candidate:
+            raise HTTPException(status_code=404, detail="Candidate profile not found")
+
         # Generate application ID
         application_id = str(ObjectId())
 
@@ -2474,6 +2517,17 @@ async def create_project_application(
             "last_updated": datetime.utcnow(),
             "availability": getattr(application_data, "availability", None),
         }
+
+        # Add candidate details to the application
+        candidate_details = {
+            "id": candidate["id"],
+            "full_name": candidate["full_name"],
+            "location": candidate.get("location"),
+            "experience_years": candidate.get("experience_years"),
+            "skills": candidate.get("skills"),
+            "education_summary": candidate.get("education_summary"),
+        }
+        application["candidate_details"] = candidate_details
 
         # Save application to database
         await Database.get_collection(PROJECT_APPLICATIONS_COLLECTION).insert_one(
