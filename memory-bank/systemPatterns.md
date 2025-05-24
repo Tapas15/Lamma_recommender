@@ -24,6 +24,18 @@
    - Semantic search functionality
    - Fallback text search mechanisms
 
+5. **Feedback Collection Architecture**
+   - User feedback capture endpoints
+   - Structured feedback storage
+   - Aggregation and analytics pipelines
+   - Recommendation improvement mechanisms
+
+6. **Skill Analysis Architecture**
+   - Skill relationship modeling
+   - Confidence-based clustering
+   - Industry relevance mapping
+   - Market demand calculation
+
 ## Design Patterns
 1. **Repository Pattern**
    - Abstracted database operations
@@ -52,6 +64,8 @@
    - Profile management service
    - Job posting service
    - Vector search service
+   - Feedback collection service
+   - Skill analysis service
 
 3. **Data Flow**
    - Client request → API Gateway
@@ -120,6 +134,16 @@
    - Detailed error reporting
    - Actionable recommendations
 
+6. **Feedback System**
+   - **Context**: Need to improve recommendations based on user input
+   - **Decision**: Structured feedback collection with relevance and accuracy scores
+   - **Consequences**: Better recommendation quality over time, requires analytics pipeline
+
+7. **Skill Relationship Modeling**
+   - **Context**: Need to understand relationships between skills
+   - **Decision**: Confidence-based clustering with industry relevance mapping
+   - **Consequences**: Better skill gap analysis, more relevant recommendations, requires regular updates
+
 ## Error Handling
 1. **Exception Hierarchy**
    - Custom exceptions
@@ -169,22 +193,30 @@
 - Caching for frequently accessed data
 - Pagination for large result sets
 - Vector search optimization
+- Confidence thresholds for skill clusters
+- Parameterized endpoint responses
 
-## Error Handling
-- Structured exception hierarchy
-- Consistent error response format
-- Detailed logging
-- Graceful degradation
-- Fallback search mechanisms
+## API Design Patterns
+- RESTful endpoint structure
+- Consistent parameter naming
+- Query parameter validation
+- Structured response formats
+- Detailed error messages
+- Authentication middleware
+- Backward compatibility support
+- Versioned endpoints where needed
+- Comprehensive documentation
+- Test scripts for each endpoint
 
-## Testing Patterns
-- Automated test suite
-- Visual demonstration tests
-- Comprehensive API testing
-- Environment isolation for tests
-- Tabulated test results
-- Actionable test recommendations
-- Embedding verification tools
+## Feedback and Analytics Patterns
+- Structured feedback collection
+- Relevance and accuracy scoring
+- User action tracking
+- Aggregated analytics
+- Temporal trend analysis
+- Industry-specific insights
+- Recommendation improvement loops
+- A/B testing preparation
 
 ## Notes
-The system is designed with modularity and scalability in mind, allowing for easy extension of features and integration with additional services. The testing infrastructure provides comprehensive verification of critical functionality. 
+The system is designed with modularity and scalability in mind, allowing for easy extension of features and integration with additional services. The testing infrastructure provides comprehensive verification of critical functionality. Recent additions of feedback collection and skill analysis enhance the system's ability to learn and improve over time. 

@@ -7,6 +7,8 @@
 - RESTful API design with JWT authentication
 - MongoDB for data storage
 - Ollama for local embeddings
+- Feedback collection system for recommendation improvement
+- Skill clustering analysis for relationship understanding
 
 ### Code Organization
 - Backend code in `backend/` directory
@@ -32,6 +34,8 @@
 - JWT with refresh tokens for authentication
 - Local embedding generation with Ollama
 - Streamlit for rapid UI development
+- Structured feedback collection for recommendation improvement
+- Confidence-based skill clustering for relationship analysis
 
 ## Project Intelligence
 
@@ -41,12 +45,16 @@
 - Job posting system
 - Recommendation engine using vector embeddings
 - Skill gap analysis
+- Feedback collection and analysis
+- Skill relationship modeling
 
 ### Known Challenges
 - MongoDB connection stability
 - Embedding generation performance
 - Memory usage optimization
 - Complex user flows
+- Import path management
+- Authentication token handling for testing
 
 ### Tool Usage
 - Virtual environment for dependency management
@@ -59,8 +67,42 @@
 - Clear documentation
 - Performance-optimized implementations
 - Cross-platform compatibility
+- Comprehensive API testing
+- Detailed endpoint documentation
 
 ## Evolution Notes
 - Project is in active development
 - Focus on core functionality implementation
-- Testing and documentation are ongoing processes 
+- Testing and documentation are ongoing processes
+- Recent additions include recommendation feedback system and skill clusters analysis
+- Import path issues being addressed for smoother development
+
+## API Patterns
+- RESTful endpoint structure
+- Consistent parameter naming
+- Query parameter validation
+- Structured response formats
+- Detailed error messages
+- Authentication middleware
+- Backward compatibility support
+- Versioned endpoints where needed
+- Comprehensive documentation
+- Test scripts for each endpoint
+
+## Feedback System Patterns
+- Structured feedback collection with relevance and accuracy scores
+- User action tracking (viewed, applied, saved, dismissed)
+- Qualitative feedback through text comments
+- Aggregated feedback statistics by time period and recommendation type
+- Different views for employers and candidates
+- Detailed validation of input parameters
+- Comprehensive error handling
+
+## Skill Analysis Patterns
+- Confidence-based skill clustering
+- Core skills and related skills grouping
+- Industry relevance mapping
+- Growth rate and market demand calculation
+- Parameterized endpoint with confidence thresholds
+- Detailed cluster statistics and metadata
+- Comprehensive documentation with examples 

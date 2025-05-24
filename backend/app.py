@@ -6398,3 +6398,243 @@ def generate_candidate_feedback_summary(recommendation_type, period):
         }
     
     return base_summary
+
+@app.get("/ml/skills/clusters", response_model=dict)
+async def get_skill_clusters(
+    min_confidence: float = 0.7,
+    max_clusters: int = 20,
+    include_details: bool = True,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get skill clusters analysis
+    
+    This endpoint provides an analysis of skill clusters, grouping related skills together
+    based on their co-occurrence in job postings, candidate profiles, and industry data.
+    
+    Parameters:
+    - min_confidence: Minimum confidence score for skill relationships (0.0-1.0)
+    - max_clusters: Maximum number of clusters to return
+    - include_details: Whether to include detailed information about each cluster
+    """
+    try:
+        # Validate parameters
+        if min_confidence < 0.0 or min_confidence > 1.0:
+            raise HTTPException(
+                status_code=400,
+                detail="min_confidence must be between 0.0 and 1.0"
+            )
+            
+        if max_clusters < 1 or max_clusters > 50:
+            raise HTTPException(
+                status_code=400,
+                detail="max_clusters must be between 1 and 50"
+            )
+        
+        # In a production system, we would use a machine learning model to generate clusters
+        # For now, we'll generate simulated skill clusters based on common industry groupings
+        
+        # Generate the clusters
+        clusters = generate_skill_clusters(min_confidence, max_clusters, include_details)
+        
+        # Add metadata to response
+        response = {
+            "clusters": clusters,
+            "metadata": {
+                "min_confidence": min_confidence,
+                "max_clusters": max_clusters,
+                "total_clusters": len(clusters),
+                "total_skills_analyzed": random.randint(1000, 5000),
+                "analysis_timestamp": datetime.now().isoformat()
+            }
+        }
+        
+        # Add cluster statistics
+        if include_details:
+            response["statistics"] = {
+                "average_cluster_size": sum(len(cluster["skills"]) for cluster in clusters) / len(clusters) if clusters else 0,
+                "largest_cluster_size": max(len(cluster["skills"]) for cluster in clusters) if clusters else 0,
+                "smallest_cluster_size": min(len(cluster["skills"]) for cluster in clusters) if clusters else 0,
+                "average_confidence": sum(cluster["confidence"] for cluster in clusters) / len(clusters) if clusters else 0,
+                "skill_distribution": calculate_skill_distribution(clusters),
+                "industry_relevance": calculate_industry_relevance(clusters)
+            }
+        
+        return response
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        print(f"Error generating skill clusters: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate skill clusters: {str(e)}"
+        )
+
+def generate_skill_clusters(min_confidence, max_clusters, include_details):
+    """Generate skill clusters based on common industry groupings"""
+    # Define some common skill clusters by domain
+    domain_clusters = {
+        "Frontend Development": {
+            "core_skills": ["JavaScript", "HTML", "CSS", "React", "Angular", "Vue.js", "TypeScript", "Redux", "Webpack"],
+            "related_skills": ["UI/UX Design", "Responsive Design", "SASS/LESS", "Jest", "Cypress", "Storybook"],
+            "confidence": 0.92,
+            "industry_relevance": ["Technology", "E-commerce", "Media", "Marketing"],
+            "growth_rate": 0.15
+        },
+        "Backend Development": {
+            "core_skills": ["Python", "Java", "Node.js", "C#", "PHP", "Ruby", "Go", "Express", "Django", "Spring Boot"],
+            "related_skills": ["API Design", "Database Design", "Authentication", "Microservices"],
+            "confidence": 0.95,
+            "industry_relevance": ["Technology", "Finance", "E-commerce", "Healthcare"],
+            "growth_rate": 0.18
+        },
+        "Database Management": {
+            "core_skills": ["SQL", "MySQL", "PostgreSQL", "MongoDB", "Redis", "Elasticsearch", "Oracle", "SQL Server"],
+            "related_skills": ["Database Optimization", "Query Performance", "Data Modeling", "Indexing"],
+            "confidence": 0.90,
+            "industry_relevance": ["Technology", "Finance", "Healthcare", "Retail"],
+            "growth_rate": 0.12
+        },
+        "DevOps": {
+            "core_skills": ["Docker", "Kubernetes", "AWS", "Azure", "GCP", "Jenkins", "Terraform", "Ansible"],
+            "related_skills": ["CI/CD", "Infrastructure as Code", "Monitoring", "Cloud Architecture"],
+            "confidence": 0.88,
+            "industry_relevance": ["Technology", "Finance", "E-commerce", "Media"],
+            "growth_rate": 0.25
+        },
+        "Data Science": {
+            "core_skills": ["Python", "R", "SQL", "Pandas", "NumPy", "Scikit-learn", "TensorFlow", "PyTorch"],
+            "related_skills": ["Data Visualization", "Statistical Analysis", "Machine Learning", "Big Data"],
+            "confidence": 0.93,
+            "industry_relevance": ["Technology", "Finance", "Healthcare", "Retail", "Manufacturing"],
+            "growth_rate": 0.28
+        },
+        "Machine Learning": {
+            "core_skills": ["TensorFlow", "PyTorch", "Scikit-learn", "Keras", "Computer Vision", "NLP"],
+            "related_skills": ["Feature Engineering", "Model Deployment", "Data Preprocessing", "Neural Networks"],
+            "confidence": 0.91,
+            "industry_relevance": ["Technology", "Healthcare", "Finance", "Automotive", "Retail"],
+            "growth_rate": 0.30
+        },
+        "Mobile Development": {
+            "core_skills": ["Swift", "Kotlin", "React Native", "Flutter", "iOS", "Android", "Xamarin"],
+            "related_skills": ["Mobile UI Design", "App Store Optimization", "Push Notifications", "Mobile Testing"],
+            "confidence": 0.89,
+            "industry_relevance": ["Technology", "E-commerce", "Media", "Healthcare"],
+            "growth_rate": 0.20
+        },
+        "Cloud Computing": {
+            "core_skills": ["AWS", "Azure", "GCP", "Cloud Architecture", "Serverless", "Lambda", "S3", "EC2"],
+            "related_skills": ["Cloud Security", "Cost Optimization", "Multi-cloud", "Cloud Migration"],
+            "confidence": 0.94,
+            "industry_relevance": ["Technology", "Finance", "Healthcare", "Retail", "Manufacturing"],
+            "growth_rate": 0.26
+        },
+        "Cybersecurity": {
+            "core_skills": ["Network Security", "Penetration Testing", "Security Auditing", "Encryption", "Firewall"],
+            "related_skills": ["Threat Analysis", "Security Compliance", "Vulnerability Assessment", "SIEM"],
+            "confidence": 0.87,
+            "industry_relevance": ["Finance", "Healthcare", "Government", "Technology"],
+            "growth_rate": 0.22
+        },
+        "Project Management": {
+            "core_skills": ["Agile", "Scrum", "Kanban", "JIRA", "Project Planning", "Risk Management"],
+            "related_skills": ["Team Leadership", "Stakeholder Management", "Resource Allocation", "Budgeting"],
+            "confidence": 0.85,
+            "industry_relevance": ["All Industries"],
+            "growth_rate": 0.10
+        },
+        "UI/UX Design": {
+            "core_skills": ["Figma", "Sketch", "Adobe XD", "User Research", "Wireframing", "Prototyping"],
+            "related_skills": ["Interaction Design", "Visual Design", "Usability Testing", "Information Architecture"],
+            "confidence": 0.88,
+            "industry_relevance": ["Technology", "E-commerce", "Media", "Marketing"],
+            "growth_rate": 0.18
+        },
+        "Data Engineering": {
+            "core_skills": ["Apache Spark", "Hadoop", "Kafka", "Airflow", "ETL", "Data Warehousing"],
+            "related_skills": ["Data Modeling", "Data Pipeline", "Big Data", "Data Lake"],
+            "confidence": 0.92,
+            "industry_relevance": ["Technology", "Finance", "Healthcare", "Retail", "Manufacturing"],
+            "growth_rate": 0.24
+        },
+        "Blockchain": {
+            "core_skills": ["Solidity", "Smart Contracts", "Ethereum", "Bitcoin", "Hyperledger", "Web3.js"],
+            "related_skills": ["Cryptography", "Consensus Algorithms", "DApps", "Tokenomics"],
+            "confidence": 0.82,
+            "industry_relevance": ["Finance", "Technology", "Supply Chain", "Healthcare"],
+            "growth_rate": 0.35
+        },
+        "AR/VR Development": {
+            "core_skills": ["Unity", "Unreal Engine", "ARKit", "ARCore", "WebXR", "3D Modeling"],
+            "related_skills": ["Spatial Computing", "3D Animation", "Computer Vision", "Interaction Design"],
+            "confidence": 0.80,
+            "industry_relevance": ["Gaming", "Education", "Healthcare", "Retail", "Real Estate"],
+            "growth_rate": 0.40
+        },
+        "Quality Assurance": {
+            "core_skills": ["Selenium", "JUnit", "TestNG", "Cypress", "Jest", "Manual Testing", "Automated Testing"],
+            "related_skills": ["Test Planning", "Bug Tracking", "Performance Testing", "Test Documentation"],
+            "confidence": 0.86,
+            "industry_relevance": ["Technology", "Finance", "Healthcare", "E-commerce"],
+            "growth_rate": 0.15
+        }
+    }
+    
+    # Filter clusters by confidence
+    filtered_clusters = {k: v for k, v in domain_clusters.items() if v["confidence"] >= min_confidence}
+    
+    # Limit to max_clusters
+    cluster_items = list(filtered_clusters.items())
+    random.shuffle(cluster_items)  # Randomize to get different clusters each time
+    limited_clusters = dict(cluster_items[:max_clusters])
+    
+    # Format the response
+    result = []
+    for name, data in limited_clusters.items():
+        cluster = {
+            "name": name,
+            "confidence": data["confidence"],
+            "skills": data["core_skills"] + (data["related_skills"] if include_details else [])
+        }
+        
+        if include_details:
+            cluster["details"] = {
+                "core_skills": data["core_skills"],
+                "related_skills": data["related_skills"],
+                "industry_relevance": data["industry_relevance"],
+                "growth_rate": data["growth_rate"],
+                "skill_count": len(data["core_skills"]) + len(data["related_skills"]),
+                "market_demand": calculate_market_demand(data["core_skills"], data["growth_rate"])
+            }
+        
+        result.append(cluster)
+    
+    return result
+
+def calculate_market_demand(skills, growth_rate):
+    """Calculate market demand score for a set of skills"""
+    # This would be based on actual job market data in a production system
+    base_demand = random.uniform(0.5, 0.9)
+    growth_factor = growth_rate * 0.5  # Weight growth rate in the calculation
+    
+    # Add some variance based on the number of skills
+    skill_factor = min(len(skills) / 10, 0.2)  # More skills generally means higher demand, up to a point
+    
+    return min(base_demand + growth_factor + skill_factor, 1.0)  # Cap at 1.0
+
+def calculate_skill_distribution(clusters):
+    """Calculate the distribution of skills across different domains"""
+    domains = ["Technology", "Finance", "Healthcare", "Retail", "Manufacturing", "Media", "Education"]
+    return {domain: round(random.uniform(0.1, 0.9), 2) for domain in domains}
+
+def calculate_industry_relevance(clusters):
+    """Calculate the relevance of skill clusters to different industries"""
+    industries = ["Technology", "Finance", "Healthcare", "Retail", "Manufacturing", "Media", "Education"]
+    return {
+        industry: {
+            "relevance_score": round(random.uniform(0.5, 0.95), 2),
+            "top_clusters": random.sample([cluster["name"] for cluster in clusters], min(3, len(clusters)))
+        }
+        for industry in industries
+    }

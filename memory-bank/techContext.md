@@ -35,6 +35,8 @@
    - Async database operations
    - JWT authentication
    - Vector embedding processing
+   - Recommendation feedback collection
+   - Skill clustering analysis
 
 2. Streamlit Frontend
    - Multiple pages architecture
@@ -71,12 +73,16 @@
 - Backend ↔ MongoDB
 - Backend ↔ Ollama
 - Frontend ↔ Browser
+- Feedback System ↔ Recommendation Engine
+- Skill Clusters ↔ Career Path Planning
 
 ## Performance Considerations
 - Async database operations
 - Local embedding generation
 - Browser-based automation for testing
 - Vector search optimization
+- Confidence thresholds for skill clustering
+- Parameterized endpoint responses
 
 ## Testing Infrastructure
 ### Test Directory Structure
@@ -94,6 +100,8 @@ backend/tests/
 - **API Tests**: Verify API endpoint functionality
 - **Integration Tests**: Test system component interactions
 - **Unit Tests**: Test individual functions and modules
+- **Feedback System Tests**: Verify feedback collection and analysis
+- **Skill Clusters Tests**: Verify skill relationship analysis and clustering
 
 ### Test Environment
 - Environment variables for test configuration
@@ -142,6 +150,8 @@ backend/tests/
 - Memory usage optimization
 - Cross-platform compatibility
 - MongoDB Atlas vector index setup
+- Import path management
+- Authentication token handling for testing
 
 ## Environment Configuration
 Environment variables are stored in a .env file in the backend directory:
@@ -176,3 +186,56 @@ The project uses automated setup scripts that:
 - Error tracking and reporting
 - Performance monitoring 
 - Test result reporting and visualization 
+
+## API Endpoints
+
+### Authentication
+- `POST /token` - User authentication
+- `POST /register/candidate` - Register candidate
+- `POST /register/employer` - Register employer
+
+### Profile Management
+- `GET /profile` - Get user profile
+- `PUT /profile` - Update user profile
+- `PATCH /profile` - Partial profile update
+- `DELETE /profile` - Delete user account
+
+### Job Management
+- `POST /jobs` - Create job posting
+- `GET /jobs` - Get job listings
+- `PATCH /jobs/{job_id}` - Update job posting
+- `DELETE /jobs/{job_id}` - Delete job posting
+
+### Project Management
+- `POST /projects` - Create project
+- `GET /projects` - Get projects
+- `PATCH /projects/{project_id}` - Update project
+- `DELETE /projects/{project_id}` - Delete project
+
+### Recommendations
+- `GET /recommendations/jobs` - Get job recommendations
+- `GET /recommendations/candidates/{job_id}` - Get candidate recommendations for job
+- `GET /recommendations/projects` - Get project recommendations
+- `GET /recommendations/candidates-for-project/{project_id}` - Get candidate recommendations for project
+- `GET /recommendations/project-candidates/{project_id}` - Alternative path for project candidates
+- `GET /recommendations/skill-gap` - Get skill gap analysis
+- `GET /recommendations/learning` - Get learning recommendations
+- `GET /recommendations/career-path` - Get career path recommendations
+- `GET /recommendations/similar-jobs/{job_id}` - Get similar jobs
+- `POST /recommendations/talent-search` - Search for talent with specific criteria
+
+### Feedback System
+- `POST /recommendations/feedback` - Submit recommendation feedback
+- `GET /recommendations/feedback/summary` - Get feedback summary statistics
+
+### Skill Analysis
+- `GET /ml/skills/clusters` - Get skill clusters analysis
+
+### Search
+- `POST /jobs/search` - Search jobs semantically
+- `POST /projects/search` - Search projects semantically
+- `POST /candidates/search` - Search candidates semantically
+
+### Analytics
+- `GET /analytics/recommendations/impact` - Get recommendation impact metrics
+- `GET /analytics/recommendations/performance` - Get recommendation algorithm performance 
