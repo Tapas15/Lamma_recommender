@@ -1,0 +1,128 @@
+[
+  {
+    "email": "chelsea.may@millerltd.com",
+    "full_name": "Chelsea May",
+    "user_type": "employer",
+    "position": "HR Director",
+    "bio": "Difference today player as student pattern wife.",
+    "about": "Compare under pattern share.",
+    "contact_email": "careers@millerltd.com",
+    "contact_phone": "(262)521-9312",
+    "location": "Austin, TX",
+    "company_details": {
+      "company_name": "Miller Ltd",
+      "company_description": "Doctor show work view experience any. Church company maybe floor data enter. Include hotel who glass ten issue. Nation own language likely wonder hot.",
+      "company_website": "https://www.millerltd.com",
+      "company_location": "Austin, TX",
+      "company_size": "1001-5000",
+      "industry": "Entertainment",
+      "founded_year": 2019,
+      "company_logo": "https://logo.clearbit.com/millerltd.com",
+      "company_socials": {
+        "linkedin": "https://linkedin.com/company/millerltd",
+        "twitter": "https://twitter.com/millerltd",
+        "glassdoor": "https://glassdoor.com/company/millerltd"
+      },
+      "values": [
+        "Integrity",
+        "Innovation",
+        "Transparency",
+        "Teamwork",
+        "Growth"
+      ],
+      "mission": "Seem others special line picture side Democrat edge.",
+      "vision": "Court want population cell south chance artist."
+    },
+    "hiring_preferences": {
+      "job_roles_hiring": [
+        "Database Administrator",
+        "Full Stack Developer",
+        "Software Engineer"
+      ],
+      "employment_types": [
+        "Part-time",
+        "Full-time",
+        "Freelance"
+      ],
+      "locations_hiring": [
+        "San Francisco, CA",
+        "Remote"
+      ],
+      "salary_range_usd": {
+        "min": 70000,
+        "max": 90000
+      },
+      "remote_friendly": true,
+      "tech_stack": [
+        "React",
+        "Kubernetes",
+        "MongoDB"
+      ]
+    }
+  },
+  {
+    "email": "holly.davis@webbsmithandhart.com",
+    "full_name": "Holly Davis",
+    "user_type": "employer",
+    "position": "HR Director",
+    "bio": "Care brother military however economic future record.",
+    "about": "Artist international pass draw customer condition. Read walk water.",
+    "contact_email": "careers@webbsmithandhart.com",
+    "contact_phone": "001-349-533-9946",
+    "location": "Sydney, Australia",
+    "company_details": {
+      "company_name": "Webb, Smith and Hart",
+      "company_description": "Probably pay ground now protect race feel. Power happy yet some will feel age.",
+      "company_website": "https://www.webbsmithandhart.com",
+      "company_location": "Sydney, Australia",
+      "company_size": "11-50",
+      "industry": "Energy",
+      "founded_year": 1996,
+      "company_logo": "https://logo.clearbit.com/webbsmithandhart.com",
+      "company_socials": {
+        "linkedin": "https://linkedin.com/company/webbsmithandhart",
+        "twitter": "https://twitter.com/webbsmithandhart",
+        "glassdoor": "https://glassdoor.com/company/webbsmithandhart"
+      },
+      "values": [
+        "Excellence",
+        "Diversity",
+        "Respect"
+      ],
+      "mission": "Her serious agree effort.",
+      "vision": "Moment several mouth by war."
+    },
+    "hiring_preferences": {
+      "job_roles_hiring": [
+        "Database Administrator",
+        "Machine Learning Engineer",
+        "Frontend Developer",
+        "Technical Writer"
+      ],
+      "employment_types": [
+        "Freelance",
+        "Remote",
+        "Contract"
+      ],
+      "locations_hiring": [
+        "Remote",
+        "London, UK",
+        "Amsterdam, Netherlands"
+      ],
+      "salary_range_usd": {
+        "min": 50000,
+        "max": 110000
+      },
+      "remote_friendly": false,
+      "tech_stack": [
+        "MySQL",
+        "Vue.js",
+        "Terraform",
+        "React",
+        "Google Cloud",
+        "TypeScript",
+        "Java"
+      ]
+    }
+  }
+]

@@ -1685,17 +1685,43 @@ async def get_job_recommendations(current_user: dict = Depends(get_current_user)
         .find({"is_active": True})
         .to_list(length=None)
     )
-    recommendations = await get_candidate_job_matches(candidate, jobs)
     
-    # Save recommendations with score > 70 to recommendations collection
-    for rec in recommendations:
-        if rec["match_score"] >= 70:
+    if not jobs:
+        return []
+        
+    recommendations = []
+    
+    # Process each job to find matches
+    for job in jobs:
+        # Get match score and explanation
+        score, explanation = await get_match_score(job, candidate)
+        
+        # Add to recommendations with detailed job information
+        job_recommendation = {
+            "job_id": job["id"],
+            "match_score": score,
+            "explanation": explanation,
+            "job_details": {
+                "title": job.get("title", ""),
+                "company": job.get("company", ""),
+                "description": job.get("description", ""),
+                "location": job.get("location", ""),
+                "salary_range": job.get("salary_range", ""),
+                "required_skills": job.get("required_skills", []),
+                "job_type": job.get("job_type", ""),
+                "experience_level": job.get("experience_level", ""),
+            },
+        }
+        recommendations.append(job_recommendation)
+        
+        # Save recommendations with score > 70 to recommendations collection
+        if score >= 70:
             # Create recommendation document
             recommendation_doc = {
                 "id": str(ObjectId()),
                 "candidate_id": candidate["id"],
-                "job_id": rec["job_id"],
-                "match_score": rec["match_score"],
+                "job_id": job["id"],
+                "match_score": score,
                 "type": "job_recommendation",
                 "timestamp": datetime.utcnow(),
                 "viewed": False,
@@ -1707,7 +1733,7 @@ async def get_job_recommendations(current_user: dict = Depends(get_current_user)
             ).find_one(
                 {
                 "candidate_id": candidate["id"],
-                "job_id": rec["job_id"],
+                "job_id": job["id"],
                     "type": "job_recommendation",
                 }
             )
@@ -1718,21 +1744,26 @@ async def get_job_recommendations(current_user: dict = Depends(get_current_user)
                     recommendation_doc
                 )
                 print(
-                    f"Saved job recommendation with score {rec['match_score']} for candidate {candidate['id']}"
+                    f"Saved job recommendation with score {score} for candidate {candidate['id']}"
                 )
-            elif existing_rec["match_score"] != rec["match_score"]:
+            elif existing_rec["match_score"] != score:
                 await Database.get_collection(RECOMMENDATIONS_COLLECTION).update_one(
                     {"id": existing_rec["id"]},
                     {
                         "$set": {
-                            "match_score": rec["match_score"],
+                            "match_score": score,
                             "timestamp": datetime.utcnow(),
                         }
                     },
                 )
                 print(
-                    f"Updated job recommendation score to {rec['match_score']} for candidate {candidate['id']}"
+                    f"Updated job recommendation score to {score} for candidate {candidate['id']}"
                 )
+    
+    # Sort by match score
+    recommendations = sorted(
+        recommendations, key=lambda x: x["match_score"], reverse=True
+    )
     
     return recommendations
 
@@ -1761,18 +1792,45 @@ async def get_candidate_recommendations(
         print(f"No active candidates found for job {job_id}")
         return []
     
-    recommendations = await get_job_candidate_matches(job, candidates)
-    
-    # Save high-scoring recommendations to the recommendations collection
-    for rec in recommendations:
-        if rec["match_score"] >= 70:
+    recommendations = []
+    # Process each candidate to find matches
+    for candidate in candidates:
+        # Get match score and explanation
+        score, explanation = await get_match_score(job, candidate)
+        
+        candidate_id = candidate.get("id")
+        
+        # Add to recommendations with detailed candidate information
+        candidate_recommendation = {
+            "candidate_id": candidate_id,
+            "match_score": score,
+            "explanation": explanation,
+            "candidate_details": {
+                "full_name": candidate.get("full_name", ""),
+                "email": candidate.get("email", ""),
+                "skills": candidate.get("skills", []),
+                "experience": candidate.get("experience", ""),
+                "education": candidate.get("education", []),
+                "location": candidate.get("location", ""),
+                "profile_summary": candidate.get("profile_summary", ""),
+                "certifications": candidate.get("certifications", []),
+                "languages": candidate.get("languages", []),
+                "preferred_job_type": candidate.get("preferred_job_type", ""),
+                "preferred_location": candidate.get("preferred_location", ""),
+                "preferred_salary": candidate.get("preferred_salary", ""),
+            },
+        }
+        recommendations.append(candidate_recommendation)
+        
+        # Save high-scoring recommendations to the recommendations collection
+        if score >= 70:
             # Create recommendation document
             recommendation_doc = {
                 "id": str(ObjectId()),
-                "candidate_id": rec["candidate_id"],
+                "candidate_id": candidate_id,
                 "job_id": job_id,
                 "employer_id": current_user["id"],
-                "match_score": rec["match_score"],
+                "match_score": score,
                 "type": "candidate_recommendation",
                 "timestamp": datetime.utcnow(),
                 "viewed": False,
@@ -1783,7 +1841,7 @@ async def get_candidate_recommendations(
                 RECOMMENDATIONS_COLLECTION
             ).find_one(
                 {
-                "candidate_id": rec["candidate_id"],
+                "candidate_id": candidate_id,
                 "job_id": job_id,
                     "type": "candidate_recommendation",
                 }
@@ -1795,38 +1853,28 @@ async def get_candidate_recommendations(
                     recommendation_doc
                 )
                 print(
-                    f"Saved candidate recommendation with score {rec['match_score']} for job {job_id}"
+                    f"Saved candidate recommendation with score {score} for job {job_id}"
                 )
-            elif existing_rec["match_score"] != rec["match_score"]:
+            elif existing_rec["match_score"] != score:
                 await Database.get_collection(RECOMMENDATIONS_COLLECTION).update_one(
                     {"id": existing_rec["id"]},
                     {
                         "$set": {
-                            "match_score": rec["match_score"],
+                            "match_score": score,
                             "timestamp": datetime.utcnow(),
                         }
                     },
                 )
                 print(
-                    f"Updated candidate recommendation score to {rec['match_score']} for job {job_id}"
+                    f"Updated candidate recommendation score to {score} for job {job_id}"
                 )
     
-    # Fetch full candidate details for each recommendation
-    detailed_recommendations = []
-    for rec in recommendations:
-        candidate = next(
-            (c for c in candidates if c["id"] == rec["candidate_id"]), None
-        )
-        if candidate:
-            # Remove MongoDB's _id from candidate
-            if "_id" in candidate:
-                candidate.pop("_id", None)
-                
-            rec_with_details = rec.copy()
-            rec_with_details["candidate"] = candidate
-            detailed_recommendations.append(rec_with_details)
+    # Sort by match score
+    recommendations = sorted(
+        recommendations, key=lambda x: x["match_score"], reverse=True
+    )
     
-    return detailed_recommendations
+    return recommendations
 
 
 # Add this function after the existing recommendation functions
@@ -3191,10 +3239,12 @@ async def get_candidates_recommendations(
 @app.get("/recommendations/skill-gap", response_model=dict)
 async def get_skill_gap_analysis(
     target_role: str,
+    industry: str = "Technology",
     experience_level: str = "Mid-level",
+    include_learning_resources: bool = False,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get skill gap analysis for a target role"""
+    """Get skill gap analysis for a target role with industry-specific requirements"""
     try:
         if current_user["user_type"] != UserType.CANDIDATE:
             raise HTTPException(
@@ -3309,7 +3359,74 @@ async def get_skill_gap_analysis(
                 {"name": "Scripting", "importance": 8},
                 {"name": "Security", "importance": 7},
                 {"name": "Networking", "importance": 7}
+            ],
+            "Senior Software Engineer": [
+                {"name": "System Architecture", "importance": 9},
+                {"name": "Technical Leadership", "importance": 8},
+                {"name": "Mentoring", "importance": 8},
+                {"name": "Code Review", "importance": 9},
+                {"name": "Performance Optimization", "importance": 8},
+                {"name": "Scalability", "importance": 9},
+                {"name": "Security Best Practices", "importance": 8},
+                {"name": "Project Management", "importance": 7},
+                {"name": "Cross-functional Collaboration", "importance": 8},
+                {"name": "Advanced Debugging", "importance": 9}
             ]
+        }
+        
+        # Industry-specific skills
+        industry_skills_map = {
+            "Technology": {
+                "Software Engineer": [
+                    {"name": "Agile Methodologies", "importance": 8},
+                    {"name": "Microservices", "importance": 8},
+                    {"name": "CI/CD", "importance": 7}
+                ],
+                "Data Scientist": [
+                    {"name": "Product Analytics", "importance": 8},
+                    {"name": "A/B Testing", "importance": 8},
+                    {"name": "Recommendation Systems", "importance": 7}
+                ],
+                "Senior Software Engineer": [
+                    {"name": "Distributed Systems", "importance": 9},
+                    {"name": "Microservices Architecture", "importance": 8},
+                    {"name": "Cloud Infrastructure", "importance": 8}
+                ]
+            },
+            "Finance": {
+                "Software Engineer": [
+                    {"name": "Financial Regulations", "importance": 8},
+                    {"name": "Security Compliance", "importance": 9},
+                    {"name": "Payment Processing", "importance": 7}
+                ],
+                "Data Scientist": [
+                    {"name": "Risk Modeling", "importance": 9},
+                    {"name": "Fraud Detection", "importance": 9},
+                    {"name": "Time Series Analysis", "importance": 8}
+                ],
+                "Senior Software Engineer": [
+                    {"name": "High-Frequency Trading Systems", "importance": 8},
+                    {"name": "Financial Security Protocols", "importance": 9},
+                    {"name": "Regulatory Compliance", "importance": 9}
+                ]
+            },
+            "Healthcare": {
+                "Software Engineer": [
+                    {"name": "HIPAA Compliance", "importance": 9},
+                    {"name": "Electronic Health Records", "importance": 8},
+                    {"name": "Healthcare Interoperability", "importance": 7}
+                ],
+                "Data Scientist": [
+                    {"name": "Clinical Data Analysis", "importance": 9},
+                    {"name": "Medical Imaging", "importance": 8},
+                    {"name": "Patient Outcome Prediction", "importance": 8}
+                ],
+                "Senior Software Engineer": [
+                    {"name": "Medical Device Integration", "importance": 8},
+                    {"name": "Healthcare Data Security", "importance": 9},
+                    {"name": "Clinical Systems Architecture", "importance": 8}
+                ]
+            }
         }
         
         # Get required skills for the target role
@@ -3317,6 +3434,11 @@ async def get_skill_gap_analysis(
         if not required_skills:
             # Default to Software Engineer if role not found
             required_skills = role_skills_map["Software Engineer"]
+        
+        # Add industry-specific skills if available
+        if industry in industry_skills_map and target_role in industry_skills_map[industry]:
+            industry_specific_skills = industry_skills_map[industry][target_role]
+            required_skills.extend(industry_specific_skills)
         
         # Adjust required skills based on experience level
         if experience_level == "Entry-level":
@@ -3327,21 +3449,89 @@ async def get_skill_gap_analysis(
             required_skills = [{"name": s["name"], "importance": min(s["importance"] + 2, 10)} for s in required_skills]
         
         # Find missing skills
-        candidate_skill_names = [s["name"] for s in candidate_skills]
-        missing_skills = [s for s in required_skills if s["name"] not in candidate_skill_names]
+        candidate_skill_names = [s["name"].lower() for s in candidate_skills]
+        missing_skills = [s for s in required_skills if s["name"].lower() not in candidate_skill_names]
         
         # Calculate match score
         total_importance = sum(s["importance"] for s in required_skills)
         missing_importance = sum(s["importance"] for s in missing_skills)
         match_score = max(0, min(100, int(100 * (1 - missing_importance / total_importance))))
         
-        # Return skill gap analysis
-        return {
+        # Categorize skills by type
+        skill_categories = {
+            "technical": ["Python", "JavaScript", "SQL", "Java", "React", "Docker", "Kubernetes", 
+                         "AWS", "Machine Learning", "Data Structures", "Algorithms", "Testing",
+                         "CI/CD", "Git", "Node.js", "TypeScript", "HTML", "CSS", "NoSQL"],
+            "soft_skills": ["Communication", "Leadership", "Teamwork", "Problem Solving", 
+                           "Critical Thinking", "Mentoring", "Cross-functional Collaboration"],
+            "domain_knowledge": ["HIPAA Compliance", "Financial Regulations", "Healthcare Interoperability",
+                               "Electronic Health Records", "Payment Processing", "Security Compliance"],
+            "architecture": ["System Design", "Microservices", "Distributed Systems", 
+                            "Scalability", "System Architecture", "API Design"]
+        }
+        
+        # Categorize missing skills
+        categorized_missing_skills = {}
+        for skill in missing_skills:
+            skill_name = skill["name"]
+            category = "other"
+            
+            # Find the right category
+            for cat, skills in skill_categories.items():
+                if any(s.lower() in skill_name.lower() for s in skills):
+                    category = cat
+                    break
+            
+            if category not in categorized_missing_skills:
+                categorized_missing_skills[category] = []
+            
+            categorized_missing_skills[category].append(skill)
+        
+        # Prepare response
+        response = {
             "match_score": match_score,
             "your_skills": candidate_skills,
             "required_skills": required_skills,
-            "missing_skills": missing_skills
+            "missing_skills": missing_skills,
+            "categorized_missing_skills": categorized_missing_skills,
+            "industry_specific_requirements": industry_skills_map.get(industry, {}).get(target_role, [])
         }
+        
+        # Add learning resources if requested
+        if include_learning_resources:
+            # Get top 5 most important missing skills
+            top_missing_skills = sorted(missing_skills, key=lambda x: x["importance"], reverse=True)[:5]
+            skill_names = [skill["name"] for skill in top_missing_skills]
+            
+            # Get learning resources
+            if skill_names:
+                learning_resources_response = await get_learning_recommendations(json.dumps(skill_names), current_user)
+                response["learning_resources"] = learning_resources_response
+        
+        # Add market demand data
+        market_demand = {
+            "Technology": {
+                "Software Engineer": {"demand_score": 85, "growth_rate": 22, "avg_salary": "$110,000"},
+                "Data Scientist": {"demand_score": 90, "growth_rate": 28, "avg_salary": "$120,000"},
+                "Senior Software Engineer": {"demand_score": 88, "growth_rate": 18, "avg_salary": "$140,000"}
+            },
+            "Finance": {
+                "Software Engineer": {"demand_score": 80, "growth_rate": 15, "avg_salary": "$105,000"},
+                "Data Scientist": {"demand_score": 85, "growth_rate": 20, "avg_salary": "$125,000"},
+                "Senior Software Engineer": {"demand_score": 82, "growth_rate": 12, "avg_salary": "$135,000"}
+            },
+            "Healthcare": {
+                "Software Engineer": {"demand_score": 78, "growth_rate": 18, "avg_salary": "$100,000"},
+                "Data Scientist": {"demand_score": 88, "growth_rate": 25, "avg_salary": "$115,000"},
+                "Senior Software Engineer": {"demand_score": 80, "growth_rate": 15, "avg_salary": "$130,000"}
+            }
+        }
+        
+        # Add market demand if available
+        if industry in market_demand and target_role in market_demand[industry]:
+            response["market_demand"] = market_demand[industry][target_role]
+        
+        return response
     except Exception as e:
         # Print the full exception for debugging
         import traceback
@@ -3878,3 +4068,576 @@ async def update_profile_patch(
             {"email": current_user["email"]}
         )
         return updated_profile
+
+
+# Add this after the existing recommendation endpoints
+@app.get("/recommendations/similar-jobs/{job_id}", response_model=List[dict])
+async def get_similar_jobs(
+    job_id: str,
+    limit: int = 10,
+    exclude_applied: bool = True,
+    exclude_company: bool = False,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get jobs similar to a specific job based on vector similarity"""
+    if current_user["user_type"] != UserType.CANDIDATE:
+        raise HTTPException(
+            status_code=403, detail="Only candidates can get similar job recommendations"
+        )
+    
+    # Get the source job
+    source_job = await Database.get_collection(JOBS_COLLECTION).find_one({"id": job_id})
+    if not source_job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    # Get the source job embedding
+    source_embedding = source_job.get("embedding")
+    if not source_embedding:
+        # If no embedding, try to generate one
+        try:
+            source_embedding = create_job_embedding(source_job)
+        except Exception as e:
+            print(f"Error generating embedding for job {job_id}: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail="Could not generate embedding for the job"
+            )
+    
+    # Build filter query
+    filter_query = {"is_active": True, "id": {"$ne": job_id}}
+    
+    # Exclude jobs from the same company if requested
+    if exclude_company and "company" in source_job:
+        filter_query["company"] = {"$ne": source_job["company"]}
+    
+    # Exclude jobs the candidate has already applied to
+    if exclude_applied:
+        # Get the candidate's job applications
+        applications = await Database.get_collection(JOB_APPLICATIONS_COLLECTION).find(
+            {"candidate_id": current_user["id"]}
+        ).to_list(length=None)
+        
+        if applications:
+            applied_job_ids = [app["job_id"] for app in applications]
+            filter_query["id"] = {"$nin": applied_job_ids}
+    
+    try:
+        # Use vector search to find similar jobs
+        similar_jobs = await search_vector_collection(
+            JOBS_COLLECTION, source_embedding, limit, filter_query
+        )
+        
+        # If vector search fails or returns no results, fall back to manual similarity calculation
+        if not similar_jobs:
+            print(f"Vector search returned no results for job {job_id}, using fallback")
+            
+            # Get all active jobs except the source job
+            all_jobs = await Database.get_collection(JOBS_COLLECTION).find(
+                filter_query
+            ).to_list(length=None)
+            
+            # Calculate similarity manually
+            job_similarities = []
+            for job in all_jobs:
+                job_embedding = job.get("embedding")
+                if job_embedding:
+                    similarity = cosine_similarity(source_embedding, job_embedding)
+                    # Add detailed job information
+                    job_data = {
+                        "job_id": job["id"],
+                        "similarity_score": float(similarity * 100),  # Convert to percentage
+                        "job_details": {
+                            "title": job.get("title", ""),
+                            "company": job.get("company", ""),
+                            "description": job.get("description", ""),
+                            "location": job.get("location", ""),
+                            "salary_range": job.get("salary_range", ""),
+                            "required_skills": job.get("requirements", []),
+                            "job_type": job.get("job_type", ""),
+                            "experience_level": job.get("experience_level", ""),
+                        }
+                    }
+                    job_similarities.append(job_data)
+            
+            # Sort by similarity (descending)
+            job_similarities.sort(key=lambda x: x["similarity_score"], reverse=True)
+            
+            # Limit results
+            similar_jobs = job_similarities[:limit]
+        else:
+            # Format the results from vector search
+            formatted_jobs = []
+            for job in similar_jobs:
+                # Add similarity score based on search score if available
+                similarity_score = job.get("score", 70)  # Default score if not provided
+                
+                job_data = {
+                    "job_id": job["id"],
+                    "similarity_score": float(similarity_score),
+                    "job_details": {
+                        "title": job.get("title", ""),
+                        "company": job.get("company", ""),
+                        "description": job.get("description", ""),
+                        "location": job.get("location", ""),
+                        "salary_range": job.get("salary_range", ""),
+                        "required_skills": job.get("requirements", []),
+                        "job_type": job.get("job_type", ""),
+                        "experience_level": job.get("experience_level", ""),
+                    }
+                }
+                formatted_jobs.append(job_data)
+                
+            similar_jobs = formatted_jobs
+        
+        return similar_jobs
+        
+    except Exception as e:
+        print(f"Error finding similar jobs: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error finding similar jobs: {str(e)}"
+        )
+
+
+@app.get("/recommendations/career-paths", response_model=dict)
+async def get_enhanced_career_paths(
+    current_role: str = None,
+    industry: str = None,
+    timeframe_years: int = 5,
+    include_skill_requirements: bool = True,
+    include_salary_data: bool = True,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get enhanced career path recommendations with additional parameters
+    
+    - timeframe_years: Number of years to plan for career progression
+    - include_skill_requirements: Include detailed skill requirements for each role
+    - include_salary_data: Include salary data for each role
+    """
+    if current_user["user_type"] != UserType.CANDIDATE:
+        raise HTTPException(
+            status_code=403, detail="Only candidates can get career path recommendations"
+        )
+    
+    # Get candidate profile to personalize recommendations
+    candidate = await Database.get_collection(CANDIDATES_COLLECTION).find_one(
+        {"email": current_user["email"]}
+    )
+    
+    # If current_role not specified, try to infer from candidate profile
+    if not current_role and candidate:
+        # Try to get current role from candidate experience
+        experience = candidate.get("experience", [])
+        if isinstance(experience, list) and len(experience) > 0:
+            current_role = experience[0].get("title", "Software Engineer")
+        else:
+            current_role = "Software Engineer"  # Default
+    
+    # If industry not specified, try to infer from candidate profile
+    if not industry and candidate:
+        # Try to get industry from candidate experience
+        experience = candidate.get("experience", [])
+        if isinstance(experience, list) and len(experience) > 0:
+            industry = experience[0].get("industry", "Technology")
+        else:
+            industry = "Technology"  # Default
+    
+    # Define enhanced career paths with more detailed information
+    career_paths = {
+        "Software Engineer": {
+            "Technology": [
+                {
+                    "name": "Technical Leadership Track",
+                    "description": "Progress from Software Engineer to Technical Leadership roles",
+                    "average_time_years": 6,
+                    "salary_growth_percentage": 75,
+                    "difficulty": 7,
+                    "steps": [
+                        {
+                            "role": "Software Engineer",
+                            "timeline": "0-2 years",
+                            "description": "Build strong programming fundamentals and contribute to team projects",
+                            "skills": ["Programming", "Data Structures", "Algorithms", "Testing"],
+                            "skill_requirements": {
+                                "technical": ["JavaScript", "Python", "SQL", "Git"],
+                                "soft": ["Communication", "Problem Solving", "Teamwork"]
+                            },
+                            "responsibilities": ["Implement features", "Fix bugs", "Write tests", "Participate in code reviews"],
+                            "salary_data": {
+                                "median": 90000,
+                                "range": {"min": 75000, "max": 110000},
+                                "currency": "USD"
+                            }
+                        },
+                        {
+                            "role": "Senior Software Engineer",
+                            "timeline": "2-4 years",
+                            "description": "Lead projects and mentor junior engineers",
+                            "skills": ["System Design", "Technical Leadership", "Mentoring", "Architecture"],
+                            "skill_requirements": {
+                                "technical": ["Advanced Programming", "System Design", "Architecture Patterns", "CI/CD"],
+                                "soft": ["Mentoring", "Project Planning", "Technical Communication"]
+                            },
+                            "responsibilities": ["Design systems", "Lead projects", "Mentor junior engineers", "Improve development processes"],
+                            "salary_data": {
+                                "median": 130000,
+                                "range": {"min": 110000, "max": 160000},
+                                "currency": "USD"
+                            }
+                        },
+                        {
+                            "role": "Staff Engineer",
+                            "timeline": "4-6 years",
+                            "description": "Provide technical leadership across multiple teams",
+                            "skills": ["Technical Strategy", "Cross-team Collaboration", "Advanced System Design"],
+                            "skill_requirements": {
+                                "technical": ["Distributed Systems", "Performance Optimization", "Technical Strategy", "Architecture"],
+                                "soft": ["Strategic Thinking", "Cross-team Collaboration", "Influence"]
+                            },
+                            "responsibilities": ["Define technical strategy", "Solve complex problems", "Drive technical initiatives", "Mentor senior engineers"],
+                            "salary_data": {
+                                "median": 170000,
+                                "range": {"min": 150000, "max": 200000},
+                                "currency": "USD"
+                            }
+                        },
+                        {
+                            "role": "Principal Engineer",
+                            "timeline": "6+ years",
+                            "description": "Set technical direction for the organization",
+                            "skills": ["Technical Vision", "Organization-wide Impact", "Strategic Planning"],
+                            "skill_requirements": {
+                                "technical": ["System Architecture", "Technical Vision", "Technology Strategy"],
+                                "soft": ["Executive Communication", "Leadership", "Strategic Planning"]
+                            },
+                            "responsibilities": ["Set technical vision", "Drive organization-wide initiatives", "Represent engineering externally"],
+                            "salary_data": {
+                                "median": 210000,
+                                "range": {"min": 180000, "max": 250000},
+                                "currency": "USD"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Management Track",
+                    "description": "Progress from Software Engineer to Engineering Management roles",
+                    "average_time_years": 7,
+                    "salary_growth_percentage": 85,
+                    "difficulty": 8,
+                    "steps": [
+                        {
+                            "role": "Software Engineer",
+                            "timeline": "0-2 years",
+                            "description": "Build technical expertise and team collaboration skills",
+                            "skills": ["Programming", "Data Structures", "Algorithms", "Testing"],
+                            "skill_requirements": {
+                                "technical": ["JavaScript", "Python", "SQL", "Git"],
+                                "soft": ["Communication", "Problem Solving", "Teamwork"]
+                            },
+                            "responsibilities": ["Implement features", "Fix bugs", "Write tests", "Participate in code reviews"],
+                            "salary_data": {
+                                "median": 90000,
+                                "range": {"min": 75000, "max": 110000},
+                                "currency": "USD"
+                            }
+                        },
+                        {
+                            "role": "Senior Software Engineer",
+                            "timeline": "2-4 years",
+                            "description": "Lead projects and mentor junior engineers",
+                            "skills": ["System Design", "Technical Leadership", "Mentoring", "Project Management"],
+                            "skill_requirements": {
+                                "technical": ["Advanced Programming", "System Design", "Architecture Patterns"],
+                                "soft": ["Mentoring", "Project Planning", "Leadership"]
+                            },
+                            "responsibilities": ["Design systems", "Lead projects", "Mentor junior engineers", "Coordinate with stakeholders"],
+                            "salary_data": {
+                                "median": 130000,
+                                "range": {"min": 110000, "max": 160000},
+                                "currency": "USD"
+                            }
+                        },
+                        {
+                            "role": "Tech Lead",
+                            "timeline": "4-5 years",
+                            "description": "Lead technical direction for a team while developing management skills",
+                            "skills": ["Technical Leadership", "Team Coordination", "Project Planning"],
+                            "skill_requirements": {
+                                "technical": ["Architecture", "Technical Planning", "Code Quality"],
+                                "soft": ["Team Leadership", "Stakeholder Management", "Conflict Resolution"]
+                            },
+                            "responsibilities": ["Set technical direction", "Coordinate team efforts", "Work with product managers", "Mentor team members"],
+                            "salary_data": {
+                                "median": 150000,
+                                "range": {"min": 130000, "max": 180000},
+                                "currency": "USD"
+                            }
+                        },
+                        {
+                            "role": "Engineering Manager",
+                            "timeline": "5-7 years",
+                            "description": "Manage a team of engineers, focusing on people and delivery",
+                            "skills": ["People Management", "Project Management", "Process Improvement"],
+                            "skill_requirements": {
+                                "technical": ["System Understanding", "Technical Strategy", "Development Processes"],
+                                "soft": ["People Management", "Coaching", "Conflict Resolution", "Resource Planning"]
+                            },
+                            "responsibilities": ["Hire and grow team", "Manage performance", "Deliver projects", "Improve processes"],
+                            "salary_data": {
+                                "median": 170000,
+                                "range": {"min": 150000, "max": 200000},
+                                "currency": "USD"
+                            }
+                        },
+                        {
+                            "role": "Director of Engineering",
+                            "timeline": "7+ years",
+                            "description": "Lead multiple engineering teams and set department strategy",
+                            "skills": ["Organizational Leadership", "Strategic Planning", "Cross-functional Collaboration"],
+                            "skill_requirements": {
+                                "technical": ["Engineering Strategy", "Technology Roadmap", "Architecture Vision"],
+                                "soft": ["Executive Communication", "Strategic Thinking", "Organizational Design"]
+                            },
+                            "responsibilities": ["Set engineering strategy", "Manage managers", "Align with business goals", "Drive organizational improvements"],
+                            "salary_data": {
+                                "median": 210000,
+                                "range": {"min": 180000, "max": 250000},
+                                "currency": "USD"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "Finance": [
+                {
+                    "name": "FinTech Specialist Track",
+                    "description": "Specialize in financial technology and systems",
+                    "average_time_years": 5,
+                    "salary_growth_percentage": 70,
+                    "difficulty": 8,
+                    "steps": [
+                        {
+                            "role": "Software Engineer",
+                            "timeline": "0-2 years",
+                            "description": "Build core engineering skills in a finance context",
+                            "skills": ["Programming", "Data Structures", "Algorithms", "Financial Systems"],
+                            "skill_requirements": {
+                                "technical": ["Java", "Python", "SQL", "REST APIs"],
+                                "soft": ["Attention to Detail", "Problem Solving", "Communication"],
+                                "domain": ["Basic Financial Knowledge", "Security Awareness"]
+                            },
+                            "responsibilities": ["Implement features", "Fix bugs", "Write tests", "Learn financial domain"],
+                            "salary_data": {
+                                "median": 95000,
+                                "range": {"min": 80000, "max": 115000},
+                                "currency": "USD"
+                            }
+                        },
+                        {
+                            "role": "Financial Software Engineer",
+                            "timeline": "2-4 years",
+                            "description": "Develop expertise in financial systems and regulations",
+                            "skills": ["Financial Regulations", "Payment Systems", "Security", "Risk Management"],
+                            "skill_requirements": {
+                                "technical": ["Advanced Java/Python", "Financial APIs", "Security Protocols"],
+                                "soft": ["Regulatory Compliance", "Risk Assessment", "Technical Documentation"],
+                                "domain": ["Financial Regulations", "Payment Processing", "Risk Management"]
+                            },
+                            "responsibilities": ["Design financial systems", "Implement regulatory requirements", "Ensure security compliance", "Optimize transaction processing"],
+                            "salary_data": {
+                                "median": 130000,
+                                "range": {"min": 115000, "max": 160000},
+                                "currency": "USD"
+                            }
+                        },
+                        {
+                            "role": "FinTech Specialist",
+                            "timeline": "4-5+ years",
+                            "description": "Lead development of innovative financial technology solutions",
+                            "skills": ["Financial Product Development", "Regulatory Strategy", "Advanced Security"],
+                            "skill_requirements": {
+                                "technical": ["Financial System Architecture", "Blockchain (optional)", "Advanced Security", "High-Performance Systems"],
+                                "soft": ["Financial Domain Expertise", "Cross-functional Leadership", "Strategic Thinking"],
+                                "domain": ["Advanced Financial Products", "Regulatory Framework", "Risk Models"]
+                            },
+                            "responsibilities": ["Design financial products", "Lead regulatory compliance", "Drive security strategy", "Innovate payment solutions"],
+                            "salary_data": {
+                                "median": 160000,
+                                "range": {"min": 140000, "max": 190000},
+                                "currency": "USD"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "Data Scientist": {
+            "Technology": [
+                {
+                    "name": "ML Engineering Track",
+                    "description": "Progress from Data Scientist to ML Engineering leadership",
+                    "average_time_years": 5,
+                    "salary_growth_percentage": 65,
+                    "difficulty": 8,
+                    "steps": [
+                        {
+                            "role": "Data Scientist",
+                            "timeline": "0-2 years",
+                            "description": "Build strong data analysis and modeling skills",
+                            "skills": ["Python", "Statistics", "Machine Learning", "Data Analysis"],
+                            "skill_requirements": {
+                                "technical": ["Python", "SQL", "Statistical Analysis", "Machine Learning Algorithms"],
+                                "soft": ["Communication", "Problem Solving", "Business Acumen"]
+                            },
+                            "responsibilities": ["Analyze data", "Build models", "Present insights", "Support business decisions"],
+                            "salary_data": {
+                                "median": 100000,
+                                "range": {"min": 85000, "max": 120000},
+                                "currency": "USD"
+                            }
+                        },
+                        {
+                            "role": "Senior Data Scientist",
+                            "timeline": "2-4 years",
+                            "description": "Lead complex data projects and develop ML models",
+                            "skills": ["Advanced ML", "Deep Learning", "Project Leadership", "Model Deployment"],
+                            "skill_requirements": {
+                                "technical": ["Advanced ML Algorithms", "Deep Learning", "Feature Engineering", "Model Evaluation"],
+                                "soft": ["Project Management", "Stakeholder Communication", "Mentoring"]
+                            },
+                            "responsibilities": ["Lead ML projects", "Design complex models", "Mentor junior data scientists", "Translate business needs to ML solutions"],
+                            "salary_data": {
+                                "median": 140000,
+                                "range": {"min": 120000, "max": 165000},
+                                "currency": "USD"
+                            }
+                        },
+                        {
+                            "role": "ML Engineer",
+                            "timeline": "4-5+ years",
+                            "description": "Focus on deploying and scaling ML systems in production",
+                            "skills": ["MLOps", "Production Systems", "Scalability", "Software Engineering"],
+                            "skill_requirements": {
+                                "technical": ["MLOps", "Model Deployment", "Distributed Systems", "Software Engineering"],
+                                "soft": ["Cross-functional Collaboration", "System Design", "Technical Leadership"]
+                            },
+                            "responsibilities": ["Design ML systems", "Deploy models to production", "Build scalable ML infrastructure", "Optimize model performance"],
+                            "salary_data": {
+                                "median": 165000,
+                                "range": {"min": 145000, "max": 190000},
+                                "currency": "USD"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+    
+    # Default to technology industry if not specified
+    if not industry:
+        industry = "Technology"
+    
+    # Get career paths for the current role and industry
+    role_paths = career_paths.get(current_role, {})
+    industry_paths = role_paths.get(industry, role_paths.get("Technology", []))
+    
+    # Filter steps based on timeframe_years if specified
+    if timeframe_years > 0:
+        for path in industry_paths:
+            # Filter steps to only include those within the timeframe
+            filtered_steps = []
+            for step in path.get("steps", []):
+                # Parse the timeline to get the max years
+                timeline = step.get("timeline", "")
+                max_years = 0
+                
+                # Try to extract the maximum year from formats like "X-Y years" or "X+ years"
+                if "+" in timeline:
+                    # Format: "X+ years"
+                    try:
+                        max_years = int(timeline.split("+")[0].strip())
+                    except:
+                        max_years = 0
+                elif "-" in timeline:
+                    # Format: "X-Y years"
+                    try:
+                        max_years = int(timeline.split("-")[1].split(" ")[0].strip())
+                    except:
+                        max_years = 0
+                
+                # Include step if it's within the timeframe or if we couldn't parse the timeline
+                if max_years <= timeframe_years or max_years == 0:
+                    filtered_steps.append(step)
+            
+            # Update the path with filtered steps
+            path["steps"] = filtered_steps
+    
+    # Remove skill requirements if not requested
+    if not include_skill_requirements:
+        for path in industry_paths:
+            for step in path.get("steps", []):
+                if "skill_requirements" in step:
+                    step.pop("skill_requirements", None)
+    
+    # Remove salary data if not requested
+    if not include_salary_data:
+        for path in industry_paths:
+            for step in path.get("steps", []):
+                if "salary_data" in step:
+                    step.pop("salary_data", None)
+    
+    # If no paths found, provide generic advice
+    if not industry_paths:
+        generic_path = {
+            "name": f"From {current_role} to Senior {current_role}",
+            "description": "A standard progression path for your role",
+            "average_time_years": 3,
+            "salary_growth_percentage": 30,
+            "difficulty": 6,
+            "steps": [
+                {
+                    "role": current_role,
+                    "timeline": "0-2 years",
+                    "description": "Build core skills and domain expertise"
+                },
+                {
+                    "role": f"Senior {current_role}",
+                    "timeline": "2-4 years",
+                    "description": "Lead projects and mentor junior team members"
+                }
+            ]
+        }
+        
+        # Add skill requirements if requested
+        if include_skill_requirements:
+            generic_path["steps"][0]["skill_requirements"] = {
+                "technical": ["Core Technical Skills", "Tools & Technologies"],
+                "soft": ["Communication", "Teamwork", "Problem Solving"]
+            }
+            generic_path["steps"][1]["skill_requirements"] = {
+                "technical": ["Advanced Technical Skills", "System Design"],
+                "soft": ["Leadership", "Mentoring", "Project Management"]
+            }
+        
+        # Add salary data if requested
+        if include_salary_data:
+            generic_path["steps"][0]["salary_data"] = {
+                "median": 90000,
+                "range": {"min": 70000, "max": 110000},
+                "currency": "USD"
+            }
+            generic_path["steps"][1]["salary_data"] = {
+                "median": 120000,
+                "range": {"min": 100000, "max": 140000},
+                "currency": "USD"
+            }
+        
+        return {
+            "paths": [generic_path]
+        }
+    
+    # Return career paths
+    return {
+        "paths": industry_paths
+    }

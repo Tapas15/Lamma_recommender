@@ -1,0 +1,228 @@
+[
+  {
+    "email": "nicole.rodriguez@yahoo.com",
+    "full_name": "Nicole Rodriguez",
+    "phone": "(905)489-2327x92736",
+    "location": "Portland, OR",
+    "experience_years": "1",
+    "education_summary": "Bachelor of Science in Information Technology from University of Washington",
+    "bio": "Reveal quickly prevent name. Item citizen catch just travel professor.",
+    "about": "Ability style outside food. Myself type system upon. Mrs blue serve trial space bed.",
+    "links": {
+      "linkedin": "https://linkedin.com/in/nicole-rodriguez",
+      "github": "https://github.com/nicolerodriguez",
+      "portfolio": "https://nicolerodriguez.dev",
+      "resume": null
+    },
+    "skills": {
+      "languages_frameworks": [
+        "MATLAB",
+        "Python",
+        "Node.js",
+        "Angular",
+        "FastAPI",
+        "PyTorch",
+        "ASP.NET Core"
+      ],
+      "ai_ml_data": [],
+      "tools_platforms": [
+        "Terraform",
+        "Docker",
+        "Confluence",
+        "Jira",
+        "Kubernetes",
+        "Azure",
+        "Google Cloud",
+        "Vercel",
+        "Redis",
+        "PostgreSQL",
+        "MongoDB"
+      ],
+      "soft_skills": [
+        "Teamwork",
+        "Problem Solving",
+        "Negotiation",
+        "Conflict Resolution"
+      ]
+    },
+    "experience": [
+      {
+        "title": "Network Engineer",
+        "company": "Oracle",
+        "location": "Remote",
+        "duration": "27 months",
+        "responsibilities": [
+          "Statement several major difficult nothing.",
+          "Community consider magazine mention five few television.",
+          "Parent policy year mother dog though American."
+        ]
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Science in Information Technology",
+        "institution": "University of Washington",
+        "duration": "2017 - 2022"
+      }
+    ],
+    "certifications": [
+      "TensorFlow Developer Certificate (Issued: 2023, Expires: 2026)"
+    ],
+    "preferred_job_locations": [
+      "Sydney, Australia",
+      "London, UK"
+    ],
+    "job_search_status": {
+      "currently_looking": false,
+      "available_from": "2025-06-02",
+      "desired_job_titles": [
+        "DevOps Engineer",
+        "Machine Learning Engineer",
+        "Network Engineer"
+      ],
+      "preferred_employment_type": [
+        "Part-time",
+        "Full-time"
+      ],
+      "salary_expectation_usd": {
+        "min": 83639,
+        "max": 120656
+      },
+      "notice_period_days": 26,
+      "relocation_willingness": false,
+      "additional_notes": "Accept stock evening."
+    }
+  },
+  {
+    "email": "joseph.adams@yahoo.com",
+    "full_name": "Joseph Adams",
+    "phone": "482.253.9183x8320",
+    "location": "Tokyo, Japan",
+    "experience_years": "15",
+    "education_summary": "Master of Science in Artificial Intelligence from University of Illinois",
+    "bio": "Whole modern pretty available. Pattern college less unit option identify finish.",
+    "about": "Interview begin night like. Interest better model section live human. Cover market determine event indeed entire letter after.",
+    "links": {
+      "linkedin": "https://linkedin.com/in/joseph-adams",
+      "github": "https://github.com/josephadams",
+      "portfolio": "https://josephadams.dev",
+      "resume": null
+    },
+    "skills": {
+      "languages_frameworks": [
+        "Python",
+        "C#",
+        "Rust",
+        "MATLAB",
+        "React",
+        "Express.js",
+        "Ruby on Rails",
+        "Spring Boot",
+        "FastAPI"
+      ],
+      "ai_ml_data": [],
+      "tools_platforms": [
+        "GitHub Actions",
+        "Kubernetes",
+        "Grafana",
+        "Prometheus",
+        "DigitalOcean",
+        "Cloudflare",
+        "PostgreSQL"
+      ],
+      "soft_skills": [
+        "Communication",
+        "Teamwork",
+        "Emotional Intelligence",
+        "Presentation Skills",
+        "Customer Service"
+      ]
+    },
+    "experience": [
+      {
+        "title": "Security Engineer",
+        "company": "Twitter",
+        "location": "Remote",
+        "duration": "18 months",
+        "responsibilities": [
+          "Environmental pull sell follow.",
+          "Eye level down everyone certain mind.",
+          "Pretty whole study sometimes."
+        ]
+      },
+      {
+        "title": "Mobile Developer",
+        "company": "Uber",
+        "location": "Toronto, Canada",
+        "duration": "34 months",
+        "responsibilities": [
+          "Continue design body street.",
+          "Edge position prepare act include anything I.",
+          "Time quite maybe ever thus anything reason able."
+        ]
+      },
+      {
+        "title": "Database Administrator",
+        "company": "Spotify",
+        "location": "Atlanta, GA",
+        "duration": "27 months",
+        "responsibilities": [
+          "Street activity million ground.",
+          "Seem white lose avoid none.",
+          "Over ahead long note myself fine manager."
+        ]
+      },
+      {
+        "title": "Backend Developer",
+        "company": "CodeCrafters",
+        "location": "Sydney, Australia",
+        "duration": "29 months",
+        "responsibilities": [
+          "Image ten develop simply close run though.",
+          "Tree dinner star order follow author century.",
+          "Clearly tonight degree experience represent."
+        ]
+      },
+      {
+        "title": "Backend Developer",
+        "company": "Airbnb",
+        "location": "Berlin, Germany",
+        "duration": "28 months",
+        "responsibilities": [
+          "Affect me everything treat cold since play without.",
+          "Example center pretty by.",
+          "Place responsibility career."
+        ]
+      }
+    ],
+    "education": [
+      {
+        "degree": "Master of Science in Artificial Intelligence",
+        "institution": "University of Illinois",
+        "duration": "2004 - 2008"
+      }
+    ],
+    "certifications": [],
+    "preferred_job_locations": [
+      "London, UK"
+    ],
+    "job_search_status": {
+      "currently_looking": true,
+      "available_from": "2025-06-23",
+      "desired_job_titles": [
+        "Android Developer",
+        "Machine Learning Engineer"
+      ],
+      "preferred_employment_type": [
+        "Part-time"
+      ],
+      "salary_expectation_usd": {
+        "min": 97635,
+        "max": 116213
+      },
+      "notice_period_days": 31,
+      "relocation_willingness": false,
+      "additional_notes": "Matter place produce appear."
+    }
+  }
+]

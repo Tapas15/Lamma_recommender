@@ -1,0 +1,120 @@
+[
+  {
+    "title": "Mobile Developer",
+    "company": "Scott-Key",
+    "description": "Old purpose know than by interview. Whatever fly oil box lose sit town. Line key on world base. Forget indicate federal. Market modern quality yard third fly across inside. Gun hour government director hundred.",
+    "requirements": [
+      "Flask",
+      "Terraform",
+      "Azure",
+      "Kubernetes"
+    ],
+    "location": "San Francisco, CA",
+    "employment_type": "Freelance",
+    "experience_level": "Entry-level",
+    "industry": "Consulting",
+    "responsibilities": [
+      "Memory director edge room look positive.",
+      "Consumer size week performance born network natural.",
+      "Painting how spend dark.",
+      "Seem billion music among.",
+      "Seat agreement give upon always democratic risk.",
+      "Catch group economy."
+    ],
+    "preferred_qualifications": [
+      "Size foreign charge outside son use agreement.",
+      "Boy politics key.",
+      "Result possible then try.",
+      "Five charge animal may."
+    ],
+    "tech_stack": [
+      "Flask",
+      "Terraform",
+      "Azure",
+      "Kubernetes"
+    ],
+    "remote_option": false,
+    "work_mode": [
+      "On-site",
+      "Remote",
+      "Hybrid"
+    ],
+    "salary_range": {
+      "min": 72428,
+      "max": 89535,
+      "currency": "USD"
+    },
+    "benefits": [
+      "Company retreats",
+      "Parental leave",
+      "Flexible work hours",
+      "Performance bonuses",
+      "401(k) matching"
+    ],
+    "application_deadline": "2025-08-07",
+    "posted_date": "2025-05-24",
+    "contact_email": "michaeldunn@example.com",
+    "id": "683161cd1afc2fe0f1127c3a",
+    "created_at": "2025-05-24T06:06:40.012481",
+    "employer_id": "68315fd88de28a0051aafb6b",
+    "is_active": true
+  },
+  {
+    "title": "Site Reliability Engineer",
+    "company": "Parker, Walker and Mann",
+    "description": "Myself child this Republican plant. Provide soldier across range what cup quite. Position amount will money someone marriage. Spend area movement. Lay hard star attention team player. Case result this paper house edge appear.",
+    "requirements": [
+      "Spring Boot",
+      "Vue.js",
+      "Google Cloud"
+    ],
+    "location": "Amsterdam, Netherlands",
+    "employment_type": "Full-time",
+    "experience_level": "Senior",
+    "industry": "Manufacturing",
+    "responsibilities": [
+      "Friend all remain through well provide size.",
+      "Size top tax whole after believe prepare.",
+      "Possible age small benefit glass resource side.",
+      "Page name seven about picture surface.",
+      "Just turn quality mouth."
+    ],
+    "preferred_qualifications": [
+      "Community see season newspaper.",
+      "Hear hear hold central marriage I near share.",
+      "Clear agree scene side whole push tell bag.",
+      "Expert home suffer age town rule whose.",
+      "Skill course dream eat huge set."
+    ],
+    "tech_stack": [
+      "Spring Boot",
+      "Vue.js",
+      "Google Cloud"
+    ],
+    "remote_option": false,
+    "work_mode": [
+      "Hybrid",
+      "On-site",
+      "Remote"
+    ],
+    "salary_range": {
+      "min": 149462,
+      "max": 206601,
+      "currency": "USD"
+    },
+    "benefits": [
+      "Company retreats",
+      "401(k) matching",
+      "Mental health benefits",
+      "Flexible work hours",
+      "Home office stipend"
+    ],
+    "application_deadline": "2025-07-21",
+    "posted_date": "2025-05-24",
+    "contact_email": "walterhunter@example.org",
+    "id": "683161f21afc2fe0f1127c3c",
+    "created_at": "2025-05-24T06:07:11.444155",
+    "employer_id": "68315fd88de28a0051aafb6b",
+    "is_active": true
+  }
+]
