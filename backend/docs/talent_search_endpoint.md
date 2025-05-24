@@ -1,120 +1,143 @@
-# Talent Search API Endpoint
+# Talent Search API Endpoint Documentation
 
 ## Overview
 
-The talent search API endpoint (`/recommendations/talent-search`) provides advanced candidate search capabilities with multiple filtering options. This endpoint allows employers to search for candidates based on skills, experience, location, education, and availability.
+The talent search API provides a powerful way for employers to find qualified candidates based on specific criteria. It uses vector embeddings for semantic matching and supports various filtering options.
 
-## Endpoint Details
+## Endpoint
 
-- **URL**: `/recommendations/talent-search`
-- **Method**: `POST`
-- **Authentication**: Required (JWT token)
-- **Authorization**: Employer users only
+```
+POST /recommendations/talent-search
+```
 
-## Request Parameters
+## Authentication
 
-### Body Parameters
+Requires a valid JWT token with employer privileges.
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `skills` | array | Yes | List of required skills to search for |
-| `job_title` | string | No | Job title to match against candidate profiles |
-| `industry` | string | No | Industry to match against candidate profiles |
-| `location` | string | No | Location to match against candidate profiles |
-| `experience_years` | integer | No | Required years of experience |
+## Request Body
 
-### Query Parameters
+The request body should be a JSON object with the following structure:
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `min_match_score` | integer | 0 | Minimum match score threshold (0-100) |
-| `limit` | integer | 10 | Maximum number of results to return |
-| `include_details` | boolean | true | Whether to include full candidate details in response |
-| `sort_by` | string | "match_score" | Sort results by: "match_score", "experience_years", "availability" |
-| `experience_min` | integer | null | Minimum years of experience |
-| `experience_max` | integer | null | Maximum years of experience |
-| `location_radius` | integer | null | Location search radius in miles/km |
-| `include_remote` | boolean | false | Include remote candidates regardless of location |
-| `education_level` | string | null | Comma-separated list of education levels (e.g., "Bachelors,Masters") |
-| `availability` | string | null | Comma-separated list of availability options (e.g., "Immediate,2 weeks") |
+```json
+{
+  "skills": ["Python", "JavaScript", "React"],
+  "job_title": "Full Stack Developer",
+  "industry": "Technology",
+  "location": "New York, NY"
+}
+```
 
-## Response Format
+### Required Fields
+
+- `skills`: Array of strings or a single string representing required skills
+
+### Optional Fields
+
+- `job_title`: String representing the job title
+- `industry`: String representing the industry
+- `location`: String representing the desired location
+
+## Query Parameters
+
+- `min_match_score` (int, default: 0): Minimum match score (0-100)
+- `limit` (int, default: 10): Maximum number of results to return
+- `include_details` (bool, default: true): Whether to include detailed candidate information
+- `sort_by` (string, default: "match_score"): Sort results by "match_score", "experience_years", or "availability"
+- `experience_min` (int): Minimum years of experience
+- `experience_max` (int): Maximum years of experience
+- `location_radius` (int): Distance in miles from specified location
+- `include_remote` (bool, default: false): Include remote candidates
+- `education_level` (string): Comma-separated list of education levels
+- `availability` (string): Comma-separated list of availability options
+
+## Response
 
 ```json
 {
   "candidates": [
     {
-      "candidate_id": "string",
-      "match_score": 95.5,
+      "candidate_id": "60d21b4667d0d8992e610c85",
+      "match_score": 85,
       "match_factors": {
         "skills_match": 90,
-        "experience_match": 100
+        "experience_match": 80,
+        "education_match": 70
       },
       "candidate_details": {
-        // Full candidate profile (when include_details=true)
+        "full_name": "John Doe",
+        "location": "New York, NY",
+        "experience_years": 5,
+        "availability": "Immediate",
+        "skills": ["Python", "JavaScript", "React", "Node.js"]
       }
     }
   ],
-  "total_count": 10,
+  "total_count": 1,
   "metadata": {
     "search_params": {
-      "skills": ["Python", "React", "AWS"],
-      "job_title": "Full Stack Developer",
-      "industry": "Technology"
+      "skills": ["Python", "JavaScript", "React"],
+      "job_title": "Full Stack Developer"
     },
     "filters_applied": {
       "experience_min": 3,
       "experience_max": 10,
-      "education_level": "Bachelors,Masters",
-      "availability": "Immediate,2 weeks",
-      "location_radius": 50,
-      "include_remote": true
+      "education_level": null,
+      "availability": null,
+      "location_radius": null,
+      "include_remote": false
     }
   }
 }
 ```
 
-## Match Factors
+## Error Handling
 
-The API calculates match factors to help explain why candidates match the search criteria:
+### Common Errors
 
-- **Skills Match**: Percentage of required skills that the candidate possesses
-- **Experience Match**: How well the candidate's experience matches the requirements
+- `400 Bad Request`: Missing required parameters or invalid input
+- `403 Forbidden`: User is not an employer
+- `500 Internal Server Error`: Server-side processing error
 
-## Examples
+### Recent Bug Fixes
 
-### Basic Search
+1. **Fixed: "'dict' object has no attribute 'lower'"**
+   - The error occurred when comparing location strings where one of the values was not a string
+   - Fix: Added type checking before string operations
+   - Added string conversion for input parameters to ensure compatibility
 
-```
-POST /recommendations/talent-search
-{
-  "skills": ["Python", "React", "AWS"]
+2. **Input Sanitization**
+   - Added validation for search parameters
+   - Ensured skills parameter is always a list of strings
+   - Added null checks for job_title and industry fields
+
+## Example Usage
+
+```python
+import requests
+
+url = "https://api.example.com/recommendations/talent-search"
+headers = {
+    "Authorization": "Bearer YOUR_TOKEN",
+    "Content-Type": "application/json"
 }
-```
-
-### Advanced Search with Filters
-
-```
-POST /recommendations/talent-search?min_match_score=80&limit=20&experience_min=3&experience_max=10&education_level=Bachelors,Masters&availability=Immediate,2%20weeks&include_remote=true
-{
-  "skills": ["Python", "React", "AWS"],
-  "job_title": "Full Stack Developer",
-  "industry": "Technology",
-  "location": "San Francisco, CA"
+payload = {
+    "skills": ["Python", "React", "AWS"],
+    "job_title": "Backend Developer",
+    "location": "Remote"
 }
+params = {
+    "experience_min": 2,
+    "sort_by": "match_score",
+    "include_remote": True
+}
+
+response = requests.post(url, json=payload, params=params, headers=headers)
+results = response.json()
 ```
 
-## Error Responses
+## Best Practices
 
-| Status Code | Description |
-|-------------|-------------|
-| 400 | Bad request (e.g., missing required parameters) |
-| 401 | Unauthorized (missing or invalid token) |
-| 403 | Forbidden (non-employer users) |
-| 500 | Server error (e.g., embedding generation failure) |
-
-## Notes
-
-- The endpoint uses vector embeddings to calculate semantic similarity between search queries and candidate profiles
-- Location filtering currently uses simple text matching; future versions will implement proper geocoding
-- Performance may vary based on the number of candidates in the database 
+1. Always provide specific skills for better matching
+2. Use the query parameters to refine results rather than filtering client-side
+3. Start with broader search criteria and narrow down if too many results are returned
+4. For location-based searches, consider using the `include_remote` parameter to widen the candidate pool 

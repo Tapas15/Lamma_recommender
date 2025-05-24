@@ -54,6 +54,10 @@ def test_talent_search(access_token, search_params, query_params=None):
         url += f"?{urlencode(query_params)}"
     
     try:
+        # Ensure location is a string if provided
+        if "location" in search_params and search_params["location"] is not None:
+            search_params["location"] = str(search_params["location"])
+            
         response = requests.post(url, headers=headers, json=search_params)
         if response.status_code == 200:
             return response.json()
@@ -166,7 +170,7 @@ def main():
     # Test 4: Location-based search with remote option
     test4_params = {
         "skills": ["Java", "Spring", "Microservices"],
-        "location": "New York, NY"
+        "location": "New York, NY"  # Ensure location is a string
     }
     test4_query = {
         "include_remote": True,

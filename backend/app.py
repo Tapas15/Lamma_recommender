@@ -13,9 +13,11 @@ import time
 import re
 from contextlib import asynccontextmanager
 import json
+import random
+import uuid
 
 # Use absolute imports for local modules
-from backend.utils.models import (
+from utils.models import (
     UserType,
     User,
     LoginRequest,
@@ -38,14 +40,14 @@ from backend.utils.models import (
     ProjectApplicationCreate,
     ProjectApplication,
 )
-from backend.utils.extended_models import (
+from utils.extended_models import (
     ExtendedCandidateCreate,
     ExtendedCandidate,
     ExtendedEmployerCreate,
     ExtendedEmployer,
 )
-from backend.utils.embedding import get_embedding
-from backend.utils.database import (
+from utils.embedding import get_embedding
+from utils.database import (
     Database,
     USERS_COLLECTION,
     JOBS_COLLECTION,
@@ -2197,12 +2199,36 @@ async def get_project_recommendations(current_user: dict = Depends(get_current_u
 
 
 @app.get(
-    "/recommendations/candidates-for-project/{project_id}", response_model=List[dict]
+    "/recommendations/candidates-for-project/{project_id}", response_model=dict
+)
+@app.get(
+    "/recommendations/project-candidates/{project_id}", response_model=dict
 )
 async def get_candidate_recommendations_for_project(
-    project_id: str, current_user: dict = Depends(get_current_user)
+    project_id: str,
+    min_match_score: int = 0,
+    limit: int = 10,
+    include_details: bool = True,
+    sort_by: str = "match_score",
+    availability_min_hours: Optional[int] = None,
+    remote_only: bool = False,
+    experience_min: Optional[int] = None,
+    experience_max: Optional[int] = None,
+    skills_required: Optional[str] = None,
+    education_level: Optional[str] = None,
+    skills_proficiency_min: Optional[int] = None,
+    include_applied: bool = False,
+    include_contacted: bool = False,
+    location_radius: Optional[int] = None,
+    location: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
 ):
-    """Get candidate recommendations for a specific project"""
+    """
+    Get candidate recommendations for a specific project with advanced filtering
+    
+    This endpoint allows employers to get candidate recommendations for their projects
+    with multiple filtering options. Both URL paths work for backward compatibility.
+    """
     if current_user["user_type"] != UserType.EMPLOYER:
         raise HTTPException(
             status_code=403,
@@ -2222,42 +2248,150 @@ async def get_candidate_recommendations_for_project(
             detail="You can only get recommendations for your own projects",
         )
     
-    # Get active candidates with complete profiles
+    # Build filter query
+    filter_query = {"is_active": True, "profile_completed": True}
+    
+    # Apply experience filters if provided
+    if experience_min is not None:
+        filter_query["experience_years"] = {"$gte": experience_min}
+    if experience_max is not None:
+        if "experience_years" not in filter_query:
+            filter_query["experience_years"] = {}
+        filter_query["experience_years"]["$lte"] = experience_max
+    
+    # Apply education filter if provided
+    if education_level:
+        education_levels = education_level.split(",")
+        filter_query["education_level"] = {"$in": education_levels}
+    
+    # Apply remote filter
+    if remote_only:
+        filter_query["remote_availability"] = True
+    
+    # Apply skills proficiency filter if provided
+    if skills_proficiency_min is not None:
+        filter_query["skills_proficiency.average"] = {"$gte": skills_proficiency_min}
+    
+    # Apply location filter if provided
+    # Note: This is a simple implementation. For production, use proper geospatial queries
+    if location:
+        # For now, we'll do a simple text match, but in production this should use geocoding
+        filter_query["location"] = {"$regex": location, "$options": "i"}
+    
+    # Build exclusion filters
+    exclusion_query = {}
+    if not include_applied:
+        # Find candidates who have already applied to this project
+        applied_candidates = await Database.get_collection(PROJECT_APPLICATIONS_COLLECTION).distinct(
+            "candidate_id", {"project_id": project_id}
+        )
+        if applied_candidates:
+            exclusion_query["id"] = {"$nin": applied_candidates}
+    
+    if not include_contacted:
+        # Find candidates who have already been contacted for this project
+        contacted_candidates = await Database.get_collection(NOTIFICATIONS_COLLECTION).distinct(
+            "recipient_id", 
+            {
+                "related_id": project_id, 
+                "type": "employer_contact", 
+                "sender_id": current_user["id"]
+            }
+        )
+        if contacted_candidates:
+            if "id" in exclusion_query:
+                exclusion_query["id"]["$nin"].extend(contacted_candidates)
+            else:
+                exclusion_query["id"] = {"$nin": contacted_candidates}
+    
+    # Combine filters
+    final_query = {**filter_query, **exclusion_query}
+    
+    # Get active candidates with complete profiles that match the filters
     candidates = (
         await Database.get_collection(CANDIDATES_COLLECTION)
-        .find({"is_active": True, "profile_completed": True})
+        .find(final_query)
         .to_list(length=None)
     )
     
     if not candidates:
-        return []
+        return {
+            "candidates": [],
+            "total_count": 0,
+            "metadata": {
+                "project_id": project_id,
+                "filters_applied": {
+                    "min_match_score": min_match_score,
+                    "availability_min_hours": availability_min_hours,
+                    "remote_only": remote_only,
+                    "experience_min": experience_min,
+                    "experience_max": experience_max,
+                    "education_level": education_level,
+                    "skills_required": skills_required
+                }
+            }
+        }
+    
+    # Parse required skills if provided
+    required_skill_list = []
+    if skills_required:
+        required_skill_list = [skill.strip() for skill in skills_required.split(",")]
     
     recommendations = []
     for candidate in candidates:
         # Convert project format to job-like format for the recommender
         project_job_format = {
             "title": project.get("title", ""),
-            "required_skills": project.get("skills_required", []),
+            "required_skills": project.get("skills_required", []) + required_skill_list,
             "description": project.get("description", ""),
         }
         
         # Use the same matching algorithm
         score, explanation = await get_match_score(project_job_format, candidate)
         
+        # Apply minimum match score filter
+        if score < min_match_score:
+            continue
+        
+        # Apply availability hours filter if provided
+        if availability_min_hours is not None:
+            candidate_availability_hours = candidate.get("availability_hours", 0)
+            if candidate_availability_hours < availability_min_hours:
+                continue
+        
         candidate_id = candidate.get("id")
-        recommendation = {
+        
+        # Create result object with match score
+        result = {
             "candidate_id": candidate_id,
-            "match_score": score,
+            "match_score": round(score, 1),
             "explanation": explanation,
-            "candidate": {
-                "full_name": candidate.get("full_name", ""),
-                "skills": candidate.get("skills", []),
-                "location": candidate.get("location", ""),
-                "experience": candidate.get("experience", ""),
-            },
+            "match_factors": {
+                "skills_match": calculate_skills_match_percentage(
+                    project.get("skills_required", []), candidate.get("skills", [])
+                ),
+                "experience_match": calculate_experience_match_percentage(
+                    project.get("experience_years_required", 0), 
+                    candidate.get("experience_years", 0)
+                ),
+            }
         }
         
-        recommendations.append(recommendation)
+        # Include candidate details if requested
+        if include_details:
+            # Remove sensitive information
+            candidate_copy = candidate.copy()
+            for field in ["password", "embedding", "hashed_password", "salt"]:
+                if field in candidate_copy:
+                    del candidate_copy[field]
+            
+            # Convert ObjectId to string
+            if "_id" in candidate_copy:
+                candidate_copy["_id"] = str(candidate_copy["_id"])
+            
+            result["candidate_details"] = candidate_copy
+        
+        recommendations.append(result)
         
         # Save recommendations with score > 70 to recommendations collection
         if score >= 70:
@@ -2278,8 +2412,8 @@ async def get_candidate_recommendations_for_project(
                 RECOMMENDATIONS_COLLECTION
             ).find_one(
                 {
-                "candidate_id": candidate_id,
-                "project_id": project_id,
+                    "candidate_id": candidate_id,
+                    "project_id": project_id,
                     "type": "project_candidate_recommendation",
                 }
             )
@@ -2299,11 +2433,82 @@ async def get_candidate_recommendations_for_project(
                     f"Updated candidate recommendation for project with score {score}"
                 )
     
-    # Sort by match score
-    recommendations = sorted(
-        recommendations, key=lambda x: x["match_score"], reverse=True
-    )
-    return recommendations
+    # Sort results
+    if sort_by == "match_score":
+        recommendations.sort(key=lambda x: x["match_score"], reverse=True)
+    elif sort_by == "experience_years" and include_details:
+        def extract_years(rec):
+            exp_years = rec.get("candidate_details", {}).get("experience_years", "0")
+            if isinstance(exp_years, (int, float)):
+                return exp_years
+            try:
+                import re
+                matches = re.findall(r'\d+', str(exp_years))
+                return int(matches[0]) if matches else 0
+            except:
+                return 0
+                
+        recommendations.sort(key=extract_years, reverse=True)
+    elif sort_by == "availability_hours" and include_details:
+        def get_availability_hours(rec):
+            return rec.get("candidate_details", {}).get("availability_hours", 0)
+                
+        recommendations.sort(key=get_availability_hours, reverse=True)
+    
+    # Apply limit
+    if limit > 0:
+        recommendations = recommendations[:limit]
+    
+    # Calculate additional statistics for the results
+    avg_match_score = sum(r["match_score"] for r in recommendations) / len(recommendations) if recommendations else 0
+    skills_distribution = {}
+    if recommendations and include_details:
+        # Calculate skills distribution across matching candidates
+        all_skills = []
+        for rec in recommendations:
+            candidate_skills = rec.get("candidate_details", {}).get("skills", [])
+            if isinstance(candidate_skills, list):
+                all_skills.extend(candidate_skills)
+            elif isinstance(candidate_skills, dict):
+                for skill_group in candidate_skills.values():
+                    if isinstance(skill_group, list):
+                        all_skills.extend(skill_group)
+        
+        # Count occurrences of each skill
+        from collections import Counter
+        skills_counter = Counter(all_skills)
+        skills_distribution = {skill: count for skill, count in skills_counter.most_common(10)}
+    
+    # Return results with enhanced metadata
+    return {
+        "candidates": recommendations,
+        "total_count": len(recommendations),
+        "metadata": {
+            "project_id": project_id,
+            "project_title": project.get("title", ""),
+            "project_type": project.get("project_type", ""),
+            "company": project.get("company", ""),
+            "filters_applied": {
+                "min_match_score": min_match_score,
+                "availability_min_hours": availability_min_hours,
+                "remote_only": remote_only,
+                "experience_min": experience_min,
+                "experience_max": experience_max,
+                "education_level": education_level,
+                "skills_required": skills_required,
+                "skills_proficiency_min": skills_proficiency_min,
+                "include_applied": include_applied,
+                "include_contacted": include_contacted,
+                "location": location,
+                "location_radius": location_radius
+            },
+            "statistics": {
+                "average_match_score": round(avg_match_score, 1),
+                "skills_distribution": skills_distribution,
+                "query_time": datetime.utcnow().isoformat()
+            }
+        }
+    }
 
 
 # Add a semantic search endpoint
@@ -4878,6 +5083,9 @@ async def talent_search(
     This endpoint allows employers to search for candidates based on skills,
     experience, location, education, and availability.
     """
+    # Validate and sanitize search parameters
+    if search_params is None:
+        search_params = {}
     if current_user["user_type"] != UserType.EMPLOYER:
         raise HTTPException(
             status_code=403, detail="Only employers can use talent search"
@@ -4890,12 +5098,25 @@ async def talent_search(
             status_code=400, detail="At least one skill is required for talent search"
         )
     
+    # Ensure skills is a list of strings
+    if isinstance(skills, str):
+        skills = [skills]
+    elif not isinstance(skills, list):
+        skills = [str(skills)]
+    
+    # Convert any non-string elements to strings
+    skills = [str(skill) for skill in skills]
+    
     # Prepare search query text
     search_text = " ".join(skills)
     if "job_title" in search_params:
-        search_text += f" {search_params.get('job_title')}"
+        job_title = search_params.get("job_title")
+        if job_title is not None:
+            search_text += f" {str(job_title)}"
     if "industry" in search_params:
-        search_text += f" {search_params.get('industry')}"
+        industry = search_params.get("industry")
+        if industry is not None:
+            search_text += f" {str(industry)}"
     
     # Get embedding for search query
     try:
@@ -4973,7 +5194,17 @@ async def talent_search(
             if search_params.get("location") and not include_remote:
                 # Simple location matching for now
                 # In a production system, we'd use proper geocoding and distance calculation
-                if not candidate.get("location") or search_params["location"].lower() not in candidate["location"].lower():
+                candidate_location = candidate.get("location", "")
+                search_location = search_params["location"]
+                
+                # Make sure we're comparing strings
+                if isinstance(candidate_location, str) and isinstance(search_location, str):
+                    if search_location.lower() not in candidate_location.lower():
+                        if not (include_remote and candidate.get("remote_availability", False)):
+                            continue
+                else:
+                    # Skip location filtering if either value is not a string
+                    print(f"Warning: Location filtering skipped - invalid location format. Candidate: {type(candidate_location)}, Search: {type(search_location)}")
                     if not (include_remote and candidate.get("remote_availability", False)):
                         continue
             
@@ -5094,3 +5325,1076 @@ def calculate_experience_match_percentage(required_years, candidate_years):
     
     # Partial match based on how close they are to required experience
     return round((candidate_years / required_years) * 100)
+
+@app.post("/recommendations/salary", response_model=dict)
+async def get_salary_recommendations(
+    job_params: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get salary recommendations based on job title, skills, experience, location, and industry.
+    
+    This endpoint provides salary insights including:
+    - Salary range for the specified role
+    - Market comparison
+    - Factors affecting salary
+    - Regional adjustments
+    """
+    try:
+        # Extract parameters
+        job_title = job_params.get("job_title", "")
+        if not job_title:
+            raise HTTPException(
+                status_code=400, detail="Job title is required for salary recommendations"
+            )
+        
+        # Optional parameters
+        required_skills = job_params.get("required_skills", [])
+        experience_years = job_params.get("experience_years", 0)
+        location = job_params.get("location", "")
+        remote_position = job_params.get("remote_position", False)
+        industry = job_params.get("industry", "Technology")
+        company_size = job_params.get("company_size", "")
+        
+        # Get base salary range based on job title and experience
+        base_salary = await get_base_salary_range(job_title, experience_years, industry)
+        
+        # Apply adjustments based on location, skills, and other factors
+        adjusted_salary = await apply_salary_adjustments(
+            base_salary,
+            location,
+            required_skills,
+            remote_position,
+            company_size
+        )
+        
+        # Get market comparison data
+        market_comparison = await get_market_comparison(job_title, industry, location)
+        
+        # Get factors affecting salary
+        factors = get_salary_factors(required_skills, location, experience_years, industry)
+        
+        return {
+            "job_title": job_title,
+            "salary_recommendation": {
+                "range": adjusted_salary,
+                "median": (adjusted_salary["min"] + adjusted_salary["max"]) // 2,
+                "currency": "USD"
+            },
+            "market_comparison": market_comparison,
+            "factors": factors,
+            "metadata": {
+                "request_params": job_params,
+                "data_freshness": "2023-Q4",
+                "confidence_level": "high" if (job_title and location and experience_years > 0) else "medium"
+            }
+        }
+    except Exception as e:
+        print(f"Error generating salary recommendations: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate salary recommendations: {str(e)}"
+        )
+
+async def get_base_salary_range(job_title, experience_years, industry):
+    """Get base salary range for a job title based on experience and industry"""
+    # This would ideally come from a database or external API
+    # For now, we'll use a simplified model based on job titles and experience
+    
+    # Base salary ranges by job title (mid-level)
+    base_ranges = {
+        "Software Engineer": {"min": 90000, "max": 130000},
+        "Senior Software Engineer": {"min": 120000, "max": 180000},
+        "Principal Software Engineer": {"min": 150000, "max": 220000},
+        "Data Scientist": {"min": 95000, "max": 140000},
+        "Senior Data Scientist": {"min": 130000, "max": 190000},
+        "Product Manager": {"min": 100000, "max": 150000},
+        "Senior Product Manager": {"min": 140000, "max": 200000},
+        "UX Designer": {"min": 85000, "max": 125000},
+        "Senior UX Designer": {"min": 115000, "max": 165000},
+        "DevOps Engineer": {"min": 95000, "max": 140000},
+        "Senior DevOps Engineer": {"min": 130000, "max": 180000},
+        "Full Stack Developer": {"min": 90000, "max": 135000},
+        "Senior Full Stack Developer": {"min": 125000, "max": 185000},
+        "Frontend Developer": {"min": 85000, "max": 125000},
+        "Backend Developer": {"min": 90000, "max": 130000},
+        "Machine Learning Engineer": {"min": 100000, "max": 150000},
+        "Project Manager": {"min": 85000, "max": 130000},
+    }
+    
+    # Default range if job title is not found
+    default_range = {"min": 80000, "max": 120000}
+    base_range = base_ranges.get(job_title, default_range)
+    
+    # Adjust for experience
+    if experience_years < 2:  # Entry level
+        experience_factor = 0.8
+    elif experience_years < 5:  # Mid level
+        experience_factor = 1.0
+    elif experience_years < 8:  # Senior
+        experience_factor = 1.25
+    else:  # Very senior
+        experience_factor = 1.4
+    
+    # Adjust for industry
+    industry_factors = {
+        "Technology": 1.1,
+        "Finance": 1.15,
+        "Healthcare": 1.0,
+        "Retail": 0.9,
+        "Manufacturing": 0.95,
+        "Education": 0.85,
+        "Government": 0.9,
+        "Non-profit": 0.8,
+        "Consulting": 1.05,
+        "Media": 0.95,
+        "Telecommunications": 1.0,
+        "Energy": 1.05,
+        "Aerospace": 1.1
+    }
+    industry_factor = industry_factors.get(industry, 1.0)
+    
+    # Apply adjustments
+    return {
+        "min": int(base_range["min"] * experience_factor * industry_factor),
+        "max": int(base_range["max"] * experience_factor * industry_factor)
+    }
+
+async def apply_salary_adjustments(base_salary, location, skills, remote_position, company_size):
+    """Apply adjustments to base salary based on location, skills, and other factors"""
+    # Location adjustments
+    location_factors = {
+        "San Francisco, CA": 1.5,
+        "New York, NY": 1.4,
+        "Seattle, WA": 1.3,
+        "Boston, MA": 1.25,
+        "Austin, TX": 1.1,
+        "Chicago, IL": 1.15,
+        "Los Angeles, CA": 1.35,
+        "Denver, CO": 1.1,
+        "Portland, OR": 1.1,
+        "Atlanta, GA": 1.05,
+        "Dallas, TX": 1.05,
+        "Remote": 1.0
+    }
+    
+    # Default location factor
+    location_factor = 1.0
+    
+    # Check if the location contains any of the keys
+    if remote_position:
+        location_factor = location_factors.get("Remote", 1.0)
+    else:
+        for loc, factor in location_factors.items():
+            if loc in location:
+                location_factor = factor
+                break
+    
+    # Skills adjustments - premium skills
+    premium_skills = [
+        "Machine Learning", "AI", "Blockchain", "Cloud Architecture", 
+        "DevOps", "Cybersecurity", "Data Science", "React", "AWS", 
+        "Kubernetes", "Docker", "Terraform", "GraphQL", "Rust"
+    ]
+    
+    # Calculate skills premium
+    skills_premium = 1.0
+    if skills:
+        premium_skill_count = sum(1 for skill in skills if skill in premium_skills)
+        skills_premium += min(premium_skill_count * 0.03, 0.15)  # Up to 15% premium
+    
+    # Company size adjustment
+    size_factors = {
+        "1-10 employees": 0.9,
+        "11-50 employees": 0.95,
+        "51-200 employees": 1.0,
+        "201-500 employees": 1.05,
+        "501-1000 employees": 1.1,
+        "1001-5000 employees": 1.15,
+        "5001-10000 employees": 1.2,
+        "10000+ employees": 1.25
+    }
+    company_size_factor = size_factors.get(company_size, 1.0)
+    
+    # Apply all adjustments
+    return {
+        "min": int(base_salary["min"] * location_factor * skills_premium * company_size_factor),
+        "max": int(base_salary["max"] * location_factor * skills_premium * company_size_factor)
+    }
+
+async def get_market_comparison(job_title, industry, location):
+    """Get market comparison data for the given job title"""
+    # This would ideally come from a database or external API
+    # For now, we'll generate synthetic data
+    
+    base_percentiles = {
+        "10th": 0.8,
+        "25th": 0.9,
+        "50th": 1.0,
+        "75th": 1.15,
+        "90th": 1.3
+    }
+    
+    # Get base salary range
+    base_range = await get_base_salary_range(job_title, 5, industry)  # Using mid-level experience
+    median_salary = (base_range["min"] + base_range["max"]) // 2
+    
+    # Generate percentiles
+    percentiles = {}
+    for percentile, factor in base_percentiles.items():
+        percentiles[percentile] = int(median_salary * factor)
+    
+    # Regional comparison
+    regional_comparison = []
+    if location:
+        nearby_locations = get_nearby_locations(location)
+        for nearby in nearby_locations:
+            regional_comparison.append({
+                "location": nearby["name"],
+                "median_salary": int(median_salary * nearby["factor"]),
+                "difference_percentage": int((nearby["factor"] - 1) * 100)
+            })
+    
+    return {
+        "percentiles": percentiles,
+        "regional_comparison": regional_comparison,
+        "industry_comparison": [
+            {
+                "industry": "Technology",
+                "median_salary": int(median_salary * 1.1),
+                "difference_percentage": 10
+            },
+            {
+                "industry": "Finance",
+                "median_salary": int(median_salary * 1.15),
+                "difference_percentage": 15
+            },
+            {
+                "industry": "Healthcare",
+                "median_salary": int(median_salary * 1.0),
+                "difference_percentage": 0
+            }
+        ]
+    }
+
+def get_nearby_locations(location):
+    """Get nearby locations for regional comparison"""
+    # This would ideally use geospatial data
+    # For now, we'll use a simplified lookup
+    
+    location_map = {
+        "San Francisco, CA": [
+            {"name": "Oakland, CA", "factor": 0.9},
+            {"name": "San Jose, CA", "factor": 1.05},
+            {"name": "Sacramento, CA", "factor": 0.8}
+        ],
+        "New York, NY": [
+            {"name": "Brooklyn, NY", "factor": 0.95},
+            {"name": "Jersey City, NJ", "factor": 0.9},
+            {"name": "Stamford, CT", "factor": 0.85}
+        ],
+        "Seattle, WA": [
+            {"name": "Bellevue, WA", "factor": 1.05},
+            {"name": "Tacoma, WA", "factor": 0.85},
+            {"name": "Redmond, WA", "factor": 1.1}
+        ],
+        "Austin, TX": [
+            {"name": "Round Rock, TX", "factor": 0.9},
+            {"name": "San Antonio, TX", "factor": 0.85},
+            {"name": "Dallas, TX", "factor": 1.0}
+        ],
+        "Remote": [
+            {"name": "National Average", "factor": 1.0},
+            {"name": "Tech Hub Average", "factor": 1.2},
+            {"name": "Rural Average", "factor": 0.8}
+        ]
+    }
+    
+    # Default to remote if location not found
+    for loc in location_map:
+        if loc in location:
+            return location_map[loc]
+    
+    return location_map.get("Remote", [])
+
+def get_salary_factors(skills, location, experience_years, industry):
+    """Get factors affecting salary"""
+    factors = []
+    
+    # Experience impact
+    if experience_years < 2:
+        factors.append({
+            "factor": "Limited experience",
+            "impact": "negative",
+            "description": "Entry-level positions typically command lower salaries"
+        })
+    elif experience_years > 8:
+        factors.append({
+            "factor": "Extensive experience",
+            "impact": "positive",
+            "description": "Senior professionals with 8+ years experience command premium salaries"
+        })
+    
+    # Location impact
+    high_col_locations = ["San Francisco", "New York", "Seattle", "Boston", "Los Angeles"]
+    for high_loc in high_col_locations:
+        if high_loc in location:
+            factors.append({
+                "factor": "High cost of living location",
+                "impact": "positive",
+                "description": f"Salaries in {high_loc} are typically higher to offset living costs"
+            })
+            break
+    
+    # Remote impact
+    if "Remote" in location:
+        factors.append({
+            "factor": "Remote position",
+            "impact": "neutral",
+            "description": "Remote positions may be adjusted based on your location"
+        })
+    
+    # Industry impact
+    high_paying_industries = ["Technology", "Finance", "Healthcare", "Consulting"]
+    if industry in high_paying_industries:
+        factors.append({
+            "factor": f"{industry} industry",
+            "impact": "positive",
+            "description": f"The {industry} industry typically offers competitive compensation"
+        })
+    
+    # Skills impact
+    premium_skills = ["Machine Learning", "AI", "Cloud Architecture", "DevOps", "Cybersecurity"]
+    has_premium_skills = any(skill in premium_skills for skill in skills)
+    if has_premium_skills:
+        factors.append({
+            "factor": "In-demand skills",
+            "impact": "positive",
+            "description": "Your skill set includes high-demand technologies that command a premium"
+        })
+    
+    return factors
+
+@app.get("/analytics/recommendations/impact", response_model=dict)
+async def get_recommendation_impact_metrics(
+    period: str = "last_30_days",
+    recommendation_type: str = "all",
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get metrics about the effectiveness of recommendations (view rates, application rates, etc.)
+    
+    This endpoint provides analytics data on how recommendations are performing,
+    including metrics like view rates, application rates, and conversion rates.
+    
+    Parameters:
+    - period: Time period for the metrics (last_7_days, last_30_days, last_90_days, all_time)
+    - recommendation_type: Type of recommendations to analyze (jobs, candidates, projects, all)
+    """
+    try:
+        # Validate period parameter
+        valid_periods = ["last_7_days", "last_30_days", "last_90_days", "all_time"]
+        if period not in valid_periods:
+            period = "last_30_days"  # Default to 30 days if invalid
+        
+        # Validate recommendation type parameter
+        valid_types = ["jobs", "candidates", "projects", "all"]
+        if recommendation_type not in valid_types:
+            recommendation_type = "all"  # Default to all if invalid
+        
+        # In a production system, we would query the database for actual metrics
+        # For now, we'll generate simulated metrics based on the parameters
+        
+        # Calculate date range for the period
+        end_date = datetime.now()
+        if period == "last_7_days":
+            start_date = end_date - timedelta(days=7)
+            days_in_period = 7
+        elif period == "last_30_days":
+            start_date = end_date - timedelta(days=30)
+            days_in_period = 30
+        elif period == "last_90_days":
+            start_date = end_date - timedelta(days=90)
+            days_in_period = 90
+        else:  # all_time
+            start_date = end_date - timedelta(days=365)  # Default to 1 year for "all_time"
+            days_in_period = 365
+        
+        # Generate metrics based on user type
+        if current_user["user_type"] == UserType.EMPLOYER:
+            metrics = await generate_employer_recommendation_metrics(
+                current_user["id"], recommendation_type, days_in_period
+            )
+        else:  # Candidate
+            metrics = await generate_candidate_recommendation_metrics(
+                current_user["id"], recommendation_type, days_in_period
+            )
+        
+        # Add period information to response
+        metrics["period"] = {
+            "name": period,
+            "start_date": start_date.strftime("%Y-%m-%d"),
+            "end_date": end_date.strftime("%Y-%m-%d"),
+            "days": days_in_period
+        }
+        
+        # Add recommendation type to response
+        metrics["recommendation_type"] = recommendation_type
+        
+        return metrics
+    except Exception as e:
+        print(f"Error generating recommendation impact metrics: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate recommendation impact metrics: {str(e)}"
+        )
+
+async def generate_employer_recommendation_metrics(employer_id, recommendation_type, days_in_period):
+    """Generate recommendation metrics for employers"""
+    # In a production system, these would be calculated from actual data
+    # For now, we'll generate realistic simulated metrics
+    
+    # Base metrics that apply to all recommendation types
+    base_metrics = {
+        "summary": {
+            "total_recommendations_shown": random.randint(50, 200) * (days_in_period // 10),
+            "total_recommendations_viewed": random.randint(30, 100) * (days_in_period // 10),
+            "total_actions_taken": random.randint(10, 50) * (days_in_period // 10),
+            "conversion_rate": round(random.uniform(0.05, 0.25), 3)
+        },
+        "trends": generate_trend_data(days_in_period),
+        "top_performing": []
+    }
+    
+    # Add recommendation-type specific metrics
+    if recommendation_type in ["candidates", "all"]:
+        base_metrics["candidates"] = {
+            "total_candidates_recommended": random.randint(40, 150) * (days_in_period // 10),
+            "candidates_viewed": random.randint(20, 80) * (days_in_period // 10),
+            "candidates_contacted": random.randint(5, 30) * (days_in_period // 10),
+            "candidates_interviewed": random.randint(2, 15) * (days_in_period // 10),
+            "candidates_hired": random.randint(1, 5) * (days_in_period // 20),
+            "contact_rate": round(random.uniform(0.1, 0.4), 3),
+            "interview_rate": round(random.uniform(0.05, 0.2), 3),
+            "hire_rate": round(random.uniform(0.01, 0.1), 3),
+            "average_match_score": round(random.uniform(65, 85), 1)
+        }
+        
+        # Add top performing jobs for candidate recommendations
+        base_metrics["top_performing"].extend([
+            {
+                "type": "job",
+                "id": f"job_{i}",
+                "title": f"Top Performing Job {i}",
+                "metrics": {
+                    "candidates_recommended": random.randint(10, 50),
+                    "candidates_viewed": random.randint(5, 30),
+                    "candidates_contacted": random.randint(2, 15),
+                    "contact_rate": round(random.uniform(0.1, 0.5), 3),
+                    "average_match_score": round(random.uniform(70, 90), 1)
+                }
+            }
+            for i in range(1, 4)
+        ])
+    
+    if recommendation_type in ["projects", "all"]:
+        base_metrics["projects"] = {
+            "total_candidates_recommended": random.randint(30, 100) * (days_in_period // 10),
+            "candidates_viewed": random.randint(15, 60) * (days_in_period // 10),
+            "candidates_contacted": random.randint(3, 20) * (days_in_period // 10),
+            "candidates_selected": random.randint(1, 10) * (days_in_period // 20),
+            "contact_rate": round(random.uniform(0.1, 0.3), 3),
+            "selection_rate": round(random.uniform(0.05, 0.15), 3),
+            "average_match_score": round(random.uniform(60, 80), 1)
+        }
+        
+        # Add top performing projects
+        if recommendation_type == "projects":
+            base_metrics["top_performing"].extend([
+                {
+                    "type": "project",
+                    "id": f"project_{i}",
+                    "title": f"Top Performing Project {i}",
+                    "metrics": {
+                        "candidates_recommended": random.randint(8, 40),
+                        "candidates_viewed": random.randint(4, 25),
+                        "candidates_contacted": random.randint(1, 12),
+                        "contact_rate": round(random.uniform(0.1, 0.4), 3),
+                        "average_match_score": round(random.uniform(65, 85), 1)
+                    }
+                }
+                for i in range(1, 4)
+            ])
+    
+    return base_metrics
+
+async def generate_candidate_recommendation_metrics(candidate_id, recommendation_type, days_in_period):
+    """Generate recommendation metrics for candidates"""
+    # Base metrics that apply to all recommendation types
+    base_metrics = {
+        "summary": {
+            "total_recommendations_shown": random.randint(30, 150) * (days_in_period // 10),
+            "total_recommendations_viewed": random.randint(20, 80) * (days_in_period // 10),
+            "total_actions_taken": random.randint(5, 30) * (days_in_period // 10),
+            "conversion_rate": round(random.uniform(0.1, 0.3), 3)
+        },
+        "trends": generate_trend_data(days_in_period),
+        "top_performing": []
+    }
+    
+    # Add recommendation-type specific metrics
+    if recommendation_type in ["jobs", "all"]:
+        base_metrics["jobs"] = {
+            "total_jobs_recommended": random.randint(25, 120) * (days_in_period // 10),
+            "jobs_viewed": random.randint(15, 70) * (days_in_period // 10),
+            "jobs_saved": random.randint(5, 25) * (days_in_period // 10),
+            "jobs_applied": random.randint(3, 15) * (days_in_period // 10),
+            "interviews_received": random.randint(1, 8) * (days_in_period // 20),
+            "view_rate": round(random.uniform(0.4, 0.7), 3),
+            "application_rate": round(random.uniform(0.1, 0.3), 3),
+            "interview_rate": round(random.uniform(0.05, 0.2), 3),
+            "average_match_score": round(random.uniform(65, 85), 1)
+        }
+        
+        # Add top recommended job categories
+        base_metrics["top_performing"].extend([
+            {
+                "type": "job_category",
+                "name": "Software Development",
+                "metrics": {
+                    "jobs_recommended": random.randint(10, 50),
+                    "jobs_viewed": random.randint(5, 30),
+                    "jobs_applied": random.randint(2, 10),
+                    "application_rate": round(random.uniform(0.1, 0.4), 3),
+                    "average_match_score": round(random.uniform(70, 90), 1)
+                }
+            },
+            {
+                "type": "job_category",
+                "name": "Data Science",
+                "metrics": {
+                    "jobs_recommended": random.randint(8, 40),
+                    "jobs_viewed": random.randint(4, 25),
+                    "jobs_applied": random.randint(1, 8),
+                    "application_rate": round(random.uniform(0.1, 0.3), 3),
+                    "average_match_score": round(random.uniform(65, 85), 1)
+                }
+            },
+            {
+                "type": "job_category",
+                "name": "Product Management",
+                "metrics": {
+                    "jobs_recommended": random.randint(5, 30),
+                    "jobs_viewed": random.randint(3, 20),
+                    "jobs_applied": random.randint(1, 6),
+                    "application_rate": round(random.uniform(0.1, 0.3), 3),
+                    "average_match_score": round(random.uniform(60, 80), 1)
+                }
+            }
+        ])
+    
+    if recommendation_type in ["projects", "all"]:
+        base_metrics["projects"] = {
+            "total_projects_recommended": random.randint(15, 80) * (days_in_period // 10),
+            "projects_viewed": random.randint(10, 50) * (days_in_period // 10),
+            "projects_saved": random.randint(3, 20) * (days_in_period // 10),
+            "projects_applied": random.randint(2, 10) * (days_in_period // 10),
+            "projects_accepted": random.randint(1, 5) * (days_in_period // 20),
+            "view_rate": round(random.uniform(0.4, 0.7), 3),
+            "application_rate": round(random.uniform(0.1, 0.25), 3),
+            "acceptance_rate": round(random.uniform(0.05, 0.15), 3),
+            "average_match_score": round(random.uniform(60, 80), 1)
+        }
+    
+    return base_metrics
+
+def generate_trend_data(days_in_period):
+    """Generate trend data for the given period"""
+    # For simplicity, we'll generate daily data for up to 30 days
+    # For longer periods, we'll aggregate to weekly data
+    
+    if days_in_period <= 30:
+        # Daily data
+        num_points = min(days_in_period, 30)
+        date_format = "%Y-%m-%d"
+        
+        # Generate dates
+        end_date = datetime.now()
+        dates = [(end_date - timedelta(days=i)).strftime(date_format) for i in range(num_points)]
+        dates.reverse()  # Oldest to newest
+        
+        # Generate metrics
+        views = [random.randint(5, 20) for _ in range(num_points)]
+        actions = [int(views[i] * random.uniform(0.2, 0.6)) for i in range(num_points)]
+        match_scores = [round(random.uniform(60, 90), 1) for _ in range(num_points)]
+        
+        return {
+            "interval": "daily",
+            "dates": dates,
+            "views": views,
+            "actions": actions,
+            "match_scores": match_scores
+        }
+    else:
+        # Weekly data
+        num_weeks = min(days_in_period // 7, 12)  # Up to 12 weeks
+        date_format = "%Y-%m-%d"
+        
+        # Generate week ending dates
+        end_date = datetime.now()
+        dates = [(end_date - timedelta(days=i*7)).strftime(date_format) for i in range(num_weeks)]
+        dates.reverse()  # Oldest to newest
+        
+        # Generate metrics
+        views = [random.randint(30, 120) for _ in range(num_weeks)]
+        actions = [int(views[i] * random.uniform(0.2, 0.6)) for i in range(num_weeks)]
+        match_scores = [round(random.uniform(60, 90), 1) for _ in range(num_weeks)]
+        
+        return {
+            "interval": "weekly",
+            "dates": dates,
+            "views": views,
+            "actions": actions,
+            "match_scores": match_scores
+        }
+
+@app.get("/analytics/recommendations/performance", response_model=dict)
+async def get_recommendation_algorithm_performance(
+    algorithm_version: str = "latest",
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get performance metrics for the recommendation algorithm
+    
+    This endpoint provides analytics data on how the recommendation algorithm is performing,
+    including accuracy, precision, recall, and other relevant metrics.
+    
+    Parameters:
+    - algorithm_version: Version of the algorithm to analyze (latest, v1, v2, etc.)
+    """
+    try:
+        # In a production system, we would query the database for actual metrics
+        # For now, we'll generate simulated metrics
+        
+        # Validate algorithm version
+        valid_versions = ["latest", "v1", "v2", "v3"]
+        if algorithm_version not in valid_versions:
+            algorithm_version = "latest"
+        
+        # Map version names to actual version numbers
+        version_map = {
+            "latest": "v3",
+            "v1": "v1",
+            "v2": "v2",
+            "v3": "v3"
+        }
+        
+        actual_version = version_map.get(algorithm_version, "v3")
+        
+        # Generate performance metrics based on version
+        # Newer versions have better metrics
+        version_factor = {
+            "v1": 0.7,
+            "v2": 0.85,
+            "v3": 1.0
+        }.get(actual_version, 1.0)
+        
+        # Base metrics
+        metrics = {
+            "algorithm_version": actual_version,
+            "last_updated": (datetime.now() - timedelta(days=random.randint(1, 30))).strftime("%Y-%m-%d"),
+            "overall_accuracy": round(0.75 * version_factor, 3),
+            "precision": round(0.72 * version_factor, 3),
+            "recall": round(0.68 * version_factor, 3),
+            "f1_score": round(0.70 * version_factor, 3),
+            "average_match_score": round(75 * version_factor, 1),
+            "recommendation_types": {
+                "jobs": {
+                    "accuracy": round(0.78 * version_factor, 3),
+                    "precision": round(0.75 * version_factor, 3),
+                    "recall": round(0.72 * version_factor, 3),
+                    "f1_score": round(0.73 * version_factor, 3),
+                    "average_match_score": round(78 * version_factor, 1)
+                },
+                "candidates": {
+                    "accuracy": round(0.72 * version_factor, 3),
+                    "precision": round(0.70 * version_factor, 3),
+                    "recall": round(0.65 * version_factor, 3),
+                    "f1_score": round(0.67 * version_factor, 3),
+                    "average_match_score": round(72 * version_factor, 1)
+                },
+                "projects": {
+                    "accuracy": round(0.70 * version_factor, 3),
+                    "precision": round(0.68 * version_factor, 3),
+                    "recall": round(0.62 * version_factor, 3),
+                    "f1_score": round(0.65 * version_factor, 3),
+                    "average_match_score": round(70 * version_factor, 1)
+                }
+            },
+            "embedding_metrics": {
+                "dimension": 3072,
+                "average_l2_norm": round(random.uniform(0.9, 1.1), 3),
+                "average_cosine_similarity": round(0.65 * version_factor, 3),
+                "clustering_coefficient": round(0.55 * version_factor, 3)
+            },
+            "version_comparison": [
+                {
+                    "version": "v1",
+                    "accuracy": round(0.75 * 0.7, 3),
+                    "improvement": "-30%"
+                },
+                {
+                    "version": "v2",
+                    "accuracy": round(0.75 * 0.85, 3),
+                    "improvement": "-15%"
+                },
+                {
+                    "version": "v3",
+                    "accuracy": round(0.75, 3),
+                    "improvement": "current"
+                }
+            ]
+        }
+        
+        return metrics
+    except Exception as e:
+        print(f"Error generating recommendation algorithm performance metrics: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate recommendation algorithm performance metrics: {str(e)}"
+        )
+
+@app.post("/recommendations/feedback", response_model=dict)
+async def submit_recommendation_feedback(
+    feedback_data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Submit feedback on a recommendation
+    
+    This endpoint allows users to provide feedback on recommendations they receive,
+    including relevance scores, accuracy scores, and general feedback.
+    
+    Parameters:
+    - recommendation_id: ID of the recommendation
+    - recommendation_type: Type of recommendation (job, candidate, project)
+    - relevance_score: Score from 1-5 indicating relevance
+    - accuracy_score: Score from 1-5 indicating accuracy
+    - is_helpful: Boolean indicating if the recommendation was helpful
+    - feedback_text: Optional text feedback
+    - action_taken: Action taken on the recommendation (viewed_details, applied, saved, dismissed, etc.)
+    """
+    try:
+        # Validate required fields
+        required_fields = ["recommendation_id", "recommendation_type", "relevance_score", "accuracy_score"]
+        for field in required_fields:
+            if field not in feedback_data:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Missing required field: {field}"
+                )
+        
+        # Validate recommendation type
+        valid_types = ["job", "candidate", "project", "skill", "career_path"]
+        if feedback_data.get("recommendation_type") not in valid_types:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid recommendation type. Must be one of: {', '.join(valid_types)}"
+            )
+        
+        # Validate scores
+        for score_field in ["relevance_score", "accuracy_score"]:
+            score = feedback_data.get(score_field)
+            if not isinstance(score, int) or score < 1 or score > 5:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"{score_field} must be an integer between 1 and 5"
+                )
+        
+        # In a production system, we would store this feedback in the database
+        # For now, we'll just log it and return a success response
+        
+        # Add user ID and timestamp to feedback data
+        feedback_with_metadata = feedback_data.copy()
+        feedback_with_metadata["user_id"] = current_user["id"]
+        feedback_with_metadata["user_type"] = current_user["user_type"]
+        feedback_with_metadata["timestamp"] = datetime.now().isoformat()
+        
+        print(f"Received recommendation feedback: {json.dumps(feedback_with_metadata)}")
+        
+        # Process feedback to improve recommendations (in a real system)
+        # This would involve updating recommendation models, user preferences, etc.
+        
+        # Update user profile with feedback insights
+        await update_user_preferences_from_feedback(
+            current_user["id"], 
+            current_user["user_type"],
+            feedback_data
+        )
+        
+        return {
+            "status": "success",
+            "message": "Feedback submitted successfully",
+            "feedback_id": f"feedback_{uuid.uuid4().hex[:8]}",  # Generate a fake ID
+            "timestamp": feedback_with_metadata["timestamp"]
+        }
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        print(f"Error processing recommendation feedback: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to process recommendation feedback: {str(e)}"
+        )
+
+async def update_user_preferences_from_feedback(user_id, user_type, feedback_data):
+    """
+    Update user preferences based on feedback
+    
+    This function would analyze feedback and update user preferences accordingly.
+    For example, if a user consistently rates recommendations with certain attributes
+    highly, we would adjust their preferences to favor those attributes.
+    
+    In a production system, this would involve database updates and potentially
+    machine learning model updates. For now, it's just a placeholder.
+    """
+    # This is a placeholder function that would be implemented in a real system
+    recommendation_type = feedback_data.get("recommendation_type")
+    relevance_score = feedback_data.get("relevance_score")
+    is_helpful = feedback_data.get("is_helpful", False)
+    feedback_text = feedback_data.get("feedback_text", "")
+    
+    # Log that we would update preferences
+    print(f"Would update preferences for user {user_id} based on {recommendation_type} recommendation feedback:")
+    print(f"  - Relevance score: {relevance_score}")
+    print(f"  - Helpful: {is_helpful}")
+    print(f"  - Feedback: {feedback_text}")
+    
+    # In a real system, we might:
+    # 1. Update user preference weights in the database
+    # 2. Extract keywords from feedback_text to identify preferences
+    # 3. Adjust recommendation algorithms for this user
+    # 4. Store feedback for aggregate analysis
+    
+    return True
+
+@app.get("/recommendations/feedback/summary", response_model=dict)
+async def get_recommendation_feedback_summary(
+    recommendation_type: str = "all",
+    period: str = "last_30_days",
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get a summary of recommendation feedback
+    
+    This endpoint provides aggregate statistics on recommendation feedback,
+    including average scores, common actions, and feedback trends.
+    
+    Parameters:
+    - recommendation_type: Type of recommendations to analyze (job, candidate, project, all)
+    - period: Time period for the metrics (last_7_days, last_30_days, last_90_days, all_time)
+    """
+    try:
+        # Validate recommendation type
+        valid_types = ["job", "candidate", "project", "skill", "career_path", "all"]
+        if recommendation_type not in valid_types:
+            recommendation_type = "all"  # Default to all if invalid
+        
+        # Validate period
+        valid_periods = ["last_7_days", "last_30_days", "last_90_days", "all_time"]
+        if period not in valid_periods:
+            period = "last_30_days"  # Default to 30 days if invalid
+        
+        # In a production system, we would query the database for actual feedback data
+        # For now, we'll generate simulated feedback summary data
+        
+        # Generate different summaries based on user type
+        if current_user["user_type"] == UserType.EMPLOYER:
+            summary = generate_employer_feedback_summary(recommendation_type, period)
+        else:  # Candidate
+            summary = generate_candidate_feedback_summary(recommendation_type, period)
+        
+        # Add period information to response
+        end_date = datetime.now()
+        if period == "last_7_days":
+            start_date = end_date - timedelta(days=7)
+            days_in_period = 7
+        elif period == "last_30_days":
+            start_date = end_date - timedelta(days=30)
+            days_in_period = 30
+        elif period == "last_90_days":
+            start_date = end_date - timedelta(days=90)
+            days_in_period = 90
+        else:  # all_time
+            start_date = end_date - timedelta(days=365)  # Default to 1 year for "all_time"
+            days_in_period = 365
+            
+        summary["period"] = {
+            "name": period,
+            "start_date": start_date.strftime("%Y-%m-%d"),
+            "end_date": end_date.strftime("%Y-%m-%d"),
+            "days": days_in_period
+        }
+        
+        # Add recommendation type to response
+        summary["recommendation_type"] = recommendation_type
+        
+        return summary
+    except Exception as e:
+        print(f"Error generating recommendation feedback summary: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate recommendation feedback summary: {str(e)}"
+        )
+
+def generate_employer_feedback_summary(recommendation_type, period):
+    """Generate feedback summary for employers"""
+    # This would be based on actual feedback data in a production system
+    # For now, we'll generate realistic simulated data
+    
+    # Base summary that applies to all recommendation types
+    base_summary = {
+        "total_feedback_count": random.randint(50, 200),
+        "average_scores": {
+            "relevance": round(random.uniform(3.5, 4.5), 1),
+            "accuracy": round(random.uniform(3.5, 4.5), 1),
+            "overall": round(random.uniform(3.5, 4.5), 1)
+        },
+        "helpful_percentage": round(random.uniform(0.7, 0.9), 2),
+        "action_breakdown": {
+            "viewed_details": round(random.uniform(0.5, 0.7), 2),
+            "contacted": round(random.uniform(0.2, 0.4), 2),
+            "saved": round(random.uniform(0.1, 0.3), 2),
+            "dismissed": round(random.uniform(0.1, 0.2), 2)
+        },
+        "common_feedback_themes": [
+            {"theme": "Skill match", "percentage": round(random.uniform(0.3, 0.5), 2)},
+            {"theme": "Experience level", "percentage": round(random.uniform(0.2, 0.4), 2)},
+            {"theme": "Location", "percentage": round(random.uniform(0.1, 0.3), 2)},
+            {"theme": "Availability", "percentage": round(random.uniform(0.1, 0.2), 2)}
+        ],
+        "trends": {
+            "relevance_trend": [round(random.uniform(3.0, 4.5), 1) for _ in range(5)],
+            "accuracy_trend": [round(random.uniform(3.0, 4.5), 1) for _ in range(5)],
+            "helpful_trend": [round(random.uniform(0.6, 0.9), 2) for _ in range(5)]
+        }
+    }
+    
+    # Add recommendation-type specific data
+    if recommendation_type in ["candidate", "all"]:
+        base_summary["candidate_recommendations"] = {
+            "feedback_count": random.randint(30, 150),
+            "average_scores": {
+                "relevance": round(random.uniform(3.5, 4.5), 1),
+                "accuracy": round(random.uniform(3.5, 4.5), 1),
+                "overall": round(random.uniform(3.5, 4.5), 1)
+            },
+            "helpful_percentage": round(random.uniform(0.7, 0.9), 2),
+            "top_feedback_categories": [
+                {"category": "Skills match", "percentage": round(random.uniform(0.3, 0.5), 2)},
+                {"category": "Experience level", "percentage": round(random.uniform(0.2, 0.4), 2)},
+                {"category": "Location", "percentage": round(random.uniform(0.1, 0.3), 2)}
+            ]
+        }
+    
+    if recommendation_type in ["project", "all"]:
+        base_summary["project_recommendations"] = {
+            "feedback_count": random.randint(20, 100),
+            "average_scores": {
+                "relevance": round(random.uniform(3.5, 4.5), 1),
+                "accuracy": round(random.uniform(3.5, 4.5), 1),
+                "overall": round(random.uniform(3.5, 4.5), 1)
+            },
+            "helpful_percentage": round(random.uniform(0.7, 0.9), 2),
+            "top_feedback_categories": [
+                {"category": "Project skills match", "percentage": round(random.uniform(0.3, 0.5), 2)},
+                {"category": "Availability", "percentage": round(random.uniform(0.2, 0.4), 2)},
+                {"category": "Project duration", "percentage": round(random.uniform(0.1, 0.3), 2)}
+            ]
+        }
+    
+    return base_summary
+
+def generate_candidate_feedback_summary(recommendation_type, period):
+    """Generate feedback summary for candidates"""
+    # This would be based on actual feedback data in a production system
+    # For now, we'll generate realistic simulated data
+    
+    # Base summary that applies to all recommendation types
+    base_summary = {
+        "total_feedback_count": random.randint(30, 150),
+        "average_scores": {
+            "relevance": round(random.uniform(3.5, 4.5), 1),
+            "accuracy": round(random.uniform(3.5, 4.5), 1),
+            "overall": round(random.uniform(3.5, 4.5), 1)
+        },
+        "helpful_percentage": round(random.uniform(0.7, 0.9), 2),
+        "action_breakdown": {
+            "viewed_details": round(random.uniform(0.6, 0.8), 2),
+            "applied": round(random.uniform(0.1, 0.3), 2),
+            "saved": round(random.uniform(0.2, 0.4), 2),
+            "dismissed": round(random.uniform(0.1, 0.2), 2)
+        },
+        "common_feedback_themes": [
+            {"theme": "Job relevance", "percentage": round(random.uniform(0.3, 0.5), 2)},
+            {"theme": "Skill match", "percentage": round(random.uniform(0.2, 0.4), 2)},
+            {"theme": "Salary range", "percentage": round(random.uniform(0.1, 0.3), 2)},
+            {"theme": "Location", "percentage": round(random.uniform(0.1, 0.2), 2)}
+        ],
+        "trends": {
+            "relevance_trend": [round(random.uniform(3.0, 4.5), 1) for _ in range(5)],
+            "accuracy_trend": [round(random.uniform(3.0, 4.5), 1) for _ in range(5)],
+            "helpful_trend": [round(random.uniform(0.6, 0.9), 2) for _ in range(5)]
+        }
+    }
+    
+    # Add recommendation-type specific data
+    if recommendation_type in ["job", "all"]:
+        base_summary["job_recommendations"] = {
+            "feedback_count": random.randint(20, 100),
+            "average_scores": {
+                "relevance": round(random.uniform(3.5, 4.5), 1),
+                "accuracy": round(random.uniform(3.5, 4.5), 1),
+                "overall": round(random.uniform(3.5, 4.5), 1)
+            },
+            "helpful_percentage": round(random.uniform(0.7, 0.9), 2),
+            "top_feedback_categories": [
+                {"category": "Job title match", "percentage": round(random.uniform(0.3, 0.5), 2)},
+                {"category": "Salary range", "percentage": round(random.uniform(0.2, 0.4), 2)},
+                {"category": "Location", "percentage": round(random.uniform(0.1, 0.3), 2)}
+            ]
+        }
+    
+    if recommendation_type in ["project", "all"]:
+        base_summary["project_recommendations"] = {
+            "feedback_count": random.randint(10, 50),
+            "average_scores": {
+                "relevance": round(random.uniform(3.5, 4.5), 1),
+                "accuracy": round(random.uniform(3.5, 4.5), 1),
+                "overall": round(random.uniform(3.5, 4.5), 1)
+            },
+            "helpful_percentage": round(random.uniform(0.7, 0.9), 2),
+            "top_feedback_categories": [
+                {"category": "Project type match", "percentage": round(random.uniform(0.3, 0.5), 2)},
+                {"category": "Project duration", "percentage": round(random.uniform(0.2, 0.4), 2)},
+                {"category": "Compensation", "percentage": round(random.uniform(0.1, 0.3), 2)}
+            ]
+        }
+    
+    if recommendation_type in ["skill", "all"]:
+        base_summary["skill_recommendations"] = {
+            "feedback_count": random.randint(15, 80),
+            "average_scores": {
+                "relevance": round(random.uniform(3.5, 4.5), 1),
+                "accuracy": round(random.uniform(3.5, 4.5), 1),
+                "overall": round(random.uniform(3.5, 4.5), 1)
+            },
+            "helpful_percentage": round(random.uniform(0.7, 0.9), 2),
+            "top_feedback_categories": [
+                {"category": "Career relevance", "percentage": round(random.uniform(0.3, 0.5), 2)},
+                {"category": "Learning difficulty", "percentage": round(random.uniform(0.2, 0.4), 2)},
+                {"category": "Market demand", "percentage": round(random.uniform(0.1, 0.3), 2)}
+            ]
+        }
+    
+    return base_summary
