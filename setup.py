@@ -70,13 +70,26 @@ def run_command(command, cwd=None, check=True):
             check=check,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=True,
+            text=False,  # Changed from text=True to handle binary output
             shell=IS_WINDOWS  # Use shell on Windows
         )
-        return result
+        # Manually decode output with UTF-8 and handle errors
+        stdout = result.stdout.decode('utf-8', errors='replace') if result.stdout else ""
+        stderr = result.stderr.decode('utf-8', errors='replace') if result.stderr else ""
+        
+        # Create a new CompletedProcess with decoded text
+        decoded_result = subprocess.CompletedProcess(
+            args=result.args,
+            returncode=result.returncode,
+            stdout=stdout,
+            stderr=stderr
+        )
+        return decoded_result
     except subprocess.CalledProcessError as e:
         print_error(f"Command failed: {' '.join(command if isinstance(command, list) else [command])}")
-        print(f"Error: {e.stderr}")
+        # Safely decode error output
+        error_msg = e.stderr.decode('utf-8', errors='replace') if isinstance(e.stderr, bytes) else str(e.stderr)
+        print(f"Error: {error_msg}")
         return e
 
 def is_ollama_installed():
@@ -184,11 +197,14 @@ def start_ollama_service():
     print("Starting Ollama service...")
     try:
         if IS_WINDOWS:
-            # On Windows, start ollama.exe
-            subprocess.Popen(["ollama", "serve"], 
-                            creationflags=subprocess.CREATE_NEW_CONSOLE,
-                            stdout=subprocess.PIPE, 
-                            stderr=subprocess.PIPE)
+            # On Windows, start ollama.exe with proper encoding
+            process = subprocess.Popen(
+                ["ollama", "serve"], 
+                creationflags=subprocess.CREATE_NEW_CONSOLE,
+                stdout=subprocess.PIPE, 
+                stderr=subprocess.PIPE,
+                env=dict(os.environ, PYTHONIOENCODING="utf-8")  # Set UTF-8 encoding
+            )
         else:
             # On Linux/Mac, start ollama service
             run_command(["ollama", "serve"], check=False)
@@ -210,19 +226,32 @@ def pull_ollama_model(model_name):
     """Pull a model from Ollama"""
     print(f"Pulling {model_name} model (this might take a while)...")
     try:
+        # Use the updated run_command function which now handles Unicode properly
         result = run_command(["ollama", "pull", model_name], check=False)
+        
         if result.returncode == 0:
             print_success(f"{model_name} model pulled successfully.")
             return True
         else:
             print_error(f"Failed to pull {model_name} model.")
-            print("You can pull the model manually later using:")
+            if result.stderr:
+                print(f"Error details: {result.stderr}")
+            print("\nYou can pull the model manually later using:")
             print(f"  ollama pull {model_name}")
+            
+            # Provide alternative options
+            print("\nAlternatively, you can try:")
+            print("1. Running the command in PowerShell with UTF-8 encoding:")
+            print(f"   $env:PYTHONIOENCODING=\"utf-8\"; ollama pull {model_name}")
+            print("2. Using a different model:")
+            print("   ollama pull llama3")
             return False
     except Exception as e:
         print_error(f"Failed to pull {model_name} model: {str(e)}")
-        print("You can pull the model manually later using:")
+        print("\nYou can pull the model manually later using:")
         print(f"  ollama pull {model_name}")
+        print("\nAlternatively, try running in PowerShell with:")
+        print(f"  $env:PYTHONIOENCODING=\"utf-8\"; ollama pull {model_name}")
         return False
 
 def setup_ollama():
