@@ -132,15 +132,15 @@ if "error" not in skill_gap:
         st.metric("Match Score", f"{match_score}%")
         
         # Create gauge chart for match score
-        fig = go.Figure(go.Indicator(
-            mode = "gauge+number",
-            value = match_score,
-            domain = {'x': [0, 1], 'y': [0, 1]},
-            title = {'text': "Match Score"},
-            gauge = {
-                'axis': {'range': [0, 100]},
+    fig = go.Figure(go.Indicator(
+        mode = "gauge+number",
+        value = match_score,
+        domain = {'x': [0, 1], 'y': [0, 1]},
+        title = {'text': "Match Score"},
+        gauge = {
+            'axis': {'range': [0, 100]},
                 'bar': {'color': "#1f77b4"},
-                'steps': [
+            'steps': [
                     {'range': [0, 33], 'color': "#ffcccb"},
                     {'range': [33, 66], 'color': "#ffffcc"},
                     {'range': [66, 100], 'color': "#ccffcc"}
@@ -148,7 +148,7 @@ if "error" not in skill_gap:
             }
         ))
         fig.update_layout(height=250)
-        st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True)
     
     with col2:
         # Market demand data
@@ -275,15 +275,15 @@ if "error" not in skill_gap:
                             df = df.sort_values(by="Importance", ascending=False)
                             
                             # Display as a bar chart
-                            fig = px.bar(
+            fig = px.bar(
                                 df,
-                                x="Skill",
-                                y="Importance",
+                x="Skill",
+                y="Importance",
                                 title=f"{category.title()} Skills",
-                                color="Importance",
+                color="Importance",
                                 color_continuous_scale="Viridis"
-                            )
-                            st.plotly_chart(fig, use_container_width=True)
+            )
+            st.plotly_chart(fig, use_container_width=True)
         else:
             # Display missing skills as before
             if missing_skills:
@@ -318,7 +318,7 @@ if "error" not in skill_gap:
                         use_container_width=True,
                         hide_index=True
                     )
-            else:
+        else:
                 st.success("You have all the required skills!")
     
     with tab3:
@@ -329,22 +329,22 @@ if "error" not in skill_gap:
             
             if learning_resources:
                 for resource in learning_resources:
-                    skill = resource.get("skill")
+                        skill = resource.get("skill")
                     resources_list = resource.get("resources", [])
-                    
-                    st.markdown(f"### {skill}")
+                        
+                        st.markdown(f"### {skill}")
                     for res in resources_list:
-                        col1, col2 = st.columns([4, 1])
-                        with col1:
-                            st.markdown(f"**{res.get('title')}**")
-                            st.markdown(f"_{res.get('provider')}_")
-                            st.markdown(f"{res.get('description')}")
-                        with col2:
-                            st.link_button("View", res.get("url"), use_container_width=True)
-                        st.divider()
+                            col1, col2 = st.columns([4, 1])
+                            with col1:
+                                st.markdown(f"**{res.get('title')}**")
+                                st.markdown(f"_{res.get('provider')}_")
+                                st.markdown(f"{res.get('description')}")
+                            with col2:
+                                st.link_button("View", res.get("url"), use_container_width=True)
+                            st.divider()
+                else:
+                    st.info("No specific learning resources found.")
             else:
-                st.info("No specific learning resources found.")
-        else:
             st.info("Enable 'Include learning resources' option to see personalized learning recommendations.")
     
     with tab4:
@@ -398,110 +398,110 @@ if "error" not in skill_gap:
 else:
     error_message = skill_gap.get('error', '')
     st.error(f"Failed to analyze skill gap: {error_message}")
-
-# Career path section
-st.subheader("Career Path Analysis")
-
-# Get career path data
-career_path = make_api_request(
-    "recommendations/career-path",
-    params={"current_role": target_role}
-)
-
-if "error" not in career_path:
-    paths = career_path.get("paths", [])
-    if paths:
-        st.write("Potential career paths based on your target role:")
-        
-        # Create timeline chart
-        timeline_data = []
-        for i, path in enumerate(paths):
-            roles = path.get("roles", [])
-            base_date = datetime.now()
+    
+    # Career path section
+    st.subheader("Career Path Analysis")
+    
+    # Get career path data
+    career_path = make_api_request(
+        "recommendations/career-path",
+        params={"current_role": target_role}
+    )
+    
+    if "error" not in career_path:
+        paths = career_path.get("paths", [])
+        if paths:
+            st.write("Potential career paths based on your target role:")
             
-            for j, role in enumerate(roles):
-                timeline_data.append({
-                    "Path": f"Path {i+1}",
-                    "Role": role.get("title", ""),
-                    "Start": base_date + timedelta(years=j*2),
-                    "End": base_date + timedelta(years=(j+1)*2),
-                    "Level": role.get("level", ""),
-                    "Salary": role.get("salary", {}).get("median", 0)
-                })
-        
-        if timeline_data:
-            df_timeline = pd.DataFrame(timeline_data)
+            # Create timeline chart
+            timeline_data = []
+            for i, path in enumerate(paths):
+                roles = path.get("roles", [])
+                base_date = datetime.now()
+                
+                for j, role in enumerate(roles):
+                    timeline_data.append({
+                        "Path": f"Path {i+1}",
+                        "Role": role.get("title", ""),
+                        "Start": base_date + timedelta(years=j*2),
+                        "End": base_date + timedelta(years=(j+1)*2),
+                        "Level": role.get("level", ""),
+                        "Salary": role.get("salary", {}).get("median", 0)
+                    })
             
-            fig_timeline = px.timeline(
-                df_timeline, 
-                x_start="Start",
-                x_end="End",
-                y="Path",
-                color="Level",
-                hover_data=["Role", "Salary"],
-                title="Career Progression Timeline"
-            )
-            
-            fig_timeline.update_layout(
-                xaxis_title="Time",
-                yaxis_title="Career Path",
-                showlegend=True
-            )
-            
-            st.plotly_chart(fig_timeline, use_container_width=True)
+            if timeline_data:
+                df_timeline = pd.DataFrame(timeline_data)
+                
+                fig_timeline = px.timeline(
+                    df_timeline, 
+                    x_start="Start",
+                    x_end="End",
+                    y="Path",
+                    color="Level",
+                    hover_data=["Role", "Salary"],
+                    title="Career Progression Timeline"
+                )
+                
+                fig_timeline.update_layout(
+                    xaxis_title="Time",
+                    yaxis_title="Career Path",
+                    showlegend=True
+                )
+                
+                st.plotly_chart(fig_timeline, use_container_width=True)
+        else:
+            st.info("No career path data available for this role.")
     else:
-        st.info("No career path data available for this role.")
-else:
-    error_message = career_path.get('error', '')
-    if "404" in error_message:
-        # API endpoint doesn't exist yet, use mock data
-        st.info("Career path analysis is currently being developed. Showing sample data for demonstration purposes.")
-        
-        # Sample career path data
-        st.write("Potential career paths based on your target role:")
-        
-        # Create a mock career path
-        path = {
-            "name": f"From {target_role} to Senior Roles",
-            "description": "A typical progression path for your role",
-            "steps": [
-                {
-                    "role": target_role,
-                    "timeline": "Current",
-                    "description": "Build foundational skills and experience",
-                    "salary": {"amount": 85000, "currency": "USD"}
-                },
-                {
-                    "role": f"Senior {target_role}",
-                    "timeline": "2-3 years",
-                    "description": "Lead complex projects and mentor junior team members",
-                    "salary": {"amount": 120000, "currency": "USD"}
-                },
-                {
-                    "role": f"Lead {target_role}",
-                    "timeline": "4-6 years",
-                    "description": "Set technical direction and manage large initiatives",
-                    "salary": {"amount": 150000, "currency": "USD"}
-                }
-            ]
-        }
-        
-        # Display mock path
-        for i, step in enumerate(path.get("steps", [])):
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                st.markdown(f"**Step {i+1}: {step.get('role')}**")
-                st.markdown(f"_Typical Timeline: {step.get('timeline')}_")
-                st.markdown(step.get("description", ""))
-            with col2:
-                # Show averages
-                salary = step.get("salary", {})
-                if salary:
-                    amount = salary.get("amount", 0)
-                    currency = salary.get("currency", "USD")
-                    st.metric("Avg. Salary", f"{amount:,} {currency}")
+        error_message = career_path.get('error', '')
+        if "404" in error_message:
+            # API endpoint doesn't exist yet, use mock data
+            st.info("Career path analysis is currently being developed. Showing sample data for demonstration purposes.")
             
-            if i < len(path.get("steps", [])) - 1:
-                st.markdown("↓")
-    else:
-        st.error("Failed to load career path data.") 
+            # Sample career path data
+            st.write("Potential career paths based on your target role:")
+            
+            # Create a mock career path
+            path = {
+                "name": f"From {target_role} to Senior Roles",
+                "description": "A typical progression path for your role",
+                "steps": [
+                    {
+                        "role": target_role,
+                        "timeline": "Current",
+                        "description": "Build foundational skills and experience",
+                        "salary": {"amount": 85000, "currency": "USD"}
+                    },
+                    {
+                        "role": f"Senior {target_role}",
+                        "timeline": "2-3 years",
+                        "description": "Lead complex projects and mentor junior team members",
+                        "salary": {"amount": 120000, "currency": "USD"}
+                    },
+                    {
+                        "role": f"Lead {target_role}",
+                        "timeline": "4-6 years",
+                        "description": "Set technical direction and manage large initiatives",
+                        "salary": {"amount": 150000, "currency": "USD"}
+                    }
+                ]
+            }
+            
+            # Display mock path
+            for i, step in enumerate(path.get("steps", [])):
+                col1, col2 = st.columns([3, 1])
+                with col1:
+                    st.markdown(f"**Step {i+1}: {step.get('role')}**")
+                    st.markdown(f"_Typical Timeline: {step.get('timeline')}_")
+                    st.markdown(step.get("description", ""))
+                with col2:
+                    # Show averages
+                    salary = step.get("salary", {})
+                    if salary:
+                        amount = salary.get("amount", 0)
+                        currency = salary.get("currency", "USD")
+                        st.metric("Avg. Salary", f"{amount:,} {currency}")
+                
+                if i < len(path.get("steps", [])) - 1:
+                    st.markdown("↓")
+        else:
+            st.error("Failed to load career path data.") 

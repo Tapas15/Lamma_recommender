@@ -1713,8 +1713,8 @@ async def get_job_recommendations(current_user: dict = Depends(get_current_user)
             },
         }
         recommendations.append(job_recommendation)
-        
-        # Save recommendations with score > 70 to recommendations collection
+    
+    # Save recommendations with score > 70 to recommendations collection
         if score >= 70:
             # Create recommendation document
             recommendation_doc = {
@@ -1763,15 +1763,40 @@ async def get_job_recommendations(current_user: dict = Depends(get_current_user)
     # Sort by match score
     recommendations = sorted(
         recommendations, key=lambda x: x["match_score"], reverse=True
-    )
+                )
     
     return recommendations
 
 
-@app.get("/recommendations/candidates/{job_id}", response_model=List[dict])
+@app.get("/recommendations/candidates/{job_id}", response_model=dict)
 async def get_candidate_recommendations(
-    job_id: str, current_user: dict = Depends(get_current_user)
+    job_id: str, 
+    min_match_score: int = 0,
+    limit: int = 10,
+    include_details: bool = True,
+    sort_by: str = "match_score",
+    experience_min: Optional[int] = None,
+    experience_max: Optional[int] = None,
+    location_radius: Optional[int] = None,
+    include_remote: bool = False,
+    education_level: Optional[str] = None,
+    availability: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
 ):
+    """
+    Get candidate recommendations for a specific job with advanced filtering
+    
+    - min_match_score: Minimum match score (0-100)
+    - limit: Maximum number of results to return
+    - include_details: Whether to include full candidate details
+    - sort_by: Field to sort by (match_score, experience_years, etc.)
+    - experience_min: Minimum years of experience
+    - experience_max: Maximum years of experience
+    - location_radius: Distance in miles/km from job location
+    - include_remote: Include candidates willing to work remotely
+    - education_level: Comma-separated list of education levels (Bachelors,Masters,PhD)
+    - availability: Comma-separated list of availability options (Immediate,2 weeks,1 month)
+    """
     if current_user["user_type"] != UserType.EMPLOYER:
         raise HTTPException(
             status_code=403, detail="Only employers can get candidate recommendations"
@@ -1781,23 +1806,175 @@ async def get_candidate_recommendations(
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     
-    # Make sure to only get active candidates with complete profiles
-    candidates = (
-        await Database.get_collection(CANDIDATES_COLLECTION)
-        .find({"is_active": True, "profile_completed": True})
-        .to_list(length=None)
-    )
+    # Build query filter for candidates
+    candidate_filter = {"is_active": True, "profile_completed": True}
+    
+    # Handle experience range filter
+    if experience_min is not None or experience_max is not None:
+        # Convert string experience_years to numeric for comparison
+        # Note: This is a simplified approach. In production, you'd need more robust parsing
+        # or store experience_years as a number in the database
+        try:
+            # Get all candidates and filter in memory since experience_years might be stored as string
+            candidates = await Database.get_collection(CANDIDATES_COLLECTION).find(candidate_filter).to_list(length=None)
+            
+            filtered_candidates = []
+            for candidate in candidates:
+                exp_years = candidate.get("experience_years")
+                if exp_years:
+                    # Try to extract numeric value from experience_years
+                    try:
+                        if isinstance(exp_years, str):
+                            # Extract first number from string like "5+ years" or "3-5 years"
+                            import re
+                            matches = re.findall(r'\d+', exp_years)
+                            if matches:
+                                years = int(matches[0])
+                            else:
+                                continue  # Skip if no numeric value found
+                        elif isinstance(exp_years, (int, float)):
+                            years = exp_years
+                        else:
+                            continue  # Skip if not a recognized format
+                            
+                        # Apply min/max filters
+                        if experience_min is not None and years < experience_min:
+                            continue
+                        if experience_max is not None and years > experience_max:
+                            continue
+                            
+                        filtered_candidates.append(candidate)
+                    except (ValueError, TypeError):
+                        # If we can't parse the experience, skip this candidate
+                        continue
+                        
+            candidates = filtered_candidates
+        except Exception as e:
+            print(f"Error filtering by experience: {str(e)}")
+            # Fallback to getting all candidates if experience filtering fails
+            candidates = await Database.get_collection(CANDIDATES_COLLECTION).find(candidate_filter).to_list(length=None)
+    else:
+        # Get all candidates matching the base filter
+        candidates = await Database.get_collection(CANDIDATES_COLLECTION).find(candidate_filter).to_list(length=None)
     
     if not candidates:
         print(f"No active candidates found for job {job_id}")
-        return []
+        return {"candidates": [], "total_count": 0, "filters_applied": {}}
     
+    # Filter by education level if specified
+    if education_level:
+        education_levels = [level.strip() for level in education_level.split(",")]
+        filtered_candidates = []
+        
+        for candidate in candidates:
+            # Check education array or education_summary field
+            education = candidate.get("education", [])
+            education_summary = candidate.get("education_summary", "")
+            
+            # Check if any education level matches
+            matches_education = False
+            
+            # Check in education array
+            if isinstance(education, list):
+                for edu in education:
+                    degree = edu.get("degree", "").lower() if isinstance(edu, dict) else ""
+                    if any(level.lower() in degree for level in education_levels):
+                        matches_education = True
+                        break
+            
+            # If not found in education array, check in summary
+            if not matches_education and education_summary:
+                if any(level.lower() in education_summary.lower() for level in education_levels):
+                    matches_education = True
+            
+            if matches_education:
+                filtered_candidates.append(candidate)
+                
+        candidates = filtered_candidates
+    
+    # Filter by availability if specified
+    if availability:
+        availability_options = [option.strip() for option in availability.split(",")]
+        filtered_candidates = []
+        
+        for candidate in candidates:
+            job_search_status = candidate.get("job_search_status", {})
+            
+            # Check notice period or availability
+            if isinstance(job_search_status, dict):
+                notice_period = job_search_status.get("notice_period_days")
+                available_from = job_search_status.get("available_from")
+                
+                # Determine candidate's availability category
+                candidate_availability = "Unknown"
+                
+                if notice_period is not None:
+                    if notice_period == 0:
+                        candidate_availability = "Immediate"
+                    elif notice_period <= 14:
+                        candidate_availability = "2 weeks"
+                    elif notice_period <= 30:
+                        candidate_availability = "1 month"
+                    else:
+                        candidate_availability = "More than 1 month"
+                
+                # Check if candidate's availability matches any requested option
+                if candidate_availability in availability_options or "Unknown" in availability_options:
+                    filtered_candidates.append(candidate)
+            else:
+                # If job_search_status is not properly structured, include if "Unknown" is accepted
+                if "Unknown" in availability_options:
+                    filtered_candidates.append(candidate)
+                    
+        candidates = filtered_candidates
+    
+    # Process location filtering
+    if location_radius is not None or include_remote:
+        job_location = job.get("location", "")
+        filtered_candidates = []
+        
+        for candidate in candidates:
+            candidate_location = candidate.get("location", "")
+            preferred_locations = candidate.get("preferred_job_locations", [])
+            
+            # Check for remote preference
+            if include_remote:
+                remote_terms = ["remote", "anywhere", "virtual", "work from home", "wfh"]
+                is_remote_ok = any(
+                    any(term in loc.lower() for term in remote_terms) 
+                    for loc in preferred_locations
+                ) if preferred_locations else False
+                
+                if is_remote_ok:
+                    filtered_candidates.append(candidate)
+                    continue
+            
+            # If location_radius is specified, check if candidate location is within radius
+            # Note: This is a simplified check. In production, you'd use geocoding and distance calculation
+            if location_radius is not None and job_location and candidate_location:
+                # Simple string matching for demo purposes
+                # In production, use proper geocoding and distance calculation
+                if job_location.lower() in candidate_location.lower() or candidate_location.lower() in job_location.lower():
+                    filtered_candidates.append(candidate)
+                    continue
+                
+                # Check preferred locations as well
+                if any(job_location.lower() in loc.lower() or loc.lower() in job_location.lower() for loc in preferred_locations):
+                    filtered_candidates.append(candidate)
+                    continue
+                    
+        candidates = filtered_candidates
+    
+    # Match candidates to job
     recommendations = []
-    # Process each candidate to find matches
     for candidate in candidates:
         # Get match score and explanation
         score, explanation = await get_match_score(job, candidate)
         
+        # Skip candidates below minimum match score
+        if score < min_match_score:
+            continue
+            
         candidate_id = candidate.get("id")
         
         # Add to recommendations with detailed candidate information
@@ -1805,12 +1982,18 @@ async def get_candidate_recommendations(
             "candidate_id": candidate_id,
             "match_score": score,
             "explanation": explanation,
-            "candidate_details": {
+        }
+        
+        # Add detailed candidate information if requested
+        if include_details:
+            candidate_recommendation["candidate_details"] = {
                 "full_name": candidate.get("full_name", ""),
                 "email": candidate.get("email", ""),
                 "skills": candidate.get("skills", []),
                 "experience": candidate.get("experience", ""),
+                "experience_years": candidate.get("experience_years", ""),
                 "education": candidate.get("education", []),
+                "education_summary": candidate.get("education_summary", ""),
                 "location": candidate.get("location", ""),
                 "profile_summary": candidate.get("profile_summary", ""),
                 "certifications": candidate.get("certifications", []),
@@ -1818,11 +2001,12 @@ async def get_candidate_recommendations(
                 "preferred_job_type": candidate.get("preferred_job_type", ""),
                 "preferred_location": candidate.get("preferred_location", ""),
                 "preferred_salary": candidate.get("preferred_salary", ""),
-            },
-        }
-        recommendations.append(candidate_recommendation)
+                "job_search_status": candidate.get("job_search_status", {}),
+            }
         
-        # Save high-scoring recommendations to the recommendations collection
+        recommendations.append(candidate_recommendation)
+    
+    # Save high-scoring recommendations to the recommendations collection
         if score >= 70:
             # Create recommendation document
             recommendation_doc = {
@@ -1869,12 +2053,43 @@ async def get_candidate_recommendations(
                     f"Updated candidate recommendation score to {score} for job {job_id}"
                 )
     
-    # Sort by match score
-    recommendations = sorted(
-        recommendations, key=lambda x: x["match_score"], reverse=True
-    )
+    # Sort recommendations
+    if sort_by == "match_score":
+        recommendations.sort(key=lambda x: x["match_score"], reverse=True)
+    elif sort_by == "experience_years" and include_details:
+        # Sort by experience_years (numeric extraction)
+        def extract_years(rec):
+            exp_years = rec.get("candidate_details", {}).get("experience_years", "0")
+            if isinstance(exp_years, (int, float)):
+                return exp_years
+            try:
+                import re
+                matches = re.findall(r'\d+', str(exp_years))
+                return int(matches[0]) if matches else 0
+            except:
+                return 0
+                
+        recommendations.sort(key=extract_years, reverse=True)
     
-    return recommendations
+    # Apply limit
+    if limit > 0:
+        recommendations = recommendations[:limit]
+    
+    # Return response with metadata
+    response = {
+        "candidates": recommendations,
+        "total_count": len(recommendations),
+        "filters_applied": {
+            "min_match_score": min_match_score,
+            "experience_range": f"{experience_min or 'any'}-{experience_max or 'any'}",
+            "location_radius": location_radius,
+            "include_remote": include_remote,
+            "education_level": education_level,
+            "availability": availability
+        }
+    }
+    
+    return response
 
 
 # Add this function after the existing recommendation functions
@@ -4641,3 +4856,241 @@ async def get_enhanced_career_paths(
     return {
         "paths": industry_paths
     }
+
+@app.post("/recommendations/talent-search", response_model=dict)
+async def talent_search(
+    search_params: dict,
+    min_match_score: int = 0,
+    limit: int = 10,
+    include_details: bool = True,
+    sort_by: str = "match_score",
+    experience_min: Optional[int] = None,
+    experience_max: Optional[int] = None,
+    location_radius: Optional[int] = None,
+    include_remote: bool = False,
+    education_level: Optional[str] = None,
+    availability: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Advanced talent search with multiple filtering options
+    
+    This endpoint allows employers to search for candidates based on skills,
+    experience, location, education, and availability.
+    """
+    if current_user["user_type"] != UserType.EMPLOYER:
+        raise HTTPException(
+            status_code=403, detail="Only employers can use talent search"
+        )
+    
+    # Extract search parameters
+    skills = search_params.get("skills", [])
+    if not skills:
+        raise HTTPException(
+            status_code=400, detail="At least one skill is required for talent search"
+        )
+    
+    # Prepare search query text
+    search_text = " ".join(skills)
+    if "job_title" in search_params:
+        search_text += f" {search_params.get('job_title')}"
+    if "industry" in search_params:
+        search_text += f" {search_params.get('industry')}"
+    
+    # Get embedding for search query
+    try:
+        search_embedding = get_embedding(search_text)
+    except Exception as e:
+        print(f"Error generating embedding: {str(e)}")
+        raise HTTPException(
+            status_code=500, 
+            detail="Failed to generate embedding for search query"
+        )
+    
+    # Make sure to only get active candidates with complete profiles
+    filter_query = {"is_active": True, "profile_completed": True}
+    
+    # Apply additional filters from query parameters
+    if experience_min is not None:
+        filter_query["experience_years"] = {"$gte": experience_min}
+    if experience_max is not None:
+        if "experience_years" not in filter_query:
+            filter_query["experience_years"] = {}
+        filter_query["experience_years"]["$lte"] = experience_max
+    
+    if education_level:
+        education_levels = education_level.split(",")
+        filter_query["education_level"] = {"$in": education_levels}
+    
+    if availability:
+        availability_options = availability.split(",")
+        filter_query["availability"] = {"$in": availability_options}
+    
+    # Location filtering will be handled post-query for now
+    # In a production system, we'd use proper geospatial queries
+    
+    # Search for candidates using vector search
+    try:
+        # Get all candidates that match the filter criteria
+        candidates = (
+            await Database.get_collection(CANDIDATES_COLLECTION)
+            .find(filter_query)
+            .to_list(length=None)
+        )
+        
+        if not candidates:
+            return {
+                "candidates": [],
+                "total_count": 0,
+                "metadata": {
+                    "search_params": search_params,
+                    "filters_applied": {
+                        "experience_min": experience_min,
+                        "experience_max": experience_max,
+                        "education_level": education_level,
+                        "availability": availability,
+                        "location_radius": location_radius,
+                        "include_remote": include_remote
+                    }
+                }
+            }
+        
+        # Calculate match scores
+        results = []
+        for candidate in candidates:
+            # Skip candidates without embeddings
+            if "embedding" not in candidate:
+                continue
+            
+            # Calculate match score using cosine similarity
+            match_score = cosine_similarity(search_embedding, candidate["embedding"]) * 100
+            
+            # Apply minimum match score filter
+            if match_score < min_match_score:
+                continue
+            
+            # Apply location filtering if specified
+            if search_params.get("location") and not include_remote:
+                # Simple location matching for now
+                # In a production system, we'd use proper geocoding and distance calculation
+                if not candidate.get("location") or search_params["location"].lower() not in candidate["location"].lower():
+                    if not (include_remote and candidate.get("remote_availability", False)):
+                        continue
+            
+            # Create result object with match score
+            result = {
+                "candidate_id": str(candidate["id"]),
+                "match_score": round(match_score, 1),
+                "match_factors": {
+                    "skills_match": calculate_skills_match_percentage(skills, candidate.get("skills", [])),
+                    "experience_match": calculate_experience_match_percentage(search_params.get("experience_years", 0), candidate.get("experience_years", 0)),
+                }
+            }
+            
+            # Include candidate details if requested
+            if include_details:
+                # Remove sensitive information
+                candidate_copy = candidate.copy()
+                for field in ["password", "embedding", "hashed_password", "salt"]:
+                    if field in candidate_copy:
+                        del candidate_copy[field]
+                
+                # Convert ObjectId to string
+                if "_id" in candidate_copy:
+                    candidate_copy["_id"] = str(candidate_copy["_id"])
+                
+                result["candidate_details"] = candidate_copy
+            
+            results.append(result)
+        
+        # Sort results
+        if sort_by == "match_score":
+            results.sort(key=lambda x: x["match_score"], reverse=True)
+        elif sort_by == "experience_years" and include_details:
+            def extract_years(rec):
+                exp_years = rec.get("candidate_details", {}).get("experience_years", "0")
+                if isinstance(exp_years, (int, float)):
+                    return exp_years
+                try:
+                    import re
+                    matches = re.findall(r'\d+', str(exp_years))
+                    return int(matches[0]) if matches else 0
+                except:
+                    return 0
+                    
+            results.sort(key=extract_years, reverse=True)
+        elif sort_by == "availability" and include_details:
+            # Sort by availability (immediate first)
+            availability_order = {"Immediate": 0, "2 weeks": 1, "1 month": 2, "3 months": 3}
+            def get_availability_score(rec):
+                avail = rec.get("candidate_details", {}).get("availability", "3 months")
+                return availability_order.get(avail, 99)
+                
+            results.sort(key=get_availability_score)
+        
+        # Apply limit
+        if limit > 0:
+            results = results[:limit]
+        
+        # Return results with metadata
+        return {
+            "candidates": results,
+            "total_count": len(results),
+            "metadata": {
+                "search_params": search_params,
+                "filters_applied": {
+                    "experience_min": experience_min,
+                    "experience_max": experience_max,
+                    "education_level": education_level,
+                    "availability": availability,
+                    "location_radius": location_radius,
+                    "include_remote": include_remote
+                }
+            }
+        }
+    except Exception as e:
+        print(f"Error in talent search: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to perform talent search: {str(e)}"
+        )
+
+def calculate_skills_match_percentage(required_skills, candidate_skills):
+    """Calculate the percentage of required skills that the candidate has"""
+    if not required_skills or not candidate_skills:
+        return 0
+    
+    if isinstance(candidate_skills, list):
+        candidate_skills_list = candidate_skills
+    elif isinstance(candidate_skills, dict):
+        # Extract skills from structured format
+        candidate_skills_list = []
+        for skill_category in candidate_skills.values():
+            if isinstance(skill_category, list):
+                candidate_skills_list.extend(skill_category)
+    else:
+        return 0
+    
+    # Convert to lowercase for case-insensitive matching
+    required_skills_lower = [s.lower() for s in required_skills]
+    candidate_skills_lower = [s.lower() for s in candidate_skills_list]
+    
+    # Count matches
+    matches = sum(1 for skill in required_skills_lower if any(skill in cs for cs in candidate_skills_lower))
+    return round((matches / len(required_skills)) * 100)
+
+def calculate_experience_match_percentage(required_years, candidate_years):
+    """Calculate how well the candidate's experience matches the requirements"""
+    if required_years == 0:
+        return 100  # No experience required, perfect match
+    
+    try:
+        candidate_years = float(candidate_years)
+    except (ValueError, TypeError):
+        return 0
+    
+    if candidate_years >= required_years:
+        return 100  # Meets or exceeds requirements
+    
+    # Partial match based on how close they are to required experience
+    return round((candidate_years / required_years) * 100)
