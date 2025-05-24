@@ -100,14 +100,52 @@ def check_candidate_embeddings():
     
     vector_index_exists = False
     for idx in indexes:
+        # Check for any index that might be a vector index, not just by name
         if idx.get("name") == "candidates_vector_index":
             vector_index_exists = True
-            print("✅ Vector index found in candidates collection")
+            print("✅ Vector index found in candidates collection with name 'candidates_vector_index'")
             break
+    
+    # If we didn't find the exact name, check for any index that might be a vector index
+    if not vector_index_exists:
+        # Try to check Atlas Search indexes (requires admin privileges)
+        try:
+            # This is a simple attempt to detect if any index might be a vector index
+            # MongoDB Atlas Search indexes might not be fully visible through the driver
+            print("Checking for any vector indexes...")
+            
+            # In MongoDB Atlas, vector indexes are created as Atlas Search indexes
+            # which may not be fully visible through the driver API
+            # Let's check if there are any indexes that might be vector indexes
+            for idx in indexes:
+                idx_name = idx.get("name", "")
+                if "vector" in idx_name.lower() or "search" in idx_name.lower():
+                    vector_index_exists = True
+                    print(f"✅ Potential vector index found with name: {idx_name}")
+                    break
+        except Exception as e:
+            print(f"Error checking for vector indexes: {str(e)}")
     
     if not vector_index_exists:
         print("❌ No vector index found in candidates collection")
-        print("   Run 'python create_vector_indexes.py' to create the required indexes")
+        print("   You need to create a vector index in MongoDB Atlas:")
+        print("   1. Go to the Atlas UI")
+        print("   2. Select your cluster")
+        print("   3. Go to the Search tab")
+        print("   4. Create an index with the following configuration:")
+        print("""
+        {
+          "fields": [
+            {
+              "numDimensions": 3072,
+              "path": "embedding",
+              "similarity": "cosine",
+              "type": "vector"
+            }
+          ]
+        }
+        """)
+        print("   Name the index 'candidates_vector_index' for automatic detection")
     
     # Show some candidates that don't have embeddings (if any)
     if without_embedding_count > 0:

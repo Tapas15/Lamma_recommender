@@ -1,0 +1,179 @@
+[
+  {
+    "title": "Mobile App Development",
+    "company": "Harris, Ray and Salazar",
+    "description": "Behavior contain quite like past team. Manager upon cause before.",
+    "requirements": [
+      "MySQL",
+      "Vue.js",
+      "Python",
+      "Google Cloud",
+      "MongoDB"
+    ],
+    "budget_range": "10000-15000 USD",
+    "duration": "6 months (768 hours)",
+    "location": "Toronto, Canada",
+    "project_type": "Security Implementation",
+    "skills_required": [
+      "Azure",
+      "Docker",
+      "Java",
+      "React"
+    ],
+    "deadline": null,
+    "employment_type": null,
+    "objectives": [
+      "Cover chance pressure.",
+      "Civil foot specific bill page.",
+      "Wait science no American show government evidence.",
+      "Score though long technology course often."
+    ],
+    "preferred_qualifications": [
+      "President shoulder various glass student report.",
+      "Sit show example mission.",
+      "Exist work society offer.",
+      "Especially step management would who break free bring."
+    ],
+    "experience": {
+      "level": "Beginner",
+      "domain": "Web Application",
+      "years": "6+ years",
+      "project_examples": [
+        "deliver transparent content",
+        "generate real-time e-commerce",
+        "engineer 24/365 supply-chains"
+      ]
+    },
+    "tools_technologies": [
+      "Docker",
+      "Django",
+      "Terraform",
+      "Spring Boot",
+      "Redis",
+      "PostgreSQL",
+      "JavaScript"
+    ],
+    "timeline": {
+      "start_date": "2025-06-13",
+      "end_date": "2025-12-09",
+      "milestones": [
+        {
+          "name": "Milestone 1: brand front-end systems",
+          "deadline": "2025-06-23"
+        },
+        {
+          "name": "Milestone 2: e-enable best-of-breed interfaces",
+          "deadline": "2025-07-23"
+        }
+      ]
+    },
+    "contact_email": null,
+    "deliverables": [
+      "Whose ask civil during first activity grow.",
+      "Past how really.",
+      "Challenge police find just suffer technology material.",
+      "Ok amount side join involve visit behind eat."
+    ],
+    "id": "683162421afc2fe0f1127c3e",
+    "created_at": "2025-05-24T06:08:02.969000",
+    "employer_id": "68315fd88de28a0051aafb6b",
+    "is_active": true,
+    "status": "open"
+  },
+  {
+    "title": "Security Assessment",
+    "company": "Combs Inc",
+    "description": "General blue people chance level hour foot place. Carry nation ability relationship.",
+    "requirements": [
+      "Angular",
+      "MongoDB",
+      "Flask",
+      "Node.js",
+      "Redis",
+      "Docker",
+      "Azure",
+      "Vue.js"
+    ],
+    "budget_range": "25000-40000 USD",
+    "duration": "9 months (792 hours)",
+    "location": "Denver, CO",
+    "project_type": "Content Management",
+    "skills_required": [
+      "AWS",
+      "TypeScript",
+      "Java",
+      "MySQL",
+      "MongoDB",
+      "React",
+      "Node.js"
+    ],
+    "deadline": null,
+    "employment_type": null,
+    "objectives": [
+      "Agency interview my.",
+      "Member top law alone number think view.",
+      "Rule loss answer data."
+    ],
+    "preferred_qualifications": [
+      "Support other hit improve.",
+      "Up meeting company everyone fish think language.",
+      "Father happy call medical loss smile.",
+      "Less second happen language senior range.",
+      "Letter article budget contain nation."
+    ],
+    "experience": {
+      "level": "Intermediate",
+      "domain": "Cloud Infrastructure",
+      "years": "5+ years",
+      "project_examples": [
+        "re-intermediate viral content",
+        "strategize seamless vortals",
+        "iterate distributed web-readiness"
+      ]
+    },
+    "tools_technologies": [
+      "Kubernetes",
+      "JavaScript",
+      "Redis",
+      "Flask",
+      "Azure"
+    ],
+    "timeline": {
+      "start_date": "2025-06-21",
+      "end_date": "2026-03-19",
+      "milestones": [
+        {
+          "name": "Milestone 1: orchestrate next-generation channels",
+          "deadline": "2025-06-23"
+        },
+        {
+          "name": "Milestone 2: redefine open-source initiatives",
+          "deadline": "2025-07-23"
+        },
+        {
+          "name": "Milestone 3: redefine extensible users",
+          "deadline": "2025-08-22"
+        },
+        {
+          "name": "Milestone 4: integrate one-to-one web services",
+          "deadline": "2025-09-21"
+        },
+        {
+          "name": "Milestone 5: productize next-generation networks",
+          "deadline": "2025-10-21"
+        }
+      ]
+    },
+    "contact_email": null,
+    "deliverables": [
+      "Cultural official citizen plan at office.",
+      "Area although west record.",
+      "Make the foreign ago."
+    ],
+    "id": "683162591afc2fe0f1127c40",
+    "created_at": "2025-05-24T06:08:25.900000",
+    "employer_id": "68315fd88de28a0051aafb6b",
+    "is_active": true,
+    "status": "open"
+  }
+]

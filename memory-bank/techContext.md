@@ -1,178 +1,291 @@
 # Technical Context
 
-## Technology Stack
+## Technologies Used
+
 ### Backend
-- FastAPI (>= 0.95.0) - Main backend framework
-- MongoDB (via motor >= 3.1.1) - Database
-- Ollama - Local embedding model service
-- Python-Jose - JWT authentication
-- Passlib - Password hashing
-- Pydantic (>= 2.0.0) - Data validation
+- **FastAPI**: Main backend framework for API development
+- **MongoDB**: NoSQL database for flexible data storage
+- **PyMongo**: MongoDB driver for Python
+- **PyJWT**: JSON Web Token implementation for authentication
+- **Pydantic**: Data validation and settings management
+- **Ollama**: Local embedding model for vector generation
+- **Faker**: Library for generating realistic test data
 
 ### Frontend
-- Streamlit (>= 1.45.0) - Web interface
-- Plotly (>= 5.14.0) - Data visualization
-- Pandas (>= 2.0.0) - Data manipulation
+- **Streamlit**: Frontend framework for rapid UI development
+- **Pandas**: Data manipulation and analysis
+- **Plotly**: Interactive data visualization
+- **NumPy**: Numerical computing
 
 ### Testing
-- Pytest - Unit testing
-- Selenium - E2E testing
-- Webdriver-manager - Browser automation
-- Tabulate - Formatted test output
-- Requests - API testing
-- NumPy - Data analysis in tests
+- **Pytest**: Testing framework
+- **Requests**: HTTP library for API testing
+- **Selenium**: Browser automation for visual testing
+- **Faker**: Generating realistic test data
+- **JSON**: Storing test results and demo data
 
-## Development Environment
-- Python 3.8+ required
-- Virtual environment management
-- Environment variables for configuration
-- Platform-independent setup scripts
-
-## Architecture
-### Components
-1. FastAPI Backend
-   - RESTful API endpoints
-   - Async database operations
-   - JWT authentication
-   - Vector embedding processing
-
-2. Streamlit Frontend
-   - Multiple pages architecture
-   - Interactive UI components
-   - Real-time data visualization
-
-3. MongoDB Database
-   - User profiles
-   - Job listings
-   - Application data
-   - Vector embeddings storage
-   - Vector search indexes
-
-4. Ollama Service
-   - Local embedding generation
-   - Model: llama3.2
-
-## Security
-- JWT-based authentication
-- Bcrypt password hashing
-- Environment-based secrets
-- Secure API endpoints
-
-## Deployment
-- Development: Local setup with automated scripts
-- Services:
-  - Backend: Port 8000
-  - Frontend: Port 8501
-  - MongoDB: Port 27017
-  - Ollama: Port 11434
-
-## Integration Points
-- Frontend ↔ Backend API
-- Backend ↔ MongoDB
-- Backend ↔ Ollama
-- Frontend ↔ Browser
-
-## Performance Considerations
-- Async database operations
-- Local embedding generation
-- Browser-based automation for testing
-- Vector search optimization
-
-## Testing Infrastructure
-### Test Directory Structure
-```
-backend/tests/
-├── README.md                    # Testing documentation
-├── test_search_recommender.py   # Comprehensive search and recommendation tests
-├── test_recommendation_system.py # Focused recommendation system tests
-└── check_all_embeddings.py      # Vector embedding verification tool
-```
-
-### Test Types
-- **Search & Recommendation Tests**: Verify semantic search and recommendation functionality
-- **Embedding Verification**: Check vector embeddings across all collections
-- **API Tests**: Verify API endpoint functionality
-- **Integration Tests**: Test system component interactions
-- **Unit Tests**: Test individual functions and modules
-
-### Test Environment
-- Environment variables for test configuration
-- Test user accounts for authentication
-- MongoDB test collections
-- Ollama for embedding generation during tests
+### Development Tools
+- **Python**: Primary programming language
+- **Git**: Version control
+- **Batch/Shell scripts**: Cross-platform automation
+- **Virtual Environment**: Dependency isolation
 
 ## Development Setup
+
 ### Prerequisites
-- Python 3.8+
+- Python 3.9+
 - MongoDB
-- Ollama (for local embeddings)
-- Web browser (Chrome recommended for testing)
+- Ollama (for local embedding generation)
+- Git
 
-### Installation Steps
+### Installation
 1. Clone the repository
-2. Run setup script (setup.bat, setup.sh, or setup.py)
-3. Activate virtual environment
-4. Run the application (run_app.py or run_app.bat)
+2. Run `setup.py` or `setup.bat`/`setup.sh` to set up the environment
+3. Start the services using `start_services.bat`/`start_services.py`
+4. Run the backend using `run_backend.bat`/`run_backend.py`
+5. Run the frontend using `run_app.bat`/`run_app.py`
 
-## Dependencies
-### Core Dependencies
-- fastapi (>= 0.95.0) - Backend web framework
-- uvicorn (>= 0.21.1) - ASGI server
-- python-jose[cryptography] (>= 3.3.0) - JWT implementation
-- passlib[bcrypt] (>= 1.7.4) - Password hashing
-- motor (>= 3.1.1) - Async MongoDB driver
-- pymongo (== 4.6.1) - MongoDB driver
-- pydantic (>= 2.0.0) - Data validation
-- streamlit (>= 1.45.0) - Frontend framework
-- pandas (>= 2.0.0) - Data manipulation
-- plotly (>= 5.14.0) - Data visualization
+### Environment Setup
+- Virtual environment for dependency management
+- `requirements.txt` for Python dependencies
+- Cross-platform setup scripts
+- Automated service management
 
-### Development Dependencies
-- pytest (>= 7.3.1) - Testing framework
-- pytest-asyncio (>= 0.21.0) - Async testing support
-- selenium (>= 4.10.0) - Browser automation
-- webdriver-manager (>= 3.8.6) - WebDriver management
-- tabulate (>= 0.9.0) - Formatted test output
-- requests (>= 2.28.0) - API testing
-- numpy (>= 1.24.0) - Data analysis in tests
+## API Structure
+
+### Authentication Endpoints
+- `/auth/register`: User registration
+- `/auth/login`: User login and token generation
+- `/auth/token`: Token validation and refresh
+
+### User Management Endpoints
+- `/users/me`: Get current user profile
+- `/users/update`: Update user profile
+- `/users/{user_id}`: Get user by ID
+
+### Job Management Endpoints
+- `/jobs/create`: Create new job posting
+- `/jobs/update`: Update job posting
+- `/jobs/{job_id}`: Get job by ID
+- `/jobs/search`: Search jobs by criteria
+
+### Recommendation Endpoints
+- `/recommendations/jobs`: Get job recommendations for candidate
+- `/recommendations/candidates`: Get candidate recommendations for job
+- `/recommendations/learning`: Get learning recommendations for career goals
+- `/recommendations/feedback`: Submit feedback on recommendations
+- `/recommendations/feedback/summary`: Get aggregated feedback statistics
+
+### ML Endpoints
+- `/ml/learning-recommendations`: Enhanced learning recommendations
+- `/ml/market-trends`: Skill market trend predictions
+- `/ml/skills/clusters`: Skill relationship analysis
+
+### Utility Endpoints
+- `/health`: Service health check
+- `/docs`: API documentation (Swagger UI)
+- `/redoc`: Alternative API documentation (ReDoc)
+
+## Database Structure
+
+### Collections
+- `users`: User profiles (candidates and employers)
+- `jobs`: Job postings
+- `projects`: Project postings
+- `applications`: Job applications
+- `skills`: Skill definitions and metadata
+- `embeddings`: Vector embeddings for skills and profiles
+- `feedback`: User feedback on recommendations
+
+### Indexes
+- Text indexes for search functionality
+- Vector indexes for semantic matching
+- Compound indexes for filtered queries
+
+## Testing Infrastructure
+
+### Test Scripts
+- `test_endpoint.py`: Tests API endpoints with authentication
+- `test_recommendation_system.py`: Tests recommendation functionality
+- `test_search_recommender.py`: Tests search and recommendation system
+- `test_search_recommender_with_mocks.py`: Tests with mock data
+- `check_all_embeddings.py`: Verifies vector embeddings
+- `visual_workflow_test.py`: Visual demonstration of system flow
+- `complete_workflow_test.py`: End-to-end workflow testing
+- `run_full_tests.py`: Runs all test scripts
+- `run_mock_tests.py`: Runs tests with mock data
+
+### Demo Data Generation
+- `create_demo_candidates.py`: Generates candidate accounts
+- `create_demo_employers.py`: Generates employer accounts
+- `create_demo_jobs_projects.py`: Generates job and project postings
+- `DEMO_DATA_README.md`: Documentation for demo data scripts
+
+### Test Data Storage
+- `demo_candidates.json`: Generated candidate data
+- `demo_employers.json`: Generated employer data
+- `demo_jobs.json`: Generated job posting data
+- `demo_projects.json`: Generated project data
 
 ## Technical Constraints
-- MongoDB connection stability
-- Embedding generation performance
-- Memory usage optimization
-- Cross-platform compatibility
-- MongoDB Atlas vector index setup
 
-## Environment Configuration
-Environment variables are stored in a .env file in the backend directory:
-- OLLAMA_API_BASE - URL for Ollama API (default: http://localhost:11434)
-- OLLAMA_MODEL - Embedding model name (default: llama3.2)
-- SECRET_KEY - JWT secret key
-- MONGODB_URL - MongoDB connection string (default: mongodb://localhost:27017)
-- DATABASE_NAME - MongoDB database name (default: job_recommender)
-- API_BASE_URL - URL for API testing (default: http://localhost:8000)
-- TEST_CANDIDATE_EMAIL - Test candidate email for authentication
-- TEST_CANDIDATE_PASSWORD - Test candidate password
-- TEST_EMPLOYER_EMAIL - Test employer email for authentication
-- TEST_EMPLOYER_PASSWORD - Test employer password
+### Performance
+- Vector search performance optimization needed
+- MongoDB connection pooling for better stability
+- Batch processing for large datasets
 
-## Build Process
-The project uses automated setup scripts that:
-- Create a Python virtual environment
-- Install all required dependencies
-- Set up environment variables
-- Initialize the database
-- Create platform-specific run scripts
+### Security
+- JWT with proper expiration and refresh mechanism
+- Password hashing with bcrypt
+- Input validation with Pydantic
+- CORS configuration for frontend access
 
-## Deployment Process
-1. Run setup script to initialize environment
-2. Start MongoDB service
-3. Start Ollama service with required model
-4. Run the application using provided scripts
+### Scalability
+- Database indexing for faster queries
+- Caching strategy needed
+- Potential for horizontal scaling
 
-## Monitoring and Logging
-- Console logging for development
-- Request logging for API calls
-- Error tracking and reporting
-- Performance monitoring 
-- Test result reporting and visualization 
+## Dependencies
+
+### Core Dependencies
+- `fastapi`: Web framework
+- `uvicorn`: ASGI server
+- `pydantic`: Data validation
+- `pymongo`: MongoDB driver
+- `python-jose`: JWT implementation
+- `passlib`: Password hashing
+- `streamlit`: Frontend framework
+- `pandas`: Data manipulation
+- `numpy`: Numerical computing
+- `requests`: HTTP client
+- `faker`: Test data generation
+
+### Development Dependencies
+- `pytest`: Testing
+- `black`: Code formatting
+- `isort`: Import sorting
+- `flake8`: Linting
+- `selenium`: Browser automation
+
+## Technical Decisions
+
+### Authentication
+- JWT-based authentication for stateless API
+- Token refresh mechanism for extended sessions
+- Password hashing with bcrypt for security
+
+### Database
+- MongoDB chosen for flexible schema
+- PyMongo for direct control over queries
+- Vector indexes for semantic search
+
+### API Design
+- RESTful API design with clear resource paths
+- Consistent response formatting
+- Comprehensive error handling
+- Input validation with Pydantic models
+
+### Frontend
+- Streamlit for rapid development
+- Multi-page application structure
+- Responsive design for different devices
+
+### Testing
+- Comprehensive test scripts for API validation
+- Visual demonstration for workflow testing
+- Demo data generation for realistic testing
+- Automated test execution
+
+## Technical Challenges
+
+### Resolved
+- Basic authentication flow
+- MongoDB connection setup
+- Vector embedding generation
+- Cross-platform setup scripts
+- Unicode handling in setup scripts
+- Permission issues during pip upgrade
+
+### In Progress
+- Optimizing vector search performance
+- Improving embedding generation
+- Enhancing error handling
+- Expanding test coverage
+
+### Upcoming
+- Implementing caching strategy
+- Setting up deployment pipeline
+- Performance optimization
+- Scaling strategy
+
+## Setup Script Improvements
+
+### Unicode Handling
+- Modified the `run_command` function in setup.py to handle Unicode properly:
+  - Changed `text=True` to `text=False` in subprocess.run
+  - Added proper UTF-8 decoding with error handling
+  - Implemented fallback for decoding errors
+
+### Permission Handling
+- Made the pip upgrade step optional if it fails due to permission errors:
+  - Added try/except block around pip upgrade command
+  - Implemented continuation of setup process if upgrade fails
+  - Added user-friendly error messages
+
+### Error Handling
+- Enhanced error handling throughout the setup script:
+  - More descriptive error messages
+  - Better exception handling
+  - Graceful fallbacks for common issues
+
+## API Testing Enhancements
+
+### Authentication Testing
+- Added JWT token authentication to test scripts
+- Implemented proper header formatting for authenticated requests
+- Added error handling for authentication failures
+
+### Endpoint Testing
+- Created test_endpoint.py for testing API endpoints
+- Implemented health endpoint testing
+- Added testing for ML learning recommendations endpoint
+- Implemented comparison testing between original and ML endpoints
+
+### Response Validation
+- Added status code checking
+- Implemented JSON response validation
+- Added error message display for failed requests
+
+## Demo Data Generation
+
+### Candidate Generation
+- Implemented realistic candidate profile generation
+- Added randomized skills with different proficiency levels
+- Created varied education and work experience histories
+- Generated availability and remote work preferences
+
+### Employer Generation
+- Implemented realistic company profile generation
+- Added varied company sizes and industries
+- Created diverse location data
+- Generated employer user accounts with proper roles
+
+### Job and Project Generation
+- Implemented job posting generation with realistic requirements
+- Added project posting generation with specific needs
+- Created varied compensation and duration data
+- Associated postings with employer accounts
+
+### Data Storage
+- Saved generated data to JSON files for reference
+- Implemented structured data format for easy parsing
+- Added metadata for tracking generation parameters
+
+## Notes
+- Focus on modular development
+- Regular testing implementation
+- Documentation updates needed
+- Performance optimization required
+- Cross-platform compatibility is a priority
+- API testing is essential for stability
+- Demo data generation enhances testing capabilities 

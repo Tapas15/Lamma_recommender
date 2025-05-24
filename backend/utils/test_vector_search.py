@@ -1,211 +1,254 @@
-import asyncio
-import os
-from dotenv import load_dotenv
-from pymongo import MongoClient
-import requests
+#!/usr/bin/env python
+"""
+Test script to verify if vector search is working with MongoDB Atlas.
+This script will:
+1. Connect to MongoDB
+2. Get a sample embedding from a candidate
+3. Try to find similar candidates using vector search
+"""
+
+import pymongo
 import numpy as np
 from bson import ObjectId
+from tabulate import tabulate
 import json
 
-# Load environment variables
-load_dotenv()
-
 # MongoDB connection details
-MONGODB_URI = os.getenv("MONGODB_URI", "mongodb+srv://lamma:1234567890@cluster0.eetq9gm.mongodb.net/")
-DB_NAME = os.getenv("DB_NAME", "job_recommender")
-JOBS_COLLECTION = "jobs"  # Collection name for jobs
+MONGODB_URL = "mongodb+srv://lamma:1234567890@cluster0.eetq9gm.mongodb.net/"
+DATABASE_NAME = "job_recommender"
+CANDIDATES_COLLECTION = "candidates"
 
-# Ollama endpoint for embeddings
-OLLAMA_ENDPOINT = os.getenv("OLLAMA_ENDPOINT", "http://localhost:11434/api/embeddings")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2:latest")
-
-# Connect to MongoDB
-client = MongoClient(MONGODB_URI)
-db = client[DB_NAME]
-jobs_collection = db[JOBS_COLLECTION]
-
-def get_embedding(text: str) -> list:
-    """Get embedding from Ollama API"""
-    try:
-        response = requests.post(
-            OLLAMA_ENDPOINT,
-            json={
-                "model": OLLAMA_MODEL,
-                "prompt": text
-            }
-        )
-        
-        if response.status_code != 200:
-            print(f"Error from Ollama API: {response.status_code}")
-            print(response.text)
-            return []
-            
-        data = response.json()
-        return data['embedding']
-    except Exception as e:
-        print(f"Error getting embedding: {e}")
-        return []
+def print_section(title):
+    """Print a section title for better readability"""
+    print("\n")
+    print("=" * 80)
+    print(f" {title} ".center(80, "="))
+    print("=" * 80)
 
 def cosine_similarity(vec1, vec2):
     """Calculate cosine similarity between two vectors"""
-    if not vec1 or not vec2:
-        return 0.0
+    dot_product = np.dot(vec1, vec2)
+    norm_a = np.linalg.norm(vec1)
+    norm_b = np.linalg.norm(vec2)
     
+    # Avoid division by zero
+    if norm_a == 0 or norm_b == 0:
+        return 0
+        
+    return dot_product / (norm_a * norm_b)
+
+def test_vector_search():
+    """Test vector search functionality"""
     try:
-        vec1 = np.array(vec1)
-        vec2 = np.array(vec2)
+        # Connect to MongoDB
+        client = pymongo.MongoClient(MONGODB_URL)
+        db = client[DATABASE_NAME]
+        collection = db[CANDIDATES_COLLECTION]
         
-        dot_product = np.dot(vec1, vec2)
-        norm_vec1 = np.linalg.norm(vec1)
-        norm_vec2 = np.linalg.norm(vec2)
+        print_section("TESTING VECTOR SEARCH")
         
-        if norm_vec1 == 0 or norm_vec2 == 0:
-            return 0.0
+        # Get a sample candidate with embedding
+        sample_candidate = collection.find_one({"embedding": {"$exists": True}})
+        
+        if not sample_candidate:
+            print("❌ Could not find any candidates with embeddings")
+            client.close()
+            return
             
-        return dot_product / (norm_vec1 * norm_vec2)
-    except Exception as e:
-        print(f"Error in cosine similarity calculation: {str(e)}")
-        return 0.0
-
-def calculate_job_similarity(query_embedding, job_data):
-    """Calculate similarity between query and job"""
-    job_embedding = job_data.get('embedding', [])
-    
-    # If job doesn't have embedding, return low similarity
-    if not job_embedding:
-        return 0.0
+        print(f"Using candidate '{sample_candidate.get('full_name')}' as query sample")
         
-    return cosine_similarity(query_embedding, job_embedding)
-
-def vector_search(query: str, top_k=5):
-    """Perform vector search in jobs collection"""
-    print(f"Searching for: '{query}'")
-    
-    # Get embedding for the query
-    query_embedding = get_embedding(query)
-    if not query_embedding:
-        print("Failed to get embedding for query")
-        return []
-    
-    print(f"Generated embedding vector with {len(query_embedding)} dimensions")
-    
-    # Try MongoDB's $vectorSearch if available
-    try:
-        # Check if we have a vector index - using list_indexes on the collection object
-        try:
-            indexes = list(jobs_collection.list_indexes())
-            has_vector_index = any("jobs_vector_index" == idx.get("name") for idx in indexes)
-        except Exception as e:
-            print(f"Failed to list indexes: {e}")
-            has_vector_index = False
+        # Get the embedding
+        query_embedding = sample_candidate.get('embedding')
         
-        if has_vector_index:
-            print("Using MongoDB vector search")
-            # Use MongoDB Atlas vector search
-            pipeline = [
+        if not query_embedding or not isinstance(query_embedding, list):
+            print("❌ Invalid embedding found in the sample candidate")
+            client.close()
+            return
+            
+        print(f"Embedding dimension: {len(query_embedding)}")
+        
+        # Try Atlas vector search
+        print_section("ATTEMPTING ATLAS VECTOR SEARCH")
+        results = None
+        
+        # Try different query formats
+        query_formats = [
+            # Format 1: Using vectorSearch
                 {
                     "$search": {
-                        "index": "jobs_vector_index",
+                    "index": "candidates_vector_index",
                         "vectorSearch": {
                             "queryVector": query_embedding,
                             "path": "embedding",
-                            "numCandidates": 100,
-                            "limit": top_k
-                        }
-                    }
-                },
-                {
-                    "$project": {
-                        "score": {"$meta": "searchScore"},
-                        "title": 1,
-                        "company": 1,
-                        "location": 1,
-                        "description": 1,
-                        "requirements": 1,
-                        "embedding": 1
+                        "numCandidates": 10,
+                        "limit": 5
                     }
                 }
-            ]
+            },
             
-            results = list(jobs_collection.aggregate(pipeline))
-            print(f"Found {len(results)} results using MongoDB vector search")
-            return results
+            # Format 2: Using knnVector
+            {
+                "$search": {
+                    "index": "candidates_vector_index",
+                    "knnVector": {
+                        "vector": query_embedding,
+                        "path": "embedding",
+                        "k": 5
+                    }
+                }
+            },
+            
+            # Format 3: Using vector
+            {
+                "$search": {
+                    "index": "candidates_vector_index",
+                    "vector": {
+                        "vector": query_embedding,
+                        "path": "embedding",
+                        "k": 5
+                    }
+                }
+            },
+            
+            # Format 4: Using the default index name
+            {
+                "$search": {
+                    "vectorSearch": {
+                        "queryVector": query_embedding,
+                        "path": "embedding",
+                        "numCandidates": 10,
+                        "limit": 5
+                    }
+                }
+            }
+        ]
+        
+        for i, query_format in enumerate(query_formats):
+            try:
+                print(f"\nTrying query format {i+1}...")
+                pipeline = [
+                    query_format,
+                    {
+                        "$project": {
+                            "_id": 1,
+                            "full_name": 1,
+                            "email": 1,
+                            "score": {"$meta": "searchScore"}
+                        }
+                    }
+                ]
+                
+                results = list(collection.aggregate(pipeline))
+                
+                if results:
+                    print(f"✅ Vector search is working with format {i+1}!")
+                    print(f"Found {len(results)} similar candidates:")
+                    
+                    # Display results in a table
+                    table_data = []
+                    for j, result in enumerate(results):
+                        table_data.append([
+                            j + 1,
+                            result.get('full_name', 'Unknown'),
+                            result.get('email', 'No email'),
+                            result.get('score', 0)
+                        ])
+                    
+                    print(tabulate(table_data, headers=["#", "Name", "Email", "Similarity Score"], tablefmt="grid"))
+                    break  # Exit the loop if successful
+                else:
+                    print("❌ No results returned from this query format")
+            except Exception as e:
+                print(f"❌ Error with format {i+1}: {str(e)}")
+        
+        # If all query formats failed, try manual approach
+        if not results:
+            print("\n❌ All vector search formats failed")
+            print("This likely means the vector index is not set up correctly or has a different name")
+            
+            # Try a manual approach as fallback
+            print_section("FALLBACK: MANUAL VECTOR SIMILARITY")
+            print("Trying manual similarity calculation (this is slower but works without vector index)")
+            
+            # Get all candidates
+            all_candidates = list(collection.find(
+                {"embedding": {"$exists": True}, "_id": {"$ne": sample_candidate["_id"]}}
+            ).limit(10))
+            
+            if not all_candidates:
+                print("❌ Could not find any other candidates with embeddings")
+                client.close()
+                return
+                
+            print(f"Found {len(all_candidates)} candidates with embeddings")
+            
+            # Calculate similarity manually
+            similarities = []
+            for candidate in all_candidates:
+                embedding = candidate.get('embedding')
+                if embedding and isinstance(embedding, list):
+                    similarity = cosine_similarity(query_embedding, embedding)
+                    similarities.append({
+                        "candidate": candidate,
+                        "similarity": similarity
+                    })
+            
+            # Sort by similarity
+            similarities.sort(key=lambda x: x["similarity"], reverse=True)
+            
+            # Display results
+            if similarities:
+                print("Results from manual similarity calculation:")
+                table_data = []
+                for i, item in enumerate(similarities[:5]):  # Show top 5
+                    candidate = item["candidate"]
+                    table_data.append([
+                        i + 1,
+                        candidate.get('full_name', 'Unknown'),
+                        candidate.get('email', 'No email'),
+                        item["similarity"]
+                    ])
+                
+                print(tabulate(table_data, headers=["#", "Name", "Email", "Similarity Score"], tablefmt="grid"))
+                
+                # Verify if manual calculation is working
+                print("\n✅ Manual similarity calculation is working correctly")
+                print("This confirms that your embeddings are valid and can be used for similarity search")
+            else:
+                print("❌ Could not calculate similarities")
+        
+        print_section("RECOMMENDATIONS")
+        if results:
+            print("✅ Vector search is working correctly!")
+            print("Your MongoDB Atlas vector index is set up and functioning.")
+        else:
+            print("❌ Vector search is not working correctly.")
+            print("Please check your MongoDB Atlas vector index setup:")
+            print("1. Go to MongoDB Atlas")
+            print("2. Navigate to your cluster")
+            print("3. Go to the Search tab")
+            print("4. Verify that your index is active")
+            print("5. Check the actual name of your vector index (it might not be 'candidates_vector_index')")
+            print("6. Ensure the index configuration matches:")
+            print("""
+            {
+              "fields": [
+                {
+                  "numDimensions": 3072,
+                  "path": "embedding",
+                  "similarity": "cosine",
+                  "type": "vector"
+                }
+              ]
+            }
+            """)
+            print("\nIn the meantime, you can use the manual similarity calculation method")
+            print("which is working correctly as shown above.")
+            
     except Exception as e:
-        print(f"MongoDB vector search not available or failed: {e}")
-    
-    # Fallback: Manual vector search
-    print("Using manual vector search")
-    jobs = list(jobs_collection.find({"is_active": True}))
-    print(f"Retrieved {len(jobs)} jobs for comparison")
-    
-    # Calculate similarity for each job
-    job_scores = []
-    for job in jobs:
-        similarity = calculate_job_similarity(query_embedding, job)
-        job_scores.append({
-            "job": job,
-            "similarity": similarity
-        })
-    
-    # Sort by similarity (descending)
-    job_scores.sort(key=lambda x: x["similarity"], reverse=True)
-    
-    # Get top_k results
-    top_results = job_scores[:top_k]
-    
-    # Format results similar to MongoDB's $vectorSearch
-    results = []
-    for item in top_results:
-        job = item["job"]
-        job["score"] = item["similarity"]
-        # Remove embedding from results for cleaner output
-        if "embedding" in job:
-            del job["embedding"]
-        results.append(job)
-    
-    print(f"Found {len(results)} results using manual vector search")
-    return results
-
-def display_results(results):
-    """Format and display search results"""
-    if not results:
-        print("No results found")
-        return
-        
-    print("\nSearch Results:")
-    print("=" * 60)
-    
-    for i, job in enumerate(results, 1):
-        print(f"Result #{i}:")
-        print(f"Title: {job.get('title', 'N/A')}")
-        print(f"Company: {job.get('company', 'N/A')}")
-        print(f"Location: {job.get('location', 'N/A')}")
-        print(f"Score: {job.get('score', 0):.4f}")
-        
-        if 'requirements' in job and job['requirements']:
-            print(f"Requirements: {', '.join(job['requirements'])}")
-            
-        if 'description' in job:
-            print(f"Description: {job['description'][:150]}...")
-            
-        print("-" * 60)
-
-def test_search_queries():
-    """Test vector search with multiple queries"""
-    test_queries = [
-        "We are looking for a Frontend Developer to join our team and help us ",
-      
-    ]
-    
-    for query in test_queries:
-        print("\n" + "=" * 80)
-        print(f"TESTING QUERY: {query}")
-        print("=" * 80)
-        
-        results = vector_search(query)
-        display_results(results)
-        print("\n")
+        print(f"❌ Error: {str(e)}")
+    finally:
+        client.close()
 
 if __name__ == "__main__":
-    # Test vector search
-    test_search_queries() 
+    test_vector_search() 

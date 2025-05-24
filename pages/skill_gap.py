@@ -53,7 +53,7 @@ Identify the skills you need to develop to qualify for your target jobs. This an
 compares your current skills with the skills required for specific job roles.
 """)
 
-# Target role selection
+# Target role and industry selection
 col1, col2 = st.columns([3, 1])
 with col1:
     # Get common job roles from API
@@ -80,6 +80,7 @@ with col1:
                 "Backend Developer",
                 "Full Stack Developer", 
                 "DevOps Engineer", 
+                "Senior Software Engineer",
                 "Product Manager", 
                 "UX/UI Designer"
             ]
@@ -91,55 +92,46 @@ with col2:
         options=["Entry-level", "Mid-level", "Senior", "Lead"]
     )
 
+# Add industry selection
+industry_options = [
+    "Technology", 
+    "Finance", 
+    "Healthcare", 
+    "Education", 
+    "E-commerce", 
+    "Manufacturing", 
+    "Retail", 
+    "Media", 
+    "Consulting"
+]
+industry = st.selectbox("Industry", options=industry_options)
+
+# Add option to include learning resources
+include_learning_resources = st.checkbox("Include learning resources", value=True)
+
 # Perform skill gap analysis
 with st.spinner("Analyzing skill gap..."):
     skill_gap = make_api_request(
         "recommendations/skill-gap", 
-        params={"target_role": target_role, "experience_level": experience_level}
+        params={
+            "target_role": target_role, 
+            "industry": industry,
+            "experience_level": experience_level,
+            "include_learning_resources": str(include_learning_resources).lower()
+        }
     )
 
-if "error" in skill_gap:
-    error_message = skill_gap.get('error', '')
-    if "404" in error_message:
-        # API endpoint doesn't exist yet, use mock data
-        st.info("Skill gap analysis is currently being developed. Showing sample data for demonstration purposes.")
-        
-        # Sample mock skill gap data
-        skill_gap = {
-            "match_score": 65,  # Example match score
-            "your_skills": [
-                {"name": "Python", "proficiency": 8},
-                {"name": "JavaScript", "proficiency": 7},
-                {"name": "React", "proficiency": 6},
-                {"name": "SQL", "proficiency": 7},
-                {"name": "Git", "proficiency": 8},
-                {"name": "Docker", "proficiency": 5},
-            ],
-            "required_skills": [
-                {"name": "Python", "importance": 9},
-                {"name": "JavaScript", "importance": 7},
-                {"name": "React", "importance": 8},
-                {"name": "SQL", "importance": 6},
-                {"name": "Git", "importance": 7},
-                {"name": "Docker", "importance": 7},
-                {"name": "Kubernetes", "importance": 8},
-                {"name": "AWS", "importance": 9},
-                {"name": "System Design", "importance": 8},
-            ],
-            "missing_skills": [
-                {"name": "Kubernetes", "importance": 8},
-                {"name": "AWS", "importance": 9},
-                {"name": "System Design", "importance": 8},
-            ]
-        }
-    else:
-        st.error(f"Failed to analyze skill gap: {error_message}")
-else:
-    # Display overall match score
+if "error" not in skill_gap:
+    # Match score
     match_score = skill_gap.get("match_score", 0)
-    st.subheader("Overall Skill Match")
     
-    # Create a gauge chart for match score
+    # Create columns for match score and market demand
+    col1, col2 = st.columns([1, 1])
+    
+    with col1:
+        st.metric("Match Score", f"{match_score}%")
+        
+        # Create gauge chart for match score
     fig = go.Figure(go.Indicator(
         mode = "gauge+number",
         value = match_score,
@@ -147,40 +139,39 @@ else:
         title = {'text': "Match Score"},
         gauge = {
             'axis': {'range': [0, 100]},
-            'bar': {'color': "royalblue"},
+                'bar': {'color': "#1f77b4"},
             'steps': [
-                {'range': [0, 40], 'color': "lightgray"},
-                {'range': [40, 70], 'color': "gray"},
-                {'range': [70, 100], 'color': "darkgray"}
-            ],
-            'threshold': {
-                'line': {'color': "red", 'width': 4},
-                'thickness': 0.75,
-                'value': 80
+                    {'range': [0, 33], 'color': "#ffcccb"},
+                    {'range': [33, 66], 'color': "#ffffcc"},
+                    {'range': [66, 100], 'color': "#ccffcc"}
+                ]
             }
-        }
-    ))
-    
+        ))
+        fig.update_layout(height=250)
     st.plotly_chart(fig, use_container_width=True)
     
-    # Add context about the score
-    if match_score >= 80:
-        st.success("You're highly qualified for this role!")
-    elif match_score >= 60:
-        st.info("You have many of the required skills, but could strengthen some areas.")
-    else:
-        st.warning("You may need to develop more skills before applying for this role.")
+    with col2:
+        # Market demand data
+        market_demand = skill_gap.get("market_demand", {})
+        if market_demand:
+            st.subheader("Market Demand")
+            
+            demand_score = market_demand.get("demand_score", 0)
+            growth_rate = market_demand.get("growth_rate", 0)
+            avg_salary = market_demand.get("avg_salary", "N/A")
+            
+            metrics_col1, metrics_col2, metrics_col3 = st.columns(3)
+            metrics_col1.metric("Demand Score", demand_score)
+            metrics_col2.metric("Growth Rate", f"{growth_rate}%")
+            metrics_col3.metric("Avg. Salary", avg_salary)
     
-    # Skills comparison section
-    st.subheader("Skills Comparison")
+    # Create tabs for different sections
+    tab1, tab2, tab3, tab4 = st.tabs(["Skills Comparison", "Missing Skills", "Learning Resources", "Industry Requirements"])
     
-    # Get skills data
+    # Your skills and required skills
     your_skills = skill_gap.get("your_skills", [])
     required_skills = skill_gap.get("required_skills", [])
     missing_skills = skill_gap.get("missing_skills", [])
-    
-    # Create tabs for different views
-    tab1, tab2, tab3 = st.tabs(["Required vs. Your Skills", "Missing Skills", "Recommendations"])
     
     with tab1:
         # Create dataframe for comparison chart
@@ -217,105 +208,132 @@ else:
                 "Gap": required_skill_value - your_skill_value
             })
         
-        # Create bubble chart
+        # Convert to dataframe and sort
         if skill_comparison:
             df = pd.DataFrame(skill_comparison)
-            
-            # Create bubble chart
-            fig_bubble = px.scatter(
-                df,
-                x="Required Level",
-                y="Your Proficiency",
-                size="Gap",
-                color="Gap",
-                hover_name="Skill",
-                color_continuous_scale="RdYlBu_r",
-                title="Skill Proficiency vs Required Level",
-                labels={
-                    "Required Level": "Required Skill Level",
-                    "Your Proficiency": "Your Skill Level",
-                    "Gap": "Skill Gap"
-                }
-            )
-            
-            # Add diagonal line for reference
-            fig_bubble.add_trace(
-                go.Scatter(
-                    x=[0, 10],
-                    y=[0, 10],
-                    mode='lines',
-                    line=dict(dash='dash', color='gray'),
-                    name='Perfect Match'
-                )
-            )
-            
-            st.plotly_chart(fig_bubble, use_container_width=True)
-        else:
-            st.info("No skill comparison data available.")
-    
-    with tab2:
-        # Display missing skills with importance
-        if missing_skills:
-            st.write("These are the skills you should develop for this role:")
-            
-            # Create a bar chart of missing skills by importance
-            missing_df = pd.DataFrame([
-                {"Skill": skill.get("name"), "Importance": skill.get("importance", 0)}
-                for skill in missing_skills
-            ])
-            
-            # Sort by importance
-            missing_df = missing_df.sort_values("Importance", ascending=False)
+            df = df.sort_values(by="Gap", ascending=False)
             
             # Create bar chart
             fig = px.bar(
-                missing_df,
-                x="Skill",
-                y="Importance",
-                color="Importance",
-                color_continuous_scale="Reds",
-                title=f"Missing Skills for {target_role}",
-                labels={"Importance": "Importance (0-10)"}
+                df, 
+                x="Skill", 
+                y=["Your Proficiency", "Required Level"],
+                barmode="group",
+                title="Skills Comparison",
+                labels={"value": "Level (0-10)", "variable": ""},
+                color_discrete_map={
+                    "Your Proficiency": "#1f77b4",
+                    "Required Level": "#ff7f0e"
+                }
             )
-            
+            fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
             st.plotly_chart(fig, use_container_width=True)
             
-            # Display as list with importance
-            for skill in missing_skills:
-                importance = skill.get("importance", 0)
-                name = skill.get("name", "")
-                
-                # Create a colored badge based on importance
-                if importance >= 8:
-                    badge = "🔴 High Priority"
-                elif importance >= 5:
-                    badge = "🟠 Medium Priority"
-                else:
-                    badge = "🟡 Low Priority"
-                
-                st.markdown(f"**{name}** - {badge} (Importance: {importance}/10)")
+            # Create table view
+            st.subheader("Skills Details")
+            st.dataframe(
+                df.style.background_gradient(subset=["Gap"], cmap="RdYlGn_r"),
+                use_container_width=True,
+                hide_index=True
+            )
+    
+    with tab2:
+        # Missing skills by category
+        categorized_missing_skills = skill_gap.get("categorized_missing_skills", {})
+        
+        if categorized_missing_skills:
+            st.subheader("Missing Skills by Category")
+            
+            # Create pie chart for categories
+            categories = list(categorized_missing_skills.keys())
+            category_counts = [len(skills) for skills in categorized_missing_skills.values()]
+            
+            if sum(category_counts) > 0:
+                fig = px.pie(
+                    values=category_counts,
+                    names=categories,
+                    title="Missing Skills Distribution",
+                    color_discrete_sequence=px.colors.qualitative.Pastel
+                )
+                fig.update_traces(textposition='inside', textinfo='percent+label')
+                st.plotly_chart(fig, use_container_width=True)
+            
+            # Display categorized skills
+            for category, skills in categorized_missing_skills.items():
+                if skills:
+                    with st.expander(f"{category.title()} Skills ({len(skills)})", expanded=True):
+                        # Create a dataframe for the skills
+                        skill_data = []
+                        for skill in skills:
+                            skill_data.append({
+                                "Skill": skill.get("name"),
+                                "Importance": skill.get("importance")
+                            })
+                        
+                        if skill_data:
+                            df = pd.DataFrame(skill_data)
+                            df = df.sort_values(by="Importance", ascending=False)
+                            
+                            # Display as a bar chart
+            fig = px.bar(
+                                df,
+                x="Skill",
+                y="Importance",
+                                title=f"{category.title()} Skills",
+                color="Importance",
+                                color_continuous_scale="Viridis"
+            )
+            st.plotly_chart(fig, use_container_width=True)
         else:
-            st.success("Great! You have all the required skills for this role.")
+            # Display missing skills as before
+            if missing_skills:
+                st.subheader("Missing Skills")
+                
+                # Create a dataframe for missing skills
+                missing_skill_data = []
+                for skill in missing_skills:
+                    missing_skill_data.append({
+                        "Skill": skill.get("name"),
+                        "Importance": skill.get("importance")
+                    })
+                
+                if missing_skill_data:
+                    df = pd.DataFrame(missing_skill_data)
+                    df = df.sort_values(by="Importance", ascending=False)
+                    
+                    # Display as a bar chart
+                    fig = px.bar(
+                        df,
+                        x="Skill",
+                        y="Importance",
+                        title="Missing Skills",
+                        color="Importance",
+                        color_continuous_scale="Viridis"
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
+                    
+                    # Display as a table
+                    st.dataframe(
+                        df.style.background_gradient(subset=["Importance"], cmap="Viridis"),
+                        use_container_width=True,
+                        hide_index=True
+                    )
+        else:
+                st.success("You have all the required skills!")
     
     with tab3:
         # Learning recommendations
-        st.subheader("Learning Recommendations")
-        if missing_skills:
-            # Get learning resources from API
-            learning_recs = make_api_request(
-                "recommendations/learning", 
-                params={"skills": json.dumps([s.get("name") for s in missing_skills[:3]])}
-            )
+        st.subheader("Learning Resources")
+        if include_learning_resources:
+            learning_resources = skill_gap.get("learning_resources", {}).get("resources", [])
             
-            if "error" not in learning_recs:
-                resources = learning_recs.get("resources", [])
-                if resources:
-                    for i, resource in enumerate(resources):
+            if learning_resources:
+                for resource in learning_resources:
                         skill = resource.get("skill")
-                        res_list = resource.get("resources", [])
+                    resources_list = resource.get("resources", [])
                         
                         st.markdown(f"### {skill}")
-                        for res in res_list:
+                    for res in resources_list:
                             col1, col2 = st.columns([4, 1])
                             with col1:
                                 st.markdown(f"**{res.get('title')}**")
@@ -327,67 +345,59 @@ else:
                 else:
                     st.info("No specific learning resources found.")
             else:
-                error_message = learning_recs.get('error', '')
-                if "404" in error_message:
-                    # API endpoint doesn't exist yet, use mock data
-                    st.info("Learning recommendations are currently being developed. Showing sample data for demonstration purposes.")
-                    
-                    # Sample mock learning resources
-                    missing_skill_names = [s.get("name") for s in missing_skills[:3]]
-                    resources = []
-                    
-                    for skill in missing_skill_names:
-                        skill_resources = {
-                            "skill": skill,
-                            "resources": [
-                                {
-                                    "title": f"{skill} Fundamentals",
-                                    "provider": "Coursera",
-                                    "description": f"Learn the basics of {skill} and how to apply it in real-world scenarios.",
-                                    "url": "https://coursera.org"
-                                },
-                                {
-                                    "title": f"Advanced {skill} Techniques",
-                                    "provider": "Udemy",
-                                    "description": f"Master advanced concepts and best practices for {skill}.",
-                                    "url": "https://udemy.com"
-                                },
-                                {
-                                    "title": f"Hands-on {skill} Projects",
-                                    "provider": "Pluralsight",
-                                    "description": f"Build practical projects to solidify your {skill} knowledge.",
-                                    "url": "https://pluralsight.com"
-                                }
-                            ]
-                        }
-                        resources.append(skill_resources)
-                    
-                    # Display mock resources
-                    for i, resource in enumerate(resources):
-                        skill = resource.get("skill")
-                        res_list = resource.get("resources", [])
-                        
-                        st.markdown(f"### {skill}")
-                        for res in res_list:
-                            col1, col2 = st.columns([4, 1])
-                            with col1:
-                                st.markdown(f"**{res.get('title')}**")
-                                st.markdown(f"_{res.get('provider')}_")
-                                st.markdown(f"{res.get('description')}")
-                            with col2:
-                                st.link_button("View", res.get("url"), use_container_width=True)
-                            st.divider()
+            st.info("Enable 'Include learning resources' option to see personalized learning recommendations.")
+    
+    with tab4:
+        # Industry-specific requirements
+        st.subheader(f"Industry-Specific Requirements for {industry}")
+        industry_specific = skill_gap.get("industry_specific_requirements", [])
+        
+        if industry_specific:
+            # Create a dataframe for industry-specific skills
+            industry_skill_data = []
+            for skill in industry_specific:
+                industry_skill_data.append({
+                    "Skill": skill.get("name"),
+                    "Importance": skill.get("importance")
+                })
+            
+            if industry_skill_data:
+                df = pd.DataFrame(industry_skill_data)
+                df = df.sort_values(by="Importance", ascending=False)
+                
+                # Display as a bar chart
+                fig = px.bar(
+                    df,
+                    x="Skill",
+                    y="Importance",
+                    title=f"{industry} Industry Skills for {target_role}",
+                    color="Importance",
+                    color_continuous_scale="Viridis"
+                )
+                st.plotly_chart(fig, use_container_width=True)
+                
+                # Display as a table
+                st.dataframe(
+                    df.style.background_gradient(subset=["Importance"], cmap="Viridis"),
+                    use_container_width=True,
+                    hide_index=True
+                )
+                
+                # Check if you have these skills
+                your_skill_names = [s.get("name") for s in your_skills]
+                industry_skill_names = [s.get("name") for s in industry_specific]
+                
+                missing_industry_skills = [s for s in industry_skill_names if s not in your_skill_names]
+                
+                if missing_industry_skills:
+                    st.warning(f"You're missing {len(missing_industry_skills)} out of {len(industry_skill_names)} industry-specific skills.")
                 else:
-                    # Fallback recommendations
-                    st.info("""
-                    To improve your skills, consider:
-                    1. Online courses on platforms like Coursera, Udemy, or edX
-                    2. Hands-on projects to build your portfolio
-                    3. Open source contributions
-                    4. Coding challenges and hackathons
-                    """)
+                    st.success("You have all the industry-specific skills!")
         else:
-            st.success("You have all the required skills! Consider learning advanced topics to stand out.")
+            st.info(f"No specific skill requirements found for {target_role} in the {industry} industry.")
+else:
+    error_message = skill_gap.get('error', '')
+    st.error(f"Failed to analyze skill gap: {error_message}")
     
     # Career path section
     st.subheader("Career Path Analysis")

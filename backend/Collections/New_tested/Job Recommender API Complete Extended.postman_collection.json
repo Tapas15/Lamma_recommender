@@ -1,0 +1,1170 @@
+{
+	"info": {
+		"_postman_id": "d26c7249-2048-4edf-afd2-40292e8a4dae",
+		"name": "Job Recommender API Complete Extended",
+		"description": "A comprehensive collection for the Job Recommender API with extended functionality including authentication, job management, project management, applications, recommendations, and more.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "44831643"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register Candidate",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"john.dev@example.com\",\n    \"password\": \"StrongP@ss123\",\n    \"full_name\": \"John Developer\",\n    \"phone\": \"+1234567890\",\n    \"location\": \"San Francisco, CA\",\n    \"experience_years\": 5,\n    \"education_summary\": \"Bachelor's in Computer Science\",\n    \"bio\": \"Passionate software developer with 5 years of experience\",\n    \"about\": \"I specialize in building scalable web applications using modern frameworks\",\n    \"links\": {\n        \"linkedin\": \"https://linkedin.com/in/johndeveloper\",\n        \"github\": \"https://github.com/johndeveloper\",\n        \"portfolio\": \"https://johndeveloper.com\"\n    },\n    \"skills\": {\n        \"languages_frameworks\": [\"JavaScript\", \"TypeScript\", \"React\", \"Node.js\", \"Python\"],\n        \"ai_ml_data\": [\"TensorFlow\", \"PyTorch\", \"Data Analysis\"],\n        \"tools_platforms\": [\"AWS\", \"Docker\", \"Git\", \"CI/CD\"],\n        \"soft_skills\": [\"Team Leadership\", \"Communication\", \"Problem Solving\"]\n    },\n    \"experience\": [\n        {\n            \"title\": \"Senior Frontend Developer\",\n            \"company\": \"Tech Solutions Inc.\",\n            \"location\": \"San Francisco, CA\",\n            \"start_date\": \"2020-01\",\n            \"end_date\": \"Present\",\n            \"description\": \"Led a team of 5 developers in building a modern React-based application\"\n        },\n        {\n            \"title\": \"Full Stack Developer\",\n            \"company\": \"Digital Innovations\",\n            \"location\": \"Portland, OR\",\n            \"start_date\": \"2018-03\",\n            \"end_date\": \"2019-12\",\n            \"description\": \"Developed and maintained multiple web applications using Node.js and React\"\n        }\n    ],\n    \"education\": [\n        {\n            \"degree\": \"Bachelor of Science in Computer Science\",\n            \"institution\": \"University of California, Berkeley\",\n            \"location\": \"Berkeley, CA\",\n            \"graduation_date\": \"2018-05\"\n        }\n    ],\n    \"certifications\": [\n        {\n            \"name\": \"AWS Certified Solutions Architect\",\n            \"issuer\": \"Amazon Web Services\",\n            \"date_earned\": \"2021-06\",\n            \"expires\": \"2024-06\"\n        },\n        {\n            \"name\": \"Google Professional Cloud Developer\",\n            \"issuer\": \"Google\",\n            \"date_earned\": \"2022-01\",\n            \"expires\": \"2025-01\"\n        }\n    ],\n    \"preferred_job_locations\": [\"San Francisco, CA\", \"Remote\"],\n    \"job_search_status\": \"open_to_offers\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/register/candidate",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"register",
+								"candidate"
+							]
+						},
+						"description": "Register a new candidate user with extended profile information"
+					},
+					"response": []
+				},
+				{
+					"name": "Register Employer",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"recruiter@techcorp.com\",\n    \"password\": \"SecureP@ss456\",\n    \"full_name\": \"Sarah Recruiter\",\n    \"position\": \"Talent Acquisition Manager\",\n    \"bio\": \"Experienced talent acquisition professional\",\n    \"about\": \"Passionate about connecting talent with the right opportunities\",\n    \"contact_email\": \"careers@techcorp.com\",\n    \"contact_phone\": \"+1987654321\",\n    \"location\": \"New York, NY\",\n    \"company_details\": {\n        \"company_name\": \"TechCorp Innovations\",\n        \"company_description\": \"Leading technology solutions provider with a global presence\",\n        \"company_website\": \"https://techcorp.com\",\n        \"company_location\": \"New York, NY\",\n        \"company_size\": \"500-1000\",\n        \"industry\": \"Technology\",\n        \"founded_year\": 2010,\n        \"company_logo\": \"https://techcorp.com/logo.png\",\n        \"company_socials\": {\n            \"linkedin\": \"https://linkedin.com/company/techcorp\",\n            \"twitter\": \"https://twitter.com/techcorp\",\n            \"facebook\": \"https://facebook.com/techcorp\"\n        },\n        \"values\": [\"Innovation\", \"Integrity\", \"Excellence\", \"Customer Focus\"],\n        \"mission\": \"To drive technological innovation that positively transforms businesses and lives\",\n        \"vision\": \"To be the leading global technology partner enabling digital transformation\"\n    },\n    \"hiring_preferences\": {\n        \"job_roles_hiring\": [\"Software Engineer\", \"Data Scientist\", \"Product Manager\"],\n        \"employment_types\": [\"Full-time\", \"Contract\"],\n        \"locations_hiring\": [\"New York, NY\", \"Remote\", \"San Francisco, CA\"],\n        \"salary_range_usd\": {\n            \"min\": 80000,\n            \"max\": 150000\n        },\n        \"remote_friendly\": true,\n        \"tech_stack\": [\"JavaScript\", \"Python\", \"React\", \"AWS\", \"Docker\"]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/register/employer",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"register",
+								"employer"
+							]
+						},
+						"description": "Register a new employer user with extended profile information"
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData && jsonData.access_token) {",
+									"    pm.environment.set(\"access_token\", jsonData.access_token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "username",
+									"value": "{{email}}",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "{{password}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/token",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"token"
+							]
+						},
+						"description": "Get an access token for authentication"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"profile"
+							]
+						},
+						"description": "Get the current user's profile"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n   \"full_name\": \"John Developer\",\n    \"phone\": \"+1234567890\",\n    \"location\": \"San Francisco, CA\",\n    \"experience_years\": \"5\",\n    \"education_summary\": \"Bachelor's in Computer Science\",\n    \"bio\": \"Passionate software developer with 5 years of experience\",\n    \"about\": \"I specialize in building scalable web applications using modern frameworks\",\n    \"links\": {\n        \"linkedin\": \"https://linkedin.com/in/johndeveloper\",\n        \"github\": \"https://github.com/johndeveloper\",\n        \"portfolio\": \"https://johndeveloper.com\"\n    },\n    \"skills\": {\n        \"languages_frameworks\": [\"JavaScript\", \"TypeScript\", \"React\", \"Node.js\", \"Python\"],\n        \"ai_ml_data\": [\"TensorFlow\", \"PyTorch\", \"Data Analysis\"],\n        \"tools_platforms\": [\"AWS\", \"Docker\", \"Git\", \"CI/CD\"],\n        \"soft_skills\": [\"Team Leadership\", \"Communication\", \"Problem Solving\"]\n    },\n    \"experience\": [\n        {\n            \"title\": \"Senior Frontend Developer\",\n            \"company\": \"Tech Solutions Inc.\",\n            \"location\": \"San Francisco, CA\",\n            \"duration\": \"2020-01 to Present\",\n            \"responsibilities\": [\"Led a team of 5 developers in building a modern React-based application\"]\n        },\n        {\n            \"title\": \"Full Stack Developer\",\n            \"company\": \"Digital Innovations\",\n            \"location\": \"Portland, OR\",\n            \"duration\": \"2018-03 to 2019-12\",\n            \"responsibilities\": [\"Developed and maintained multiple web applications using Node.js and React\"]\n        }\n    ],\n    \"education\": [\n        {\n            \"degree\": \"Bachelor of Science in Computer Science\",\n            \"institution\": \"University of California, Berkeley\",\n            \"duration\": \"2014-09 to 2018-05\"\n        }\n    ],\n    \"certifications\": [\n        \"AWS Certified Solutions Architect\",\n        \"Google Professional Cloud Developer\"\n    ],\n    \"preferred_job_locations\": [\"San Francisco, CA\", \"Remote\"],\n    \"job_search_status\": {\n        \"currently_looking\": true,\n        \"available_from\": \"2023-07-01\",\n        \"desired_job_titles\": [\"Senior Developer\", \"Tech Lead\"],\n        \"preferred_employment_type\": [\"Full-time\", \"Remote\"]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"profile"
+							]
+						},
+						"description": "Update the current user's profile"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"profile"
+							]
+						},
+						"description": "Delete the current user's profile"
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication-related endpoints for user management"
+		},
+		{
+			"name": "Jobs",
+			"item": [
+				{
+					"name": "Create Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Senior Full Stack Developer\",\n    \"company\": \"TechCorp Innovations\",\n    \"description\": \"We are seeking an experienced Full Stack Developer to join our growing team. The ideal candidate will have strong skills in both frontend and backend development, with a focus on creating scalable, high-performance web applications.\",\n    \"requirements\": [\"JavaScript\", \"TypeScript\", \"React\", \"Node.js\", \"MongoDB\", \"AWS\"],\n    \"location\": \"New York, NY\",\n    \"employment_type\": \"Full-time\",\n    \"experience_level\": \"Senior\",\n    \"industry\": \"Technology\",\n    \"responsibilities\": [\n        \"Design and implement scalable backend services using Node.js\",\n        \"Develop responsive and interactive user interfaces using React\",\n        \"Collaborate with product managers and designers to define feature specifications\",\n        \"Write clean, maintainable, and efficient code\",\n        \"Participate in code reviews and mentor junior developers\",\n        \"Implement and maintain CI/CD pipelines\"\n    ],\n    \"preferred_qualifications\": [\n        \"5+ years of professional software development experience\",\n        \"Strong knowledge of JavaScript, TypeScript, and modern web frameworks\",\n        \"Experience with cloud services (AWS, GCP, or Azure)\",\n        \"Understanding of containerization technologies like Docker and Kubernetes\",\n        \"Experience with agile development methodologies\"\n    ],\n    \"tech_stack\": [\"JavaScript\", \"TypeScript\", \"React\", \"Node.js\", \"MongoDB\", \"AWS\", \"Docker\", \"Kubernetes\"],\n    \"remote_option\": true,\n    \"work_mode\": [\"Hybrid\", \"Remote\"],\n    \"salary_range\": {\n        \"min\": 120000,\n        \"max\": 160000,\n        \"currency\": \"USD\"\n    },\n    \"benefits\": [\n        \"Health, dental, and vision insurance\",\n        \"401(k) matching\",\n        \"Unlimited PTO\",\n        \"Home office stipend\",\n        \"Professional development budget\",\n        \"Flexible work hours\"\n    ],\n    \"application_deadline\": \"2023-12-31\",\n    \"posted_date\": \"2023-09-15\",\n    \"contact_email\": \"careers@techcorp.com\",\n    \"employer_id\": \"{{employer_id}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/jobs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"jobs"
+							]
+						},
+						"description": "Create a new job posting (for employers only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Jobs",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/jobs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"jobs"
+							]
+						},
+						"description": "Get all active jobs"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Senior Full Stack Engineer\",\n    \"company\": \"TechCorp Innovations\",\n    \"location\": \"New York, NY\",\n    \"employment_type\": \"Full-time\",\n    \"experience_level\": \"Senior\",\n    \"industry\": \"Technology\",\n    \"salary_range\": {\n        \"min\": 130000,\n        \"max\": 170000,\n        \"currency\": \"USD\"\n    },\n    \"requirements\": [\"JavaScript\", \"TypeScript\", \"React\", \"Node.js\", \"MongoDB\", \"AWS\", \"GraphQL\"],\n    \"description\": \"Updated job description with additional responsibilities and qualifications.\",\n     \"responsibilities\": [\n        \"Design and implement scalable backend services using Node.js\",\n        \"Develop responsive and interactive user interfaces using React\"\n    ],\n    \"preferred_qualifications\": [\n        \"5+ years of professional software development experience\",\n        \"Strong knowledge of JavaScript, TypeScript, and modern web frameworks\"\n    ],\n    \"tech_stack\": [\"JavaScript\", \"TypeScript\", \"React\", \"Node.js\"],\n    \"remote_option\": true,\n    \"work_mode\": [\"Hybrid\", \"Remote\"],\n    \"benefits\": [\n        \"Health, dental, and vision insurance\",\n        \"401(k) matching\"\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/jobs/{{job_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"jobs",
+								"{{job_id}}"
+							]
+						},
+						"description": "Update an existing job posting (for employer who created the job only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/jobs/{{job_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"jobs",
+								"{{job_id}}"
+							]
+						},
+						"description": "Delete a job posting (for employer who created the job only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Jobs (Semantic)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"query\": \"Senior developer with React and Node.js experience in remote positions\",\n    \"top_k\": 5\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/jobs/search",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"jobs",
+								"search"
+							]
+						},
+						"description": "Search for jobs using semantic search"
+					},
+					"response": []
+				}
+			],
+			"description": "Job management endpoints for creating, viewing, updating, and deleting job postings"
+		},
+		{
+			"name": "Projects",
+			"item": [
+				{
+					"name": "Create Project",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"E-commerce Mobile App Development\",\n    \"company\": \"TechCorp Innovations\",\n    \"description\": \"We're looking for skilled developers to build a cross-platform mobile application for our e-commerce platform. The app will provide a seamless shopping experience with features like product browsing, user accounts, secure checkout, and order tracking.\",\n    \"project_type\": \"Mobile Application\",\n    \"requirements\": [\"React Native\", \"TypeScript\", \"Node.js\", \"MongoDB\", \"AWS\"],\n    \"skills_required\": [\"Mobile Development\", \"React Native\", \"TypeScript\", \"API Integration\", \"UI/UX Design\"],\n    \"location\": \"Remote\",\n    \"budget_range\": {\n        \"min\": 20000,\n        \"max\": 35000,\n        \"currency\": \"USD\"\n    },\n    \"duration\": {\n        \"time_frame\": \"3 months\",\n        \"estimated_hours\": 480\n    },\n    \"tools_technologies\": [\"React Native\", \"TypeScript\", \"Redux\", \"Node.js\", \"MongoDB\", \"AWS Amplify\", \"Stripe API\"],\n    \"objectives\": [\n        \"Create a cross-platform mobile app with React Native\",\n        \"Implement user authentication and profile management\",\n        \"Build product browsing and search functionality\",\n        \"Develop secure payment processing with Stripe\",\n        \"Implement order tracking and history\"\n    ],\n    \"preferred_qualifications\": [\n        \"3+ years of mobile development experience\",\n        \"Strong portfolio of completed mobile applications\",\n        \"Experience with e-commerce or payment integrations\",\n        \"Knowledge of app store submission processes\"\n    ],\n    \"timeline\": {\n        \"start_date\": \"2023-10-15\",\n        \"end_date\": \"2024-01-15\",\n        \"milestones\": [\n            {\n                \"name\": \"Design and Architecture\",\n                \"deadline\": \"2023-10-30\"\n            },\n            {\n                \"name\": \"Core Functionality Development\",\n                \"deadline\": \"2023-12-01\"\n            },\n            {\n                \"name\": \"Testing and Refinement\",\n                \"deadline\": \"2023-12-31\"\n            },\n            {\n                \"name\": \"Final Delivery\",\n                \"deadline\": \"2024-01-15\"\n            }\n        ]\n    },\n    \"experience\": {\n        \"level\": \"Intermediate to Senior\",\n        \"domain\": \"Mobile Development, E-commerce\",\n        \"years\": \"3+ years\",\n        \"project_examples\": [\"Mobile apps\", \"E-commerce platforms\", \"Payment integrations\"]\n    },\n    \"deliverables\": [\n        \"Complete source code with documentation\",\n        \"Compiled applications for iOS and Android\",\n        \"Admin panel for content management\",\n        \"Technical documentation\",\n        \"Training for internal team\"\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/projects",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects"
+							]
+						},
+						"description": "Create a new project posting (for employers only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Projects",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/projects",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects"
+							]
+						},
+						"description": "Get all active projects"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Projects by Status",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/projects?status=open",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "open"
+								}
+							]
+						},
+						"description": "Get projects filtered by status (open, in_progress, completed, cancelled)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Project by ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/projects/{{project_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects",
+								"{{project_id}}"
+							]
+						},
+						"description": "Get details of a specific project"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Employer Projects",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/employer-projects",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"employer-projects"
+							]
+						},
+						"description": "Get projects posted by the current employer"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Project",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"in_progress\",\n    \"budget_range\": {\n        \"min\": 25000,\n        \"max\": 40000,\n        \"currency\": \"USD\"\n    },\n    \"description\": \"Updated project description with additional details and requirements.\",\n    \"skills_required\": [\"Mobile Development\", \"React Native\", \"TypeScript\", \"API Integration\", \"UI/UX Design\", \"Firebase\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/projects/{{project_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects",
+								"{{project_id}}"
+							]
+						},
+						"description": "Update an existing project (for employer who created the project only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Project",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/projects/{{project_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects",
+								"{{project_id}}"
+							]
+						},
+						"description": "Delete a project (for employer who created the project only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Projects (Semantic)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"query\": \"Mobile app development projects with React Native\",\n    \"top_k\": 5\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/projects/search",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects",
+								"search"
+							]
+						},
+						"description": "Search for projects using semantic search"
+					},
+					"response": []
+				}
+			],
+			"description": "Project management endpoints for creating, viewing, updating, and deleting project postings"
+		},
+		{
+			"name": "Applications",
+			"item": [
+				{
+					"name": "Create Job Application",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"job_id\": \"{{job_id}}\",\n    \"cover_letter\": \"Dear Hiring Manager,\\n\\nI am excited to apply for the Senior Full Stack Developer position at TechCorp Innovations. With over 5 years of experience in developing scalable web applications using React, Node.js, and AWS, I believe I am well-qualified for this role.\\n\\nIn my current position at Tech Solutions Inc., I have led a team of developers in building and maintaining a high-traffic e-commerce platform that serves over 100,000 daily users. I have extensive experience with the technologies mentioned in your job posting, including JavaScript, TypeScript, React, Node.js, MongoDB, and Docker.\\n\\nI am particularly interested in joining TechCorp Innovations because of your focus on innovative solutions and your commitment to creating impactful technology. I am confident that my technical expertise and collaborative approach would make me a valuable addition to your team.\\n\\nThank you for considering my application. I look forward to the opportunity to discuss how my skills and experience align with your needs.\\n\\nSincerely,\\nJohn Developer\",\n    \"resume_url\": \"https://storage.example.com/resumes/john-developer-resume.pdf\",\n    \"notes\": \"I'm particularly interested in full-stack positions that allow me to work on both frontend and backend technologies.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/applications",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"applications"
+							]
+						},
+						"description": "Create a new job application (for candidates only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Project Application",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"project_id\": \"{{project_id}}\",\n    \"cover_letter\": \"Dear Project Manager,\\n\\nI am submitting my application for the E-commerce Mobile App Development project at TechCorp Innovations. As a mobile developer with extensive experience in React Native and e-commerce applications, I am confident in my ability to deliver a high-quality solution that meets all your requirements.\\n\\nIn my previous work, I have successfully completed several mobile application projects, including an e-commerce app for a retail client that increased their mobile sales by 45%. I have hands-on experience with all the technologies specified in your project description, including React Native, TypeScript, Redux, Node.js, MongoDB, and AWS Amplify.\\n\\nI am particularly excited about this project because of the comprehensive approach to the e-commerce experience, from product browsing to secure checkout and order tracking. I have implemented similar features in past projects and understand the complexities involved.\\n\\nMy availability aligns perfectly with your timeline, and I am ready to start immediately if selected.\\n\\nThank you for considering my application.\\n\\nSincerely,\\nJohn Developer\",\n    \"resume_url\": \"https://storage.example.com/resumes/john-developer-portfolio.pdf\",\n    \"notes\": \"I've implemented Stripe payment integration in three previous projects and have experience with both iOS and Android app store submissions.\",\n    \"availability\": {\n        \"start_date\": \"2023-10-15\",\n        \"hours_per_week\": 30,\n        \"preferred_working_hours\": \"9:00 AM - 5:00 PM EST\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/project-applications",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"project-applications"
+							]
+						},
+						"description": "Create a new project application (for candidates only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Applications",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/applications",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"applications"
+							]
+						},
+						"description": "Get applications for the current user (candidates: applications submitted, employers: applications received)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Project Applications",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/project-applications",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"project-applications"
+							]
+						},
+						"description": "Get project applications for the current user (candidates: applications submitted, employers: applications received)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Applications for Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/jobs/{{job_id}}/applications",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"jobs",
+								"{{job_id}}",
+								"applications"
+							]
+						},
+						"description": "Get all applications for a specific job (for employer who created the job only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Applications for Project",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/projects/{{project_id}}/applications",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects",
+								"{{project_id}}",
+								"applications"
+							]
+						},
+						"description": "Get all applications for a specific project (for employer who created the project only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for managing job and project applications"
+		},
+		{
+			"name": "Saved Items",
+			"item": [
+				{
+					"name": "Save Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"job_id\": \"{{job_id}}\",\n    \"notes\": \"Great job opportunity with excellent tech stack and compensation package.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/saved-jobs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"saved-jobs"
+							]
+						},
+						"description": "Save a job for later reference (for candidates only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Saved Jobs",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/saved-jobs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"saved-jobs"
+							]
+						},
+						"description": "Get all jobs saved by the current candidate"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Saved Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/saved-jobs/{{saved_job_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"saved-jobs",
+								"{{saved_job_id}}"
+							]
+						},
+						"description": "Delete a saved job (for candidates only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Save Project",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"project_id\": \"{{project_id}}\",\n    \"notes\": \"Interesting mobile app project that matches my React Native experience.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/saved-projects",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"saved-projects"
+							]
+						},
+						"description": "Save a project for later reference (for candidates only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Saved Projects",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/saved-projects",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"saved-projects"
+							]
+						},
+						"description": "Get all projects saved by the current candidate"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Saved Project",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/saved-projects/{{saved_project_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"saved-projects",
+								"{{saved_project_id}}"
+							]
+						},
+						"description": "Delete a saved project (for candidates only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for managing saved jobs and projects"
+		},
+		{
+			"name": "Recommendations",
+			"item": [
+				{
+					"name": "Get Job Recommendations",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/recommendations/jobs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"recommendations",
+								"jobs"
+							]
+						},
+						"description": "Get personalized job recommendations for the current candidate based on their profile and skills"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Project Recommendations",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/recommendations/projects",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"recommendations",
+								"projects"
+							]
+						},
+						"description": "Get personalized project recommendations for the current candidate based on their profile and skills"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Candidate Recommendations for Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/recommendations/candidates/{{job_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"recommendations",
+								"candidates",
+								"{{job_id}}"
+							]
+						},
+						"description": "Get candidate recommendations for a specific job (for employers only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Candidate Recommendations for Project",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/recommendations/candidates-for-project/{{project_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"recommendations",
+								"candidates-for-project",
+								"{{project_id}}"
+							]
+						},
+						"description": "Get candidate recommendations for a specific project (for employers only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for personalized recommendations of jobs, projects, and candidates"
+		}
+	]
+}
