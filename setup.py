@@ -335,7 +335,16 @@ def install_dependencies():
     
     # Upgrade pip
     print("Upgrading pip...")
-    run_command([PIP_EXEC, "install", "--upgrade", "pip"])
+    try:
+        result = run_command([PIP_EXEC, "install", "--upgrade", "pip"])
+        if result.returncode == 0:
+            print_success("Pip upgraded successfully.")
+        else:
+            print_warning("Failed to upgrade pip, but continuing with installation.")
+            print_warning("This is not critical and the setup can continue.")
+    except Exception as e:
+        print_warning(f"Error upgrading pip: {str(e)}")
+        print_warning("Continuing with installation without upgrading pip.")
     
     # Install dependencies from requirements.txt
     if os.path.exists("requirements.txt"):
