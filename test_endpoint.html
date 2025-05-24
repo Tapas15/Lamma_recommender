@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test ML Learning Recommendations</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .input-group {
+            margin-bottom: 10px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test ML Learning Recommendations Endpoint</h1>
+    
+    <div class="input-group">
+        <label for="token">JWT Token:</label>
+        <input type="text" id="token" value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0QGV4YW1wbGUuY29tIiwiZXhwIjoxNzE2MzIzMjAwfQ.zB7zCxnxS7Vk5aIVBmtWLFjMUCLvL22Cj4mQpCJlg8A">
+    </div>
+    
+    <div class="input-group">
+        <label for="baseUrl">Base URL:</label>
+        <input type="text" id="baseUrl" value="http://localhost:8000">
+    </div>
+    
+    <div class="input-group">
+        <label for="careerGoal">Career Goal:</label>
+        <select id="careerGoal">
+            <option value="">None</option>
+            <option value="Senior Software Engineer" selected>Senior Software Engineer</option>
+            <option value="Data Scientist">Data Scientist</option>
+            <option value="DevOps Engineer">DevOps Engineer</option>
+            <option value="Frontend Engineer">Frontend Engineer</option>
+            <option value="Backend Engineer">Backend Engineer</option>
+            <option value="Full Stack Engineer">Full Stack Engineer</option>
+        </select>
+    </div>
+    
+    <div class="input-group">
+        <label for="timeframe">Timeframe:</label>
+        <select id="timeframe">
+            <option value="3_months">3 Months</option>
+            <option value="6_months" selected>6 Months</option>
+            <option value="1_year">1 Year</option>
+            <option value="2_years">2 Years</option>
+        </select>
+    </div>
+    
+    <div class="input-group">
+        <label for="skills">Skills (comma-separated or JSON array):</label>
+        <input type="text" id="skills" value='["Python", "JavaScript", "React"]'>
+    </div>
+    
+    <button onclick="testEndpoint()">Test Endpoint</button>
+    
+    <h2>Response:</h2>
+    <pre id="response">Click the button to test the endpoint...</pre>
+    
+    <script>
+        async function testEndpoint() {
+            const token = document.getElementById('token').value;
+            const baseUrl = document.getElementById('baseUrl').value;
+            const careerGoal = document.getElementById('careerGoal').value;
+            const timeframe = document.getElementById('timeframe').value;
+            const skills = document.getElementById('skills').value;
+            
+            let url = `${baseUrl}/ml/learning-recommendations?`;
+            
+            if (careerGoal) {
+                url += `career_goal=${encodeURIComponent(careerGoal)}&`;
+            }
+            
+            if (timeframe) {
+                url += `timeframe=${timeframe}&`;
+            }
+            
+            if (skills) {
+                url += `skills=${encodeURIComponent(skills)}`;
+            }
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                document.getElementById('response').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('response').textContent = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html> 
