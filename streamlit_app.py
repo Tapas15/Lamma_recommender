@@ -311,8 +311,16 @@ with st.sidebar:
         # Navigation for authenticated users
         st.subheader("Navigation")
         
+        # Advanced ML features for all users
+        st.write("### Advanced Features")
+        st.page_link("pages/skill_clusters.py", label="Skill Clusters", icon="🔄")
+        st.page_link("pages/market_trends.py", label="Market Trends", icon="📊")
+        st.page_link("pages/learning_recommendations.py", label="Learning Recommendations", icon="📚")
+        st.page_link("pages/recommendation_feedback.py", label="Recommendation Feedback", icon="📝")
+        
         # Show different options based on user type
         if st.session_state.user_type == "candidate":
+            st.write("### Candidate Features")
             st.page_link("streamlit_app.py", label="Dashboard", icon="🏠")
             st.page_link("pages/candidate_profile.py", label="Profile", icon="👤")
             st.page_link("pages/job_recommendations.py", label="Job Recommendations", icon="💼")
@@ -320,6 +328,7 @@ with st.sidebar:
             st.page_link("pages/skill_gap.py", label="Skill Gap Analysis", icon="📊")
             st.page_link("pages/career_paths.py", label="Career Paths", icon="📈")
         else:  # employer
+            st.write("### Employer Features")
             st.page_link("streamlit_app.py", label="Dashboard", icon="🏠")
             st.page_link("pages/employer_profile.py", label="Company Profile", icon="🏢")
             st.page_link("pages/manage_jobs.py", label="Manage Jobs", icon="💼")
@@ -345,6 +354,12 @@ if not st.session_state.authenticated:
     - Get salary recommendations for roles
     - Use advanced talent search with weighted criteria
     - Access recommendation performance analytics
+    
+    ### New Advanced Features:
+    - **Skill Clusters Analysis**: Discover relationships between skills
+    - **Market Trends**: Track skill demand over time
+    - **Enhanced Learning Recommendations**: Get personalized learning paths
+    - **Recommendation Feedback**: Help improve our recommendations
     """)
     
 else:
@@ -382,6 +397,23 @@ else:
                 st.button("Update Profile", key="goto_profile")
                 st.button("View Job Recommendations", key="goto_jobs")
                 st.button("Check Skill Gap Analysis", key="goto_skills")
+                
+                st.subheader("Advanced Features")
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button("Skill Clusters", key="goto_clusters"):
+                        st.switch_page("pages/skill_clusters.py")
+                with col2:
+                    if st.button("Market Trends", key="goto_trends"):
+                        st.switch_page("pages/market_trends.py")
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button("Learning Path", key="goto_learning"):
+                        st.switch_page("pages/learning_recommendations.py")
+                with col2:
+                    if st.button("Feedback", key="goto_feedback"):
+                        st.switch_page("pages/recommendation_feedback.py")
         
         # Job recommendation preview
         st.subheader("Latest Job Recommendations")
@@ -444,6 +476,23 @@ else:
                 st.button("Update Company Profile", key="goto_company")
                 st.button("Post a New Job", key="goto_new_job")
                 st.button("Search Talent", key="goto_talent")
+                
+                st.subheader("Advanced Features")
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button("Skill Clusters", key="goto_clusters_emp"):
+                        st.switch_page("pages/skill_clusters.py")
+                with col2:
+                    if st.button("Market Trends", key="goto_trends_emp"):
+                        st.switch_page("pages/market_trends.py")
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button("Learning Resources", key="goto_learning_emp"):
+                        st.switch_page("pages/learning_recommendations.py")
+                with col2:
+                    if st.button("Feedback Analytics", key="goto_feedback_emp"):
+                        st.switch_page("pages/recommendation_feedback.py")
         
         # Recent job postings
         st.subheader("Your Recent Job Postings")
@@ -475,4 +524,8 @@ else:
         
         # Candidate recommendation preview
         st.subheader("Talent Matches")
-        st.info("Post jobs to see candidate recommendations matched to your requirements.") 
+        st.info("Post jobs to see candidate recommendations matched to your requirements.")
+
+# Footer
+st.divider()
+st.write("Job Recommender System - Powered by FastAPI and Streamlit") 
