@@ -15,6 +15,7 @@ from dotenv import load_dotenv
 
 BACKEND_PORT = 8000
 FRONTEND_PORT = 8501
+LIBRETRANSLATE_PORT = 5000
 
 # Load environment variables from .env file (first from root, then fallback to backend/utils)
 root_env_path = ".env"
@@ -72,6 +73,48 @@ def is_service_responding(url: str) -> bool:
     try:
         response = requests.get(url, timeout=2)
         return response.status_code < 400
+    except:
+        return False
+
+def is_docker_installed() -> bool:
+    """Check if Docker is installed"""
+    try:
+        import subprocess
+        result = subprocess.run(["docker", "--version"], 
+                               stdout=subprocess.PIPE, 
+                               stderr=subprocess.PIPE, 
+                               check=False)
+        return result.returncode == 0
+    except:
+        return False
+
+def is_libretranslate_container_running() -> bool:
+    """Check if the LibreTranslate container is running"""
+    if not is_docker_installed():
+        return False
+    
+    try:
+        import subprocess
+        result = subprocess.run(["docker", "ps", "-q", "--filter", "name=libretranslate"], 
+                               stdout=subprocess.PIPE, 
+                               stderr=subprocess.PIPE, 
+                               check=False)
+        return bool(result.stdout.strip())
+    except:
+        return False
+
+def stop_libretranslate_container() -> bool:
+    """Stop the LibreTranslate Docker container"""
+    if not is_docker_installed():
+        return False
+    
+    try:
+        import subprocess
+        result = subprocess.run(["docker", "stop", "libretranslate"], 
+                               stdout=subprocess.PIPE, 
+                               stderr=subprocess.PIPE, 
+                               check=False)
+        return result.returncode == 0
     except:
         return False
 
@@ -165,12 +208,16 @@ def main():
     # Check if services are running by checking ports
     backend_running = is_port_in_use(BACKEND_PORT)
     frontend_running = is_port_in_use(FRONTEND_PORT)
+    libretranslate_running = is_port_in_use(LIBRETRANSLATE_PORT)
+    libretranslate_container = is_libretranslate_container_running()
     
     print(f"\nService Status:")
     print(f"- Backend (port {BACKEND_PORT}): {'RUNNING' if backend_running else 'NOT RUNNING'}")
     print(f"- Frontend (port {FRONTEND_PORT}): {'RUNNING' if frontend_running else 'NOT RUNNING'}")
+    print(f"- LibreTranslate (port {LIBRETRANSLATE_PORT}): {'RUNNING' if libretranslate_running else 'NOT RUNNING'}")
+    print(f"- LibreTranslate Docker Container: {'RUNNING' if libretranslate_container else 'NOT RUNNING'}")
     
-    if not backend_running and not frontend_running:
+    if not backend_running and not frontend_running and not libretranslate_running and not libretranslate_container:
         print("\nNo application services appear to be running.")
         return 0
     
@@ -182,8 +229,8 @@ def main():
     print(f"\nFound {backend_count} backend processes and {frontend_count} frontend processes.")
     
     # Kill processes
-    if backend_count > 0 or frontend_count > 0:
-        confirmation = input("\nDo you want to stop these processes? (y/n): ")
+    if backend_count > 0 or frontend_count > 0 or libretranslate_container:
+        confirmation = input("\nDo you want to stop these processes and containers? (y/n): ")
         if confirmation.lower() != 'y':
             print("Operation cancelled.")
             return 0
@@ -204,16 +251,29 @@ def main():
             except Exception as e:
                 print(f"Error stopping process: {e}")
         
+        # Stop LibreTranslate Docker container if running
+        if libretranslate_container:
+            print("\nStopping LibreTranslate Docker container...")
+            if stop_libretranslate_container():
+                print("LibreTranslate Docker container stopped successfully.")
+            else:
+                print("Failed to stop LibreTranslate Docker container.")
+                print("You may need to stop it manually with: docker stop libretranslate")
+        
         # Verify services are stopped
         time.sleep(2)
         backend_still_running = is_port_in_use(BACKEND_PORT)
         frontend_still_running = is_port_in_use(FRONTEND_PORT)
+        libretranslate_still_running = is_port_in_use(LIBRETRANSLATE_PORT)
+        libretranslate_container_still_running = is_libretranslate_container_running()
         
         print("\nFinal Status:")
         print(f"- Backend: {'STILL RUNNING' if backend_still_running else 'STOPPED'}")
         print(f"- Frontend: {'STILL RUNNING' if frontend_still_running else 'STOPPED'}")
+        print(f"- LibreTranslate: {'STILL RUNNING' if libretranslate_still_running else 'STOPPED'}")
+        print(f"- LibreTranslate Container: {'STILL RUNNING' if libretranslate_container_still_running else 'STOPPED'}")
         
-        if backend_still_running or frontend_still_running:
+        if backend_still_running or frontend_still_running or libretranslate_still_running or libretranslate_container_still_running:
             print("\nSome services are still running. You may need to kill them manually.")
             return 1
         else:

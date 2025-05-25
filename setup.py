@@ -42,6 +42,11 @@ OLLAMA_WINDOWS_URL = "https://ollama.com/download/windows"
 OLLAMA_LINUX_INSTALL_CMD = 'curl -fsSL https://ollama.com/install.sh | sh'
 OLLAMA_MAC_URL = "https://ollama.com/download/mac"
 
+# LibreTranslate constants
+LIBRETRANSLATE_PORT = 5000
+LIBRETRANSLATE_URL = f"http://localhost:{LIBRETRANSLATE_PORT}"
+LIBRETRANSLATE_DOCKER_IMAGE = "libretranslate/libretranslate:latest"
+
 # Default MongoDB connection
 DEFAULT_MONGODB_URL = "mongodb+srv://lamma:1234567890@cluster0.eetq9gm.mongodb.net/"
 
@@ -131,6 +136,34 @@ def is_model_available(model_name):
     except requests.exceptions.RequestException:
         pass
     return False
+
+def is_docker_installed():
+    """Check if Docker is installed"""
+    try:
+        if IS_WINDOWS:
+            result = run_command(["docker", "--version"], check=False)
+        else:
+            result = run_command(["docker", "--version"], check=False)
+        
+        return result.returncode == 0
+    except Exception:
+        return False
+
+def is_docker_running():
+    """Check if Docker is running"""
+    try:
+        result = run_command(["docker", "info"], check=False)
+        return result.returncode == 0
+    except Exception:
+        return False
+
+def is_libretranslate_running():
+    """Check if LibreTranslate is running"""
+    try:
+        response = requests.get(f"{LIBRETRANSLATE_URL}/languages", timeout=2)
+        return response.status_code == 200
+    except requests.exceptions.RequestException:
+        return False
 
 def download_ollama_windows():
     """Download Ollama installer for Windows"""
@@ -305,6 +338,91 @@ def setup_ollama():
     
     return True
 
+def setup_libretranslate():
+    """Set up LibreTranslate Docker container for translation"""
+    print_step(0.5, "Setting up LibreTranslate for translation...")
+    
+    # Check if Docker is installed
+    if is_docker_installed():
+        print_success("Docker is installed.")
+        
+        # Check if Docker is running
+        if is_docker_running():
+            print_success("Docker is running.")
+            
+            # Check if LibreTranslate is already running
+            if is_libretranslate_running():
+                print_success("LibreTranslate is already running.")
+                return True
+            
+            # Pull and run LibreTranslate Docker image
+            print("Pulling LibreTranslate Docker image (this might take a while)...")
+            try:
+                # Pull the image
+                pull_result = run_command(["docker", "pull", LIBRETRANSLATE_DOCKER_IMAGE], check=False)
+                if pull_result.returncode != 0:
+                    print_warning("Failed to pull LibreTranslate Docker image.")
+                    print_warning("You can pull it manually later with:")
+                    print(f"  docker pull {LIBRETRANSLATE_DOCKER_IMAGE}")
+                else:
+                    print_success("LibreTranslate Docker image pulled successfully.")
+                
+                # Check if container with the same name is already running
+                check_result = run_command(["docker", "ps", "-q", "--filter", "name=libretranslate"], check=False)
+                if check_result.stdout.strip():
+                    print_warning("A container named 'libretranslate' is already running.")
+                    print_warning("Using the existing container.")
+                    return True
+                
+                # Run the container
+                print("Starting LibreTranslate container...")
+                run_result = run_command([
+                    "docker", "run", "-d",
+                    "--name", "libretranslate",
+                    "-p", f"{LIBRETRANSLATE_PORT}:{LIBRETRANSLATE_PORT}",
+                    LIBRETRANSLATE_DOCKER_IMAGE
+                ], check=False)
+                
+                if run_result.returncode != 0:
+                    print_warning("Failed to start LibreTranslate container.")
+                    print_warning("You can start it manually later with:")
+                    print(f"  docker run -d --name libretranslate -p {LIBRETRANSLATE_PORT}:{LIBRETRANSLATE_PORT} {LIBRETRANSLATE_DOCKER_IMAGE}")
+                    return False
+                
+                print_success("LibreTranslate container started successfully.")
+                
+                # Wait for service to start
+                print("Waiting for LibreTranslate service to start...")
+                for _ in range(10):
+                    if is_libretranslate_running():
+                        print_success("LibreTranslate service is running.")
+                        return True
+                    time.sleep(1)
+                
+                print_warning("LibreTranslate service might not have started properly.")
+                print_warning("You can check its status with:")
+                print("  docker logs libretranslate")
+                return False
+                
+            except Exception as e:
+                print_warning(f"Error setting up LibreTranslate: {str(e)}")
+                print_warning("Continuing setup without LibreTranslate.")
+                return False
+        else:
+            print_warning("Docker is installed but not running.")
+            print_warning("Please start Docker and then run:")
+            print(f"  docker run -d --name libretranslate -p {LIBRETRANSLATE_PORT}:{LIBRETRANSLATE_PORT} {LIBRETRANSLATE_DOCKER_IMAGE}")
+            print_warning("Continuing setup without LibreTranslate.")
+            return False
+    else:
+        print_warning("Docker is not installed.")
+        print_warning("LibreTranslate requires Docker to run.")
+        print_warning("Please install Docker from https://www.docker.com/products/docker-desktop")
+        print_warning("After installing Docker, you can run LibreTranslate with:")
+        print(f"  docker run -d --name libretranslate -p {LIBRETRANSLATE_PORT}:{LIBRETRANSLATE_PORT} {LIBRETRANSLATE_DOCKER_IMAGE}")
+        print_warning("Continuing setup without LibreTranslate.")
+        return False
+
 def create_virtual_environment():
     """Create a Python virtual environment"""
     print_step(1, "Creating Python virtual environment...")
@@ -416,9 +534,25 @@ def install_dependencies():
                     cwd=frontend_path
                 )
                 
-                if npm_result.returncode == 0 and lang_deps_result.returncode == 0:
+                # Install translation dependencies
+                print("Installing translation dependencies...")
+                trans_deps_result = run_command(
+                    ["npm", "install", "tesseract.js", "lucide-react"], 
+                    cwd=frontend_path
+                )
+                
+                # Install floating translation button dependencies
+                print("Installing floating translation button dependencies...")
+                float_trans_deps_result = run_command(
+                    ["npm", "install", "@radix-ui/react-toast", "react-draggable"], 
+                    cwd=frontend_path
+                )
+                
+                if npm_result.returncode == 0 and lang_deps_result.returncode == 0 and trans_deps_result.returncode == 0 and float_trans_deps_result.returncode == 0:
                     print_success("Frontend dependencies installed successfully.")
                     print_success("Language support dependencies installed successfully.")
+                    print_success("Translation dependencies installed successfully.")
+                    print_success("Floating translation button dependencies installed successfully.")
                 else:
                     print_error("Failed to install frontend dependencies.")
                     print_warning("You can continue without frontend dependencies, but the Next.js frontend will not work.")
@@ -441,7 +575,8 @@ def read_existing_env():
         "OLLAMA_MODEL": "llama3.2",
         "SECRET_KEY": f"sk_{uuid.uuid4().hex}",
         "MONGODB_URL": DEFAULT_MONGODB_URL,
-        "DATABASE_NAME": "job_recommender"
+        "DATABASE_NAME": "job_recommender",
+        "LIBRETRANSLATE_URL": LIBRETRANSLATE_URL
     }
     
     # Check for .env in root directory first
@@ -533,10 +668,10 @@ def initialize_database():
     database_name = env_vars.get("DATABASE_NAME", "job_recommender")
     
     # Check if MongoDB is running
-    print("Checking MongoDB connection...")
+    print("Checking MongoDB connection (waiting up to 30 seconds)...")
     try:
         import pymongo
-        client = pymongo.MongoClient(mongodb_url, serverSelectionTimeoutMS=5000)
+        client = pymongo.MongoClient(mongodb_url, serverSelectionTimeoutMS=30000)
         client.server_info()  # Will raise an exception if MongoDB is not running
         print_success("MongoDB connection successful.")
     except Exception as e:
@@ -746,10 +881,9 @@ def print_completion_message():
     
     print("\nThe application will be available at:")
     print(f"  - Backend API: {Colors.BLUE}http://localhost:8000{Colors.ENDC}")
-    print(f"  - API Documentation: {Colors.BLUE}http://localhost:8000/docs{Colors.ENDC}")
-    print(f"  - Streamlit Frontend: {Colors.BLUE}http://localhost:8501{Colors.ENDC}")
     if os.path.exists(frontend_path):
         print(f"  - Next.js Frontend: {Colors.BLUE}http://localhost:3000{Colors.ENDC}")
+    print(f"  - LibreTranslate API: {Colors.BLUE}http://localhost:5000{Colors.ENDC}")
     
     # Add language support information
     print("\nLanguage Support:")
@@ -757,10 +891,16 @@ def print_completion_message():
     print(f"  - Language can be switched using the language selector in the navigation bar")
     print(f"  - Backend API supports language selection through Accept-Language header or lang query parameter")
     print(f"  - Frontend automatically handles RTL layout for Arabic language")
+    print(f"  - LibreTranslate provides English to Arabic translation for entire pages")
+    print(f"  - {Colors.BOLD}Floating translation button{Colors.ENDC} can be positioned anywhere on the screen")
+    print(f"  - Translation button position persists across page navigation using localStorage")
+    print(f"  - Full page translation including text and images is supported")
+    print(f"  - OCR capabilities for extracting and translating text from images")
     
     print("\nFor more information, see:")
     print(f"  - {Colors.BOLD}README.md{Colors.ENDC} - General information about the application")
     print(f"  - {Colors.BOLD}RUN_INSTRUCTIONS.md{Colors.ENDC} - Detailed instructions for running the application")
+    print(f"  - {Colors.BOLD}TRANSLATION_FEATURE.md{Colors.ENDC} - Details about the English to Arabic translation feature")
     if os.path.exists("NEXTJS_INTEGRATION.md"):
         print(f"  - {Colors.BOLD}NEXTJS_INTEGRATION.md{Colors.ENDC} - Details about the Next.js frontend")
     
@@ -851,6 +991,7 @@ def main():
     # Setup steps
     steps = [
         setup_ollama,            # Step 0
+        setup_libretranslate,     # Step 0.5
         create_virtual_environment,  # Step 1
         install_dependencies,    # Step 2
         create_env_file,         # Step 3

@@ -5,6 +5,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { AuthProvider } from "./contexts/AuthContext";
 import { I18nProvider } from "./providers/i18n-provider";
+import FloatingTranslateButton from "./components/FloatingTranslateButton";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,6 +27,7 @@ export default function RootLayout({
             <Navbar />
             {children}
             <Footer />
+            <FloatingTranslateButton />
           </I18nProvider>
         </AuthProvider>
       </body>
