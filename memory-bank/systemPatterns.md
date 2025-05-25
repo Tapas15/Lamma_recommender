@@ -5,7 +5,9 @@
 The Job Recommendation System follows a microservices architecture with the following components:
 
 1. **FastAPI Backend**: RESTful API endpoints for all functionality
-2. **Streamlit Frontend**: User interface for interacting with the system
+2. **Dual Frontend**:
+   - **Streamlit Frontend**: Testing interface for debugging and API validation
+   - **Next.js Frontend**: Production user interface with enhanced features
 3. **MongoDB Database**: Data storage for profiles, jobs, and recommendations
 4. **Ollama Embedding Service**: Vector embedding generation for semantic matching
 5. **Testing Framework**: Comprehensive testing tools for verification
@@ -16,8 +18,10 @@ The Job Recommendation System follows a microservices architecture with the foll
 
 ```mermaid
 graph TD
-    User[User] --> Frontend[Streamlit Frontend]
-    Frontend --> Backend[FastAPI Backend]
+    User[User] --> StreamlitFrontend[Streamlit Frontend]
+    User --> NextJSFrontend[Next.js Frontend]
+    StreamlitFrontend --> Backend[FastAPI Backend]
+    NextJSFrontend --> Backend
     Backend --> Database[MongoDB]
     Backend --> EmbeddingService[Ollama Embedding Service]
     Backend --> CachingLayer[Caching Layer]
@@ -26,7 +30,8 @@ graph TD
     DemoData[Demo Data Generation] --> Backend
     DemoData --> Database
     Backend --> AnalyticsSystem[Analytics System]
-    Frontend --> AnalyticsSystem
+    StreamlitFrontend --> AnalyticsSystem
+    NextJSFrontend --> AnalyticsSystem
 ```
 
 ## Key Design Patterns
@@ -201,6 +206,83 @@ sequenceDiagram
 - **test_suite**: Organized test cases
 - **demo_data**: Demo data generation scripts
 - **performance_tests**: Performance testing utilities
+
+## Frontend Integration Flow
+
+### Dual Frontend Architecture
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant N as Next.js Frontend
+    participant S as Streamlit Frontend
+    participant B as FastAPI Backend
+    participant D as MongoDB Database
+    
+    Note over N,S: Two separate frontend options
+    
+    alt Production/User Interface
+        U->>N: Access Next.js Frontend
+        N->>B: API Request with JWT
+        B->>D: Database Operation
+        D-->>B: Data Response
+        B-->>N: API Response
+        N-->>U: Rendered UI
+    else Testing/Debugging Interface
+        U->>S: Access Streamlit Frontend
+        S->>B: API Request with JWT
+        B->>D: Database Operation
+        D-->>B: Data Response
+        B-->>S: API Response
+        S-->>U: Rendered UI
+    end
+```
+
+### Frontend Selection Flow
+```mermaid
+sequenceDiagram
+    participant Dev as Developer
+    participant Scripts as Run Scripts
+    participant B as Backend
+    participant N as Next.js Frontend
+    participant S as Streamlit Frontend
+    
+    Dev->>Scripts: Select Frontend Option
+    
+    alt Production Mode
+        Scripts->>B: Start Backend
+        Scripts->>N: Build & Start Next.js
+        B-->>Scripts: Backend Ready
+        N-->>Scripts: Frontend Ready
+        Scripts-->>Dev: Production Environment Ready
+    else Development Mode
+        Scripts->>B: Start Backend with Hot Reload
+        Scripts->>N: Start Next.js Dev Server
+        B-->>Scripts: Backend Ready
+        N-->>Scripts: Frontend Ready
+        Scripts-->>Dev: Development Environment Ready
+    else Testing Mode
+        Scripts->>B: Start Backend
+        Scripts->>S: Start Streamlit App
+        B-->>Scripts: Backend Ready
+        S-->>Scripts: Frontend Ready
+        Scripts-->>Dev: Testing Environment Ready
+    end
+```
+
+### Frontend Module Integration
+- **Next.js Frontend**: Modern production UI with enhanced features
+  - TypeScript and React components
+  - Client-side state management
+  - Server-side rendering capabilities
+  - Optimized for production use
+
+- **Streamlit Frontend**: Testing and debugging interface
+  - Python-based interactive components
+  - Quick prototyping capabilities
+  - Direct API interaction visualization
+  - Simplified state management
+
+Both frontends use the same API endpoints, authentication methods, and data structures, ensuring consistency across interfaces while serving different purposes in the development lifecycle.
 
 ## Data Models
 
