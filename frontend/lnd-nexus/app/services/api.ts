@@ -23,6 +23,93 @@ export interface UserProfile {
   [key: string]: any;
 }
 
+export interface CandidateRegistrationRequest {
+  email: string;
+  password: string;
+  full_name: string;
+  phone?: string | null;
+  location?: string | null;
+  bio?: string | null;
+  skills?: {
+    languages_frameworks?: string[];
+    ai_ml_data?: string[];
+    tools_platforms?: string[];
+    soft_skills?: string[];
+  };
+  experience?: any[];
+  education?: any[];
+  [key: string]: any;
+}
+
+export interface EmployerRegistrationRequest {
+  email: string;
+  password: string;
+  full_name: string;
+  user_type: 'employer';
+  company_details: {
+    company_name: string;
+    industry: string;
+    company_location?: string | null;
+    company_size?: string | null;
+    company_website?: string | null;
+    company_description?: string | null;
+    [key: string]: any;
+  };
+  hiring_preferences?: {
+    job_roles_hiring?: string[];
+    remote_friendly?: boolean;
+    [key: string]: any;
+  };
+  [key: string]: any;
+}
+
+export type RegistrationRequest = CandidateRegistrationRequest | EmployerRegistrationRequest;
+
+export interface RegistrationResponse {
+  user_id?: string;
+  email?: string;
+  user_type?: string;
+  full_name?: string;
+  message?: string;
+  id?: string;
+}
+
+export interface CandidateProfileData {
+  skills: Array<{
+    name: string;
+    proficiency: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+  }>;
+  education: Array<{
+    institution: string;
+    degree: string;
+    field_of_study: string;
+    start_date: string;
+    end_date?: string;
+    current?: boolean;
+  }>;
+  experience: Array<{
+    company: string;
+    title: string;
+    description: string;
+    start_date: string;
+    end_date?: string;
+    current?: boolean;
+  }>;
+  availability_hours?: number;
+  remote_preference?: 'remote' | 'hybrid' | 'onsite';
+  career_goals?: string;
+  location?: string;
+}
+
+export interface EmployerProfileData {
+  company_name: string;
+  company_size: 'small' | 'medium' | 'large' | 'enterprise';
+  industry: string;
+  location: string;
+  website?: string;
+  description?: string;
+}
+
 // API error class
 export class ApiError extends Error {
   status: number;
@@ -78,6 +165,51 @@ export const authApi = {
     return handleResponse<TokenResponse>(response);
   },
   
+  // Register a new user
+  register: async (userData: RegistrationRequest): Promise<RegistrationResponse> => {
+    const endpoint = userData.user_type === 'candidate' 
+      ? `${API_BASE_URL}/register/candidate` 
+      : `${API_BASE_URL}/register/employer`;
+    
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData),
+    });
+    
+    return handleResponse<RegistrationResponse>(response);
+  },
+  
+  // Create candidate profile
+  createCandidateProfile: async (token: string, profileData: CandidateProfileData): Promise<any> => {
+    const response = await fetch(`${API_BASE_URL}/profile/candidate`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(profileData),
+    });
+    
+    return handleResponse<any>(response);
+  },
+  
+  // Create employer profile
+  createEmployerProfile: async (token: string, profileData: EmployerProfileData): Promise<any> => {
+    const response = await fetch(`${API_BASE_URL}/profile/employer`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(profileData),
+    });
+    
+    return handleResponse<any>(response);
+  },
+  
   // Get user profile
   getProfile: async (token: string): Promise<UserProfile> => {
     const response = await fetch(`${API_BASE_URL}/profile`, {
@@ -88,6 +220,20 @@ export const authApi = {
     });
     
     return handleResponse<UserProfile>(response);
+  },
+  
+  // Update user profile
+  updateProfile: async (token: string, profileData: any): Promise<any> => {
+    const response = await fetch(`${API_BASE_URL}/profile`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(profileData),
+    });
+    
+    return handleResponse<any>(response);
   },
 };
 
