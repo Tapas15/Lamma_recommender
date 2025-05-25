@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-Run script for the Job Recommender application with Next.js frontend in production mode.
-This script starts both the FastAPI backend and Next.js frontend in production mode concurrently.
+Run script for the Job Recommender application with Next.js frontend.
+This script starts both the FastAPI backend and Next.js frontend concurrently.
 """
 import multiprocessing
 import subprocess
@@ -82,7 +82,25 @@ def run_backend():
     try:
         # Import and run the backend with CORS middleware
         from run_cors_backend import run_backend_with_cors
-        run_backend_with_cors()
+        run_backend_with_cors(reload_mode=True)
+    except ImportError:
+        print("Failed to import run_cors_backend. Falling back to subprocess method.")
+        try:
+            # Fall back to subprocess method
+            subprocess.run(
+                ["python", "run_cors_backend.py"],
+                check=True,
+                text=True,
+                encoding="utf-8",
+                errors="ignore"
+            )
+        except subprocess.CalledProcessError as e:
+            print(f"Backend process failed with exit code {e.returncode}")
+            if e.stdout:
+                print(f"STDOUT: {e.stdout}")
+            if e.stderr:
+                print(f"STDERR: {e.stderr}")
+            sys.exit(1)
     except KeyboardInterrupt:
         print("Backend process terminated by user")
     except Exception as e:
@@ -112,19 +130,40 @@ def check_node_npm():
         print(f"Found global Node.js {node_version} and npm {npm_version}")
         return "global"
     except (subprocess.CalledProcessError, FileNotFoundError):
+        print("Global Node.js/npm not found. Checking for local installation...")
+        
         # Check if npm is installed locally in the frontend directory
         frontend_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "frontend", "lnd-nexus")
-        npm_path = os.path.join(frontend_dir, "node_modules", ".bin", "npm")
-        next_path = os.path.join(frontend_dir, "node_modules", ".bin", "next")
+        bin_dir = os.path.join(frontend_dir, "node_modules", ".bin")
         
-        # On Windows, use the .cmd files
-        if os.name == 'nt':
-            npm_path += ".cmd"
-            next_path += ".cmd"
+        if not os.path.exists(bin_dir):
+            print(f"ERROR: .bin directory not found at {bin_dir}")
+            return False
             
-        if os.path.exists(npm_path) and os.path.exists(next_path):
-            print(f"Found local npm and next in {frontend_dir}/node_modules/.bin")
+        print(f"Found .bin directory at {bin_dir}")
+        
+        # List all files in .bin directory to help debug
+        try:
+            bin_files = os.listdir(bin_dir)
+            print(f"Files in .bin directory: {', '.join(bin_files)}")
+        except Exception as e:
+            print(f"Error listing .bin directory: {str(e)}")
+        
+        # Check for next executable
+        next_cmd = os.path.join(bin_dir, "next")
+        next_cmd_windows = os.path.join(bin_dir, "next.cmd")
+        
+        if os.name == 'nt':  # Windows
+            if os.path.exists(next_cmd_windows):
+                print(f"Found next.cmd at {next_cmd_windows}")
+                return "local"
+            else:
+                print(f"next.cmd not found at {next_cmd_windows}")
+        elif os.path.exists(next_cmd):
+            print(f"Found next at {next_cmd}")
             return "local"
+        else:
+            print(f"next not found at {next_cmd}")
         
         print("ERROR: Node.js or npm is not installed globally or locally.")
         print("Please install Node.js and npm from https://nodejs.org/")
@@ -143,62 +182,9 @@ def check_node_npm():
         
         return False
 
-def build_nextjs_frontend():
-    """Build the Next.js frontend application"""
-    print("Building Next.js frontend...")
-    try:
-        # Change to the frontend directory
-        frontend_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "frontend", "lnd-nexus")
-        os.chdir(frontend_dir)
-        
-        # Check if npm is installed
-        npm_location = check_node_npm()
-        if not npm_location:
-            print("Cannot build Next.js frontend without Node.js and npm.")
-            return False
-            
-        # Build the Next.js application
-        if npm_location == "global":
-            # Use global npm
-            subprocess.run(
-                ["npm", "run", "build"],
-                check=True,
-                text=True,
-                encoding="utf-8",
-                errors="ignore"
-            )
-        else:
-            # Use local npm/next
-            next_cmd = os.path.join("node_modules", ".bin", "next")
-            if os.name == 'nt':  # Windows
-                next_cmd += ".cmd"
-                
-            subprocess.run(
-                [next_cmd, "build"],
-                check=True,
-                text=True,
-                encoding="utf-8",
-                errors="ignore"
-            )
-        print("Next.js frontend built successfully.")
-        return True
-    except subprocess.CalledProcessError as e:
-        print(f"Frontend build failed with exit code {e.returncode}")
-        if e.stdout:
-            print(f"STDOUT: {e.stdout}")
-        if e.stderr:
-            print(f"STDERR: {e.stderr}")
-        return False
-    except KeyboardInterrupt:
-        print("Frontend build terminated by user")
-        return False
-    except Exception as e:
-        print(f"Error building frontend: {str(e)}")
-        return False
-
-def run_nextjs_frontend_prod():
-    """Run the Next.js frontend application in production mode"""
-    print("Starting Next.js frontend in production mode on http://localhost:3005")
+def run_nextjs_frontend():
+    """Run the Next.js frontend application"""
+    print("Starting Next.js frontend on http://localhost:3005")
     try:
         # Change to the frontend directory
         frontend_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "frontend", "lnd-nexus")
@@ -210,11 +196,11 @@ def run_nextjs_frontend_prod():
             print("Cannot start Next.js frontend without Node.js and npm.")
             return False
             
-        # Run the Next.js production server
+        # Run the Next.js development server with custom port
         if npm_location == "global":
             # Use global npm
             subprocess.run(
-                ["npm", "run", "start:prod"],
+                ["npm", "run", "dev", "--", "-p", "3005"],
                 check=True,
                 text=True,
                 encoding="utf-8",
@@ -222,13 +208,20 @@ def run_nextjs_frontend_prod():
             )
         else:
             # Use local npm/next
-            next_cmd = os.path.join("node_modules", ".bin", "next")
+            bin_dir = os.path.join("node_modules", ".bin")
+            next_cmd = os.path.join(bin_dir, "next")
             if os.name == 'nt':  # Windows
-                next_cmd += ".cmd"
+                next_cmd = os.path.join(bin_dir, "next.cmd")
                 
-            # For production, we use next start with the port parameter
+            print(f"Running Next.js with local executable: {next_cmd}")
+            
+            # Make sure the file exists
+            if not os.path.exists(next_cmd):
+                print(f"ERROR: Next.js executable not found at {next_cmd}")
+                return False
+                
             subprocess.run(
-                [next_cmd, "start", "-p", "3005"],
+                [next_cmd, "dev", "-p", "3000"],
                 check=True,
                 text=True,
                 encoding="utf-8",
@@ -263,7 +256,7 @@ def handle_interrupt(signum, frame):
 def parse_args():
     """Parse command line arguments"""
     parser = argparse.ArgumentParser(
-        description="Run the Job Recommender application with Next.js frontend in production mode"
+        description="Run the Job Recommender application with Next.js frontend and FastAPI backend"
     )
     parser.add_argument(
         "--frontend-only", 
@@ -284,11 +277,6 @@ def parse_args():
         "--skip-env-check", 
         action="store_true",
         help="Skip environment verification"
-    )
-    parser.add_argument(
-        "--skip-build", 
-        action="store_true",
-        help="Skip building the Next.js frontend"
     )
     
     return parser.parse_args()
@@ -312,8 +300,8 @@ if __name__ == "__main__":
     if os.name == 'nt':  # Windows
         os.environ['PYTHONIOENCODING'] = 'utf-8'
         
-    print("Job Recommender Application (Next.js Production + FastAPI)")
-    print("=======================================================")
+    print("Job Recommender Application (Next.js + FastAPI)")
+    print("==============================================")
     
     # Parse command line arguments
     args = parse_args()
@@ -334,19 +322,6 @@ if __name__ == "__main__":
     ):
         sys.exit(1)
     
-    # Build the Next.js frontend unless skipped
-    frontend_built = False
-    if run_frontend_flag and not args.skip_build:
-        frontend_built = build_nextjs_frontend()
-        if not frontend_built and not args.skip_build:
-            print("ERROR: Failed to build Next.js frontend.")
-            if args.frontend_only:
-                print("Frontend-only mode requested but frontend cannot be built. Exiting.")
-                sys.exit(1)
-            else:
-                print("Continuing with backend only.")
-                run_frontend_flag = False
-    
     # Register signal handler for graceful shutdown
     signal.signal(signal.SIGINT, handle_interrupt)
     
@@ -360,15 +335,22 @@ if __name__ == "__main__":
             backend_process.start()
             processes.append(backend_process)
             
-        if run_frontend_flag and (frontend_built or args.skip_build):
-            frontend_process = multiprocessing.Process(target=run_nextjs_frontend_prod)
-            frontend_process.start()
-            processes.append(frontend_process)
-            frontend_started = True
+        if run_frontend_flag:
+            # First check if Node.js and npm are installed
+            if check_node_npm():
+                frontend_process = multiprocessing.Process(target=run_nextjs_frontend)
+                frontend_process.start()
+                processes.append(frontend_process)
+                frontend_started = True
+            else:
+                print("Cannot start frontend. Continuing with backend only.")
+                if args.frontend_only:
+                    print("Frontend-only mode requested but frontend cannot start. Exiting.")
+                    sys.exit(1)
             
         if open_browser_flag and (not run_frontend_flag or frontend_started):
-            # Wait a bit longer for production server to start
-            time.sleep(5)
+            # Wait a bit to let servers start
+            time.sleep(2)
             browser_process = multiprocessing.Process(target=open_browser)
             browser_process.start()
             processes.append(browser_process)

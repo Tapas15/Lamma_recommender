@@ -391,6 +391,37 @@ def install_dependencies():
         print_error("Failed to install Streamlit.")
         return False
     
+    # Install frontend dependencies (Next.js)
+    print_step(2.5, "Installing frontend dependencies...")
+    frontend_path = os.path.join("frontend", "lnd-nexus")
+    if os.path.exists(frontend_path) and os.path.exists(os.path.join(frontend_path, "package.json")):
+        print("Installing frontend dependencies with npm...")
+        try:
+            # Check if npm is installed
+            npm_check = run_command(["npm", "--version"], check=False)
+            if npm_check.returncode != 0:
+                print_error("npm is not installed. Please install Node.js and npm to set up the frontend.")
+                print_warning("You can continue without installing frontend dependencies, but the Next.js frontend will not work.")
+                choice = input("Continue without installing frontend dependencies? (y/n): ").lower()
+                if choice != 'y':
+                    return False
+            else:
+                # Install frontend dependencies
+                npm_result = run_command(["npm", "install"], cwd=frontend_path)
+                if npm_result.returncode == 0:
+                    print_success("Frontend dependencies installed successfully.")
+                else:
+                    print_error("Failed to install frontend dependencies.")
+                    print_warning("You can continue without frontend dependencies, but the Next.js frontend will not work.")
+                    choice = input("Continue without installing frontend dependencies? (y/n): ").lower()
+                    if choice != 'y':
+                        return False
+        except Exception as e:
+            print_error(f"Error installing frontend dependencies: {str(e)}")
+            print_warning("Continuing without installing frontend dependencies.")
+    else:
+        print_warning("Frontend directory or package.json not found. Skipping frontend dependencies installation.")
+    
     print_success("All dependencies installed successfully.")
     return True
 
@@ -543,7 +574,43 @@ def create_run_scripts():
             f.write("python run_backend.py\n")
             f.write("pause\n")
         
-        print_success("Created Windows batch files: run_app.bat, run_backend.bat")
+        # Windows batch file for Next.js application (combined backend + Next.js frontend)
+        if os.path.exists("run_nextjs_app.py"):
+            with open("run_nextjs_app.bat", "w") as f:
+                f.write("@echo off\n")
+                f.write(f"call {os.path.join(VENV_BIN, 'activate.bat')}\n")
+                f.write("echo Starting Job Recommender Application with Next.js frontend...\n")
+                f.write("python run_nextjs_app.py\n")
+                f.write("pause\n")
+        
+        # Windows batch file for Next.js frontend only
+        frontend_path = os.path.join("frontend", "lnd-nexus")
+        if os.path.exists(frontend_path) and os.path.exists(os.path.join(frontend_path, "package.json")):
+            with open("run_nextjs.bat", "w") as f:
+                f.write("@echo off\n")
+                f.write(f"cd {frontend_path}\n")
+                f.write("echo Starting Next.js frontend development server...\n")
+                f.write("npm run dev\n")
+                f.write("pause\n")
+            
+            with open("run_nextjs_prod.bat", "w") as f:
+                f.write("@echo off\n")
+                f.write(f"cd {frontend_path}\n")
+                f.write("echo Building Next.js frontend for production...\n")
+                f.write("npm run build\n")
+                f.write("echo Starting Next.js frontend production server...\n")
+                f.write("npm start\n")
+                f.write("pause\n")
+            
+            if os.path.exists("run_nextjs_app.py"):
+                print_success("Created Windows batch files: run_app.bat, run_backend.bat, run_nextjs_app.bat, run_nextjs.bat, run_nextjs_prod.bat")
+            else:
+                print_success("Created Windows batch files: run_app.bat, run_backend.bat, run_nextjs.bat, run_nextjs_prod.bat")
+        else:
+            if os.path.exists("run_nextjs_app.py"):
+                print_success("Created Windows batch files: run_app.bat, run_backend.bat, run_nextjs_app.bat")
+            else:
+                print_success("Created Windows batch files: run_app.bat, run_backend.bat")
     else:
         # Unix shell script for the full application
         with open("run_app.sh", "w") as f:
@@ -559,10 +626,50 @@ def create_run_scripts():
             f.write("echo Starting Job Recommender API backend...\n")
             f.write("python run_backend.py\n")
         
-        # Make the shell scripts executable
+        # Unix shell script for Next.js application (combined backend + Next.js frontend)
+        if os.path.exists("run_nextjs_app.py"):
+            with open("run_nextjs_app.sh", "w") as f:
+                f.write("#!/bin/bash\n")
+                f.write(f"source {os.path.join(VENV_BIN, 'activate')}\n")
+                f.write("echo Starting Job Recommender Application with Next.js frontend...\n")
+                f.write("python run_nextjs_app.py\n")
+            # Make the script executable
+            os.chmod("run_nextjs_app.sh", 0o755)
+        
+        # Make the standard shell scripts executable
         os.chmod("run_app.sh", 0o755)
         os.chmod("run_backend.sh", 0o755)
-        print_success("Created Unix shell scripts: run_app.sh, run_backend.sh")
+        
+        # Unix shell script for Next.js frontend only
+        frontend_path = os.path.join("frontend", "lnd-nexus")
+        if os.path.exists(frontend_path) and os.path.exists(os.path.join(frontend_path, "package.json")):
+            with open("run_nextjs.sh", "w") as f:
+                f.write("#!/bin/bash\n")
+                f.write(f"cd {frontend_path}\n")
+                f.write("echo Starting Next.js frontend development server...\n")
+                f.write("npm run dev\n")
+            
+            with open("run_nextjs_prod.sh", "w") as f:
+                f.write("#!/bin/bash\n")
+                f.write(f"cd {frontend_path}\n")
+                f.write("echo Building Next.js frontend for production...\n")
+                f.write("npm run build\n")
+                f.write("echo Starting Next.js frontend production server...\n")
+                f.write("npm start\n")
+            
+            # Make the Next.js shell scripts executable
+            os.chmod("run_nextjs.sh", 0o755)
+            os.chmod("run_nextjs_prod.sh", 0o755)
+            
+            if os.path.exists("run_nextjs_app.py"):
+                print_success("Created Unix shell scripts: run_app.sh, run_backend.sh, run_nextjs_app.sh, run_nextjs.sh, run_nextjs_prod.sh")
+            else:
+                print_success("Created Unix shell scripts: run_app.sh, run_backend.sh, run_nextjs.sh, run_nextjs_prod.sh")
+        else:
+            if os.path.exists("run_nextjs_app.py"):
+                print_success("Created Unix shell scripts: run_app.sh, run_backend.sh, run_nextjs_app.sh")
+            else:
+                print_success("Created Unix shell scripts: run_app.sh, run_backend.sh")
     
     return True
 
@@ -584,6 +691,21 @@ def print_completion_message():
         print("  Option 2: In terminal:")
         print(f"    1. Activate the virtual environment: {Colors.BOLD}source {os.path.join(VENV_BIN, 'activate')}{Colors.ENDC}")
         print(f"    2. Run the application: {Colors.BOLD}python run_app.py{Colors.ENDC}")
+        
+    print("\nTo run the application with Next.js frontend:")
+    if os.path.exists("run_nextjs_app.py"):
+        if IS_WINDOWS:
+            print(f"  Option 1: Double-click on {Colors.BOLD}run_nextjs_app.bat{Colors.ENDC}")
+            print(f"  Option 2: In command prompt/PowerShell:")
+            print(f"    1. Activate the virtual environment: {Colors.BOLD}{os.path.join(VENV_BIN, 'activate.bat')}{Colors.ENDC}")
+            print(f"    2. Run the application: {Colors.BOLD}python run_nextjs_app.py{Colors.ENDC}")
+        else:
+            print(f"  Option 1: Run the shell script: {Colors.BOLD}./run_nextjs_app.sh{Colors.ENDC}")
+            print(f"  Option 2: In terminal:")
+            print(f"    1. Activate the virtual environment: {Colors.BOLD}source {os.path.join(VENV_BIN, 'activate')}{Colors.ENDC}")
+            print(f"    2. Run the application: {Colors.BOLD}python run_nextjs_app.py{Colors.ENDC}")
+    else:
+        print(f"  {Colors.WARNING}run_nextjs_app.py not found. Cannot run with Next.js frontend.{Colors.ENDC}")
     
     print("\nTo run just the backend API:")
     
@@ -598,17 +720,33 @@ def print_completion_message():
         print(f"    1. Activate the virtual environment: {Colors.BOLD}source {os.path.join(VENV_BIN, 'activate')}{Colors.ENDC}")
         print(f"    2. Run the backend: {Colors.BOLD}python run_backend.py{Colors.ENDC}")
     
+    # Add Next.js frontend instructions
+    print("\nTo run the Next.js frontend:")
+    frontend_path = os.path.join("frontend", "lnd-nexus")
+    if os.path.exists(frontend_path) and os.path.exists(os.path.join(frontend_path, "package.json")):
+        print("  In a separate terminal:")
+        print(f"    1. Navigate to the frontend directory: {Colors.BOLD}cd {frontend_path}{Colors.ENDC}")
+        print(f"    2. Start the development server: {Colors.BOLD}npm run dev{Colors.ENDC}")
+        print(f"    3. For production build: {Colors.BOLD}npm run build{Colors.ENDC} followed by {Colors.BOLD}npm start{Colors.ENDC}")
+        print(f"  The Next.js frontend will be available at: {Colors.BLUE}http://localhost:3000{Colors.ENDC}")
+    else:
+        print(f"  {Colors.WARNING}Next.js frontend not found or not set up.{Colors.ENDC}")
+    
     print("\nTo stop all running services:")
     print(f"  Run: {Colors.BOLD}python stop_app.py{Colors.ENDC}")
     
     print("\nThe application will be available at:")
     print(f"  - Backend API: {Colors.BLUE}http://localhost:8000{Colors.ENDC}")
     print(f"  - API Documentation: {Colors.BLUE}http://localhost:8000/docs{Colors.ENDC}")
-    print(f"  - Frontend: {Colors.BLUE}http://localhost:8501{Colors.ENDC}")
+    print(f"  - Streamlit Frontend: {Colors.BLUE}http://localhost:8501{Colors.ENDC}")
+    if os.path.exists(frontend_path):
+        print(f"  - Next.js Frontend: {Colors.BLUE}http://localhost:3000{Colors.ENDC}")
     
     print("\nFor more information, see:")
     print(f"  - {Colors.BOLD}README.md{Colors.ENDC} - General information about the application")
     print(f"  - {Colors.BOLD}RUN_INSTRUCTIONS.md{Colors.ENDC} - Detailed instructions for running the application")
+    if os.path.exists("NEXTJS_INTEGRATION.md"):
+        print(f"  - {Colors.BOLD}NEXTJS_INTEGRATION.md{Colors.ENDC} - Details about the Next.js frontend")
     
     print("\n" + "="*80)
 
@@ -618,42 +756,75 @@ def run_application():
     response = input().lower()
     
     if response == 'y':
-        print_step(6, "Running the application...")
+        print_step(6, "Running the application with Next.js frontend...")
         
-        # Import and run the application
-        try:
-            sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-            from run_app import run_backend, run_frontend, open_browser
-            import threading
-            
-            # Start the backend in a separate thread
-            backend_thread = threading.Thread(target=run_backend)
-            backend_thread.daemon = True
-            backend_thread.start()
-            
-            # Wait for backend to start
-            time.sleep(2)
-            
-            # Start the frontend in a separate thread
-            frontend_thread = threading.Thread(target=run_frontend)
-            frontend_thread.daemon = True
-            frontend_thread.start()
-            
-            # Open browser
-            open_browser()
-            
-            print_success("Application started successfully.")
-            print("Press Ctrl+C to stop the application.")
-            
-            # Keep the main thread running
+        # Check if run_nextjs_app.py exists
+        if os.path.exists("run_nextjs_app.py"):
             try:
-                while True:
-                    time.sleep(1)
-            except KeyboardInterrupt:
-                print("\nShutting down application...")
+                # Run the application with Next.js frontend
+                print("Starting the application with Next.js frontend and FastAPI backend...")
                 
-        except Exception as e:
-            print_error(f"Failed to run application: {str(e)}")
+                # Use subprocess to run the application
+                cmd = [PYTHON_EXEC, "run_nextjs_app.py"]
+                process = subprocess.Popen(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    encoding="utf-8",
+                    errors="ignore"
+                )
+                
+                print_success("Application started successfully.")
+                print("Press Ctrl+C to stop the application.")
+                
+                # Keep the main thread running
+                try:
+                    while True:
+                        time.sleep(1)
+                except KeyboardInterrupt:
+                    print("\nShutting down application...")
+                    process.terminate()
+                    
+            except Exception as e:
+                print_error(f"Failed to run application with Next.js: {str(e)}")
+        else:
+            print_warning("run_nextjs_app.py not found. Falling back to standard application.")
+            
+            # Import and run the standard application
+            try:
+                sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+                from run_app import run_backend, run_frontend, open_browser
+                import threading
+                
+                # Start the backend in a separate thread
+                backend_thread = threading.Thread(target=run_backend)
+                backend_thread.daemon = True
+                backend_thread.start()
+                
+                # Wait for backend to start
+                time.sleep(2)
+                
+                # Start the frontend in a separate thread
+                frontend_thread = threading.Thread(target=run_frontend)
+                frontend_thread.daemon = True
+                frontend_thread.start()
+                
+                # Open browser
+                open_browser()
+                
+                print_success("Application started successfully.")
+                print("Press Ctrl+C to stop the application.")
+                
+                # Keep the main thread running
+                try:
+                    while True:
+                        time.sleep(1)
+                except KeyboardInterrupt:
+                    print("\nShutting down application...")
+                    
+            except Exception as e:
+                print_error(f"Failed to run application: {str(e)}")
 
 def main():
     """Main setup function"""

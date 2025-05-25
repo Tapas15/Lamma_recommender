@@ -221,7 +221,7 @@ def run_nextjs_frontend():
                 return False
                 
             subprocess.run(
-                [next_cmd, "dev", "-p", "3005"],
+                [next_cmd, "dev", "-p", "3000"],
                 check=True,
                 text=True,
                 encoding="utf-8",
