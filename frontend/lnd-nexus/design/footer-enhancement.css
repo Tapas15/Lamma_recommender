@@ -1,0 +1,28 @@
+/* Footer logo enhancement */
+.footer-logo {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.footer-logo img {
+    height: 60px; /* Increased from 40px */
+    width: auto;
+    margin-bottom: var(--spacing-md);
+    filter: brightness(0) invert(1); /* Makes the logo white for better visibility on dark background */
+}
+
+.footer-logo span {
+    font-family: var(--font-secondary);
+    font-weight: 600;
+    font-size: var(--font-size-xl); /* Increased from lg */
+    color: var(--white);
+    margin-bottom: var(--spacing-sm);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .footer-logo img {
+        height: 50px;
+    }
+}
