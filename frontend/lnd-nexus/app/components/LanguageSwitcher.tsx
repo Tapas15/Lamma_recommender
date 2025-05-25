@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useI18n, Language } from '../providers/i18n-provider';
 import { Button } from './ui/button';
-import { Globe, RefreshCw, Loader2 } from 'lucide-react';
+import { Globe, RefreshCw, Loader2, Database } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +12,7 @@ import {
 } from './ui/dropdown-menu';
 import { translateHtml, isTranslationAvailable } from '@/lib/translate';
 import { translateAllImages, toggleImageTranslations } from '@/lib/imageTranslate';
+import { retrieveTranslation, storeTranslation, getMemoryStats } from '@/lib/translationMemory';
 
 export default function LanguageSwitcher() {
   const { language, setLanguage, t, translateAll } = useI18n();
@@ -20,6 +21,7 @@ export default function LanguageSwitcher() {
   const [isTranslated, setIsTranslated] = useState(false);
   const [translationAvailable, setTranslationAvailable] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [memoryStats, setMemoryStats] = useState({ totalEntries: 0 });
 
   // Check if translation service is available
   useEffect(() => {
@@ -39,6 +41,14 @@ export default function LanguageSwitcher() {
   const handleLanguageChange = (newLanguage: Language) => {
     setLanguage(newLanguage);
     setIsOpen(false);
+  };
+  
+  const handleDropdownOpen = (open: boolean) => {
+    setIsOpen(open);
+    if (open) {
+      // Update memory stats when dropdown opens
+      setMemoryStats(getMemoryStats());
+    }
   };
 
   const handleTranslateAll = () => {
@@ -77,6 +87,8 @@ export default function LanguageSwitcher() {
     
     const totalElements = textElements.length;
     let processedElements = 0;
+    let cacheMisses = 0;
+    let cacheHits = 0;
     
     // Process elements in small batches to keep the UI responsive
     const batchSize = 5;
@@ -87,14 +99,32 @@ export default function LanguageSwitcher() {
       await Promise.all(batch.map(async (el) => {
         if (!el.hasAttribute('data-original-text') && el.textContent && el.textContent.trim()) {
           // Store original text
-          el.setAttribute('data-original-text', el.textContent);
+          const originalText = el.textContent.trim();
+          el.setAttribute('data-original-text', originalText);
           
           try {
-            // Translate the text content
-            const translatedText = await translateHtml(el.innerHTML, source, target);
+            // Check memory bank first
+            const cachedText = retrieveTranslation(originalText, source, target);
             
-            // Update the element with translated text
-            el.innerHTML = translatedText;
+            if (cachedText) {
+              // Cache hit
+              cacheHits++;
+              
+              // Update the element with translated text from memory
+              el.innerHTML = cachedText;
+                          } else {
+                // Cache miss - translate via API
+                cacheMisses++;
+                const translatedText = await translateHtml(el.innerHTML, source, target);
+                
+                // Store in memory bank if it's not too long
+                if (translatedText && originalText !== translatedText && originalText.length < 1000) {
+                  storeTranslation(originalText, translatedText, source, target);
+                }
+                
+                // Update the element with translated text
+                el.innerHTML = translatedText;
+            }
             
             // Mark as translated
             el.setAttribute('data-translated', 'true');
@@ -110,6 +140,12 @@ export default function LanguageSwitcher() {
       // Small delay to keep UI responsive
       await new Promise(resolve => setTimeout(resolve, 10));
     }
+    
+    // Update memory stats after translation
+    setMemoryStats(getMemoryStats());
+    
+    // Log cache performance
+    console.log(`Translation complete - Cache hits: ${cacheHits}, Cache misses: ${cacheMisses}, Hit rate: ${Math.round((cacheHits / (cacheHits + cacheMisses || 1)) * 100)}%`);
   };
   
   // Function to revert translations
@@ -178,7 +214,7 @@ export default function LanguageSwitcher() {
   };
 
   return (
-    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+    <DropdownMenu open={isOpen} onOpenChange={handleDropdownOpen}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
@@ -231,6 +267,17 @@ export default function LanguageSwitcher() {
           <RefreshCw className="h-4 w-4" />
           <span>{t('language.translate_all')}</span>
         </DropdownMenuItem>
+        
+        {/* Memory bank stats */}
+        {memoryStats.totalEntries > 0 && (
+          <>
+            <DropdownMenuSeparator />
+            <div className="px-2 py-1 text-xs text-gray-500 flex items-center gap-1">
+              <Database className="h-3 w-3" />
+              <span>Memory: {memoryStats.totalEntries} phrases</span>
+            </div>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
