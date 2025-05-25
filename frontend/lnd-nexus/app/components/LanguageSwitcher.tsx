@@ -10,9 +10,9 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from './ui/dropdown-menu';
-import { translateHtml, isTranslationAvailable } from '@/lib/translate';
-import { translateAllImages, toggleImageTranslations } from '@/lib/imageTranslate';
-import { retrieveTranslation, storeTranslation, getMemoryStats } from '@/lib/translationMemory';
+import { translateHtml, isTranslationAvailable } from '../lib/translate';
+import { translateAllImages, toggleImageTranslations } from '../lib/imageTranslate';
+import { retrieveTranslation, storeTranslation, getMemoryStats } from '../lib/translationMemory';
 
 export default function LanguageSwitcher() {
   const { language, setLanguage, t, translateAll } = useI18n();
