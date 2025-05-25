@@ -251,38 +251,42 @@ def main():
             except Exception as e:
                 print(f"Error stopping process: {e}")
         
-        # Stop LibreTranslate Docker container if running
+        # Stop LibreTranslate container if running
         if libretranslate_container:
-            print("\nStopping LibreTranslate Docker container...")
+            print("Stopping LibreTranslate Docker container...")
             if stop_libretranslate_container():
                 print("LibreTranslate Docker container stopped successfully.")
             else:
                 print("Failed to stop LibreTranslate Docker container.")
                 print("You may need to stop it manually with: docker stop libretranslate")
         
-        # Verify services are stopped
+        # Wait a bit and verify
+        print("\nWaiting for services to stop...")
         time.sleep(2)
+        
+        # Check if services are still running
         backend_still_running = is_port_in_use(BACKEND_PORT)
         frontend_still_running = is_port_in_use(FRONTEND_PORT)
         libretranslate_still_running = is_port_in_use(LIBRETRANSLATE_PORT)
         libretranslate_container_still_running = is_libretranslate_container_running()
         
-        print("\nFinal Status:")
-        print(f"- Backend: {'STILL RUNNING' if backend_still_running else 'STOPPED'}")
-        print(f"- Frontend: {'STILL RUNNING' if frontend_still_running else 'STOPPED'}")
-        print(f"- LibreTranslate: {'STILL RUNNING' if libretranslate_still_running else 'STOPPED'}")
-        print(f"- LibreTranslate Container: {'STILL RUNNING' if libretranslate_container_still_running else 'STOPPED'}")
+        all_stopped = not backend_still_running and not frontend_still_running and not libretranslate_still_running and not libretranslate_container_still_running
         
-        if backend_still_running or frontend_still_running or libretranslate_still_running or libretranslate_container_still_running:
-            print("\nSome services are still running. You may need to kill them manually.")
-            return 1
+        if all_stopped:
+            print("\nAll services stopped successfully.")
         else:
-            print("\nAll services have been stopped successfully.")
-            return 0
-    else:
-        print("No matching processes found, though ports appear to be in use.")
-        print("The services might be running under different process names.")
-        return 1
+            print("\nSome services may still be running:")
+            if backend_still_running:
+                print("- Backend is still running")
+            if frontend_still_running:
+                print("- Frontend is still running")
+            if libretranslate_still_running:
+                print("- LibreTranslate service is still running")
+            if libretranslate_container_still_running:
+                print("- LibreTranslate container is still running")
+            print("\nYou may need to stop them manually.")
+    
+    return 0
 
 if __name__ == "__main__":
     sys.exit(main()) 

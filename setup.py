@@ -541,18 +541,10 @@ def install_dependencies():
                     cwd=frontend_path
                 )
                 
-                # Install floating translation button dependencies
-                print("Installing floating translation button dependencies...")
-                float_trans_deps_result = run_command(
-                    ["npm", "install", "@radix-ui/react-toast", "react-draggable"], 
-                    cwd=frontend_path
-                )
-                
-                if npm_result.returncode == 0 and lang_deps_result.returncode == 0 and trans_deps_result.returncode == 0 and float_trans_deps_result.returncode == 0:
+                if npm_result.returncode == 0 and lang_deps_result.returncode == 0 and trans_deps_result.returncode == 0:
                     print_success("Frontend dependencies installed successfully.")
                     print_success("Language support dependencies installed successfully.")
                     print_success("Translation dependencies installed successfully.")
-                    print_success("Floating translation button dependencies installed successfully.")
                 else:
                     print_error("Failed to install frontend dependencies.")
                     print_warning("You can continue without frontend dependencies, but the Next.js frontend will not work.")
@@ -892,8 +884,7 @@ def print_completion_message():
     print(f"  - Backend API supports language selection through Accept-Language header or lang query parameter")
     print(f"  - Frontend automatically handles RTL layout for Arabic language")
     print(f"  - LibreTranslate provides English to Arabic translation for entire pages")
-    print(f"  - {Colors.BOLD}Floating translation button{Colors.ENDC} can be positioned anywhere on the screen")
-    print(f"  - Translation button position persists across page navigation using localStorage")
+    print(f"  - Translation button is already integrated in the UI navigation")
     print(f"  - Full page translation including text and images is supported")
     print(f"  - OCR capabilities for extracting and translating text from images")
     

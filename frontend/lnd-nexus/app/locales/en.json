@@ -93,6 +93,9 @@
   "language": {
     "english": "English",
     "arabic": "العربية",
-    "translate_all": "Translate All Content"
+    "translate_all": "Translate All Content",
+    "translating": "Translating...",
+    "view_in_arabic": "View in Arabic",
+    "view_in_english": "View in English"
   }
 } 

@@ -1,109 +1,169 @@
-# Translation Feature
+# English to Arabic Translation Feature
 
 ## Overview
 
-The application includes a comprehensive English to Arabic translation feature powered by LibreTranslate. This feature allows users to translate the entire page content, including text and images, with a single click using a floating, draggable translation button that persists across all pages.
+The application includes a comprehensive English to Arabic translation feature that allows users to translate the entire page content while maintaining full interactivity. This feature uses progressive translation techniques to ensure the page remains responsive and usable during the translation process.
 
-## Components
+## Features
 
-### LibreTranslate Integration
+1. **Interactive Page Translation**
+   - Translate the entire page content from English to Arabic
+   - Maintain full interactivity during and after translation
+   - Show real-time progress indicator during translation
+   - Support for RTL (Right-to-Left) text direction
 
-- **LibreTranslate Docker Container**: The setup script automatically pulls and runs the LibreTranslate Docker container if Docker is installed.
-- **API Endpoint**: The translation service is available at `http://localhost:5000` by default.
-- **Environment Configuration**: The LibreTranslate URL is configured in the Next.js environment.
+2. **Image Content Translation**
+   - Extract text from images using OCR (Optical Character Recognition)
+   - Translate image alt text and title attributes
+   - Preserve image functionality after translation
 
-### Frontend Components
+3. **User Interface**
+   - Translation integrated into the language switcher dropdown
+   - Clear visual indication of current language state
+   - Simple toggle between English and Arabic
+   - Progress percentage indicator during translation
 
-1. **FloatingTranslateButton Component**: 
-   - Draggable button that can be positioned anywhere on the screen
-   - Persists across page navigation
-   - Remembers its position using localStorage
-   - Maintains translation state between page loads
-   - Toggles between English and Arabic translations
-   - Shows loading state during translation
-   - Automatically detects if LibreTranslate is available
+## Technical Implementation
 
-2. **Translation Utilities**:
-   - `lib/translate.ts`: Core translation functions for text and HTML content
-   - `lib/imageTranslate.ts`: Specialized functions for handling image translations
+### Components
 
-3. **OCR Capabilities**:
-   - Text extraction from images using Tesseract.js
-   - Translation of image alt text and titles
+1. **LanguageSwitcher Component** (`frontend/lnd-nexus/app/components/LanguageSwitcher.tsx`)
+   - Main component for language selection and translation
+   - Handles progressive element-by-element translation
+   - Manages translation state and progress indication
+   - Flexible content container detection for different page layouts
 
-## Usage
+2. **Translation Utilities** (`frontend/lnd-nexus/lib/translate.ts`)
+   - Core translation functions using LibreTranslate API
+   - Text and HTML content translation
+   - Service availability checking
 
-1. **Translating a Page**:
-   - Click the "عرض بالعربية" (View in Arabic) button in the floating translator
-   - The entire page content will be translated to Arabic
-   - Text direction will automatically switch to RTL (right-to-left)
-   - Image alt text and titles will be translated
-   - The translation state persists across page navigation
-
-2. **Reverting to English**:
-   - Click the "View in English" button
-   - The page will return to its original English content
-   - Text direction will switch back to LTR (left-to-right)
-
-3. **Moving the Translation Button**:
-   - Drag the button using the move handle at the top
-   - The button position is saved and will be restored when you return to the site
-   - The button stays within the viewport boundaries
-
-## Technical Details
-
-### Translation Process
-
-1. **HTML Content Translation**:
-   - The original HTML content is saved for later restoration
-   - HTML is sent to LibreTranslate with format=html parameter
-   - Translated HTML replaces the original content
-   - Direction attribute is set to RTL for Arabic
-
-2. **Image Translation**:
-   - Alt text and title attributes are extracted from images
-   - Text is sent to LibreTranslate for translation
-   - Original values are stored for later restoration
-   - Images are wrapped in containers with translated metadata
-
-3. **State Persistence**:
-   - Button position is saved in localStorage as 'translationButtonPosition'
-   - Translation state is saved in localStorage as 'isPageTranslated'
-   - These values are restored when the page loads
+3. **Image Translation** (`frontend/lnd-nexus/lib/imageTranslate.ts`)
+   - OCR functionality using Tesseract.js
+   - Image text extraction and translation
+   - Management of translated image attributes
 
 ### Dependencies
 
-- **tesseract.js**: For OCR (Optical Character Recognition) capabilities
-- **lucide-react**: For UI icons
-- **LibreTranslate**: Docker container for translation services
+- **LibreTranslate**: Open-source translation API (running in Docker)
+- **Tesseract.js**: OCR library for extracting text from images
+- **lucide-react**: Icon library for UI elements
 
-## Setup
+## Setup Instructions
 
-The translation feature is automatically set up during the installation process:
+### 1. LibreTranslate Setup
 
-1. LibreTranslate Docker container is pulled and started if Docker is installed
-2. Required frontend dependencies are installed
-3. Environment variables are configured
+LibreTranslate is used as the translation engine and runs in a Docker container:
 
-If Docker is not installed, the setup will continue without LibreTranslate, but the translation button will not appear in the UI until LibreTranslate is manually installed and running.
+```bash
+# Pull the LibreTranslate Docker image
+docker pull libretranslate/libretranslate:latest
 
-## Manual Setup
+# Run the LibreTranslate container
+docker run -d --name libretranslate -p 5000:5000 libretranslate/libretranslate
+```
 
-If you need to manually set up the translation feature:
+### 2. Frontend Dependencies
 
-1. Install Docker from https://www.docker.com/products/docker-desktop
-2. Pull the LibreTranslate image: `docker pull libretranslate/libretranslate:latest`
-3. Run the container: `docker run -d --name libretranslate -p 5000:5000 libretranslate/libretranslate:latest`
-4. Install frontend dependencies: 
-   ```bash
-   cd frontend/lnd-nexus
-   npm install tesseract.js lucide-react @radix-ui/react-toast react-draggable
-   ```
+Install the required frontend dependencies:
+
+```bash
+# Navigate to the frontend directory
+cd frontend/lnd-nexus
+
+# Install translation-related dependencies
+npm install tesseract.js lucide-react
+```
+
+### 3. Environment Configuration
+
+Ensure the LibreTranslate URL is configured in the environment:
+
+```
+# In .env file
+LIBRETRANSLATE_URL=http://localhost:5000
+```
+
+## Usage
+
+### For Users
+
+1. **Translating a Page**:
+   - Click the language dropdown in the navigation bar
+   - Select "View in Arabic" from the dropdown menu
+   - The page content will progressively translate to Arabic
+   - Progress percentage will be displayed during translation
+   - Page remains fully interactive during and after translation
+
+2. **Reverting to English**:
+   - Click the language dropdown in the navigation bar
+   - Select "View in English" from the dropdown menu
+   - The page will immediately revert to English content
+   - All interactive elements remain functional
+
+### For Developers
+
+#### Adding Translation Support to New Components
+
+1. Ensure text content is placed in semantic HTML elements
+2. Use standard DOM attributes for text content
+3. Avoid custom rendering methods that bypass normal DOM structure
+4. For images, use standard alt and title attributes
+
+#### Customizing Translation Behavior
+
+The translation process can be customized by modifying:
+
+1. Element selection in the `translateTextNodesProgressively` function
+2. Content container detection in the `findContentContainer` function
+3. Batch size and delay parameters for performance tuning
+4. RTL handling for specific layout requirements
+
+## Stopping the Translation Service
+
+When stopping the application, the LibreTranslate container will be automatically stopped using the `stop_app.py` script:
+
+```bash
+# Stop all application services including LibreTranslate
+python stop_app.py
+```
 
 ## Troubleshooting
 
-- **Translation Button Not Appearing**: Verify that LibreTranslate is running (`docker ps`)
-- **Translation Errors**: Check the browser console for error messages
-- **Slow Translation**: Large pages with many images may take longer to translate
-- **OCR Issues**: Ensure the image is clear and text is readable for best results
-- **Button Position Reset**: If the button position is reset, check if localStorage is disabled in your browser 
+### Common Issues
+
+1. **Translation Not Working**
+   - Check if LibreTranslate container is running: `docker ps | grep libretranslate`
+   - Verify the LibreTranslate URL in environment settings
+   - Check browser console for API connection errors
+
+2. **"Content container not found" Error**
+   - Check if your page structure includes one of the supported container elements
+   - Add a custom selector to the `findContentContainer` function if needed
+   - Make sure your page has proper HTML structure
+
+3. **Slow Translation Performance**
+   - Reduce batch size in the LanguageSwitcher component
+   - Increase delay between batches
+   - Check network latency to the LibreTranslate service
+
+4. **OCR Issues with Images**
+   - Ensure Tesseract.js is properly installed
+   - Check image quality and text clarity
+   - Verify browser console for OCR-related errors
+
+## Future Enhancements
+
+1. **Additional Languages**
+   - Support for more language pairs beyond English/Arabic
+   - Language auto-detection
+
+2. **Performance Optimizations**
+   - Translation caching for frequently used phrases
+   - Preloading common translations
+   - Worker thread processing for heavy translation tasks
+
+3. **Enhanced OCR**
+   - Support for more complex image layouts
+   - Improved text extraction from low-quality images
+   - Custom OCR models for specialized content 
