@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, status, Response
+from fastapi import FastAPI, Depends, HTTPException, status, Response, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -15,6 +15,7 @@ from contextlib import asynccontextmanager
 import json
 import random
 import uuid
+from fastapi.middleware.cors import CORSMiddleware
 
 # Use absolute imports for local modules
 from utils.models import (
@@ -64,6 +65,7 @@ from utils.database import (
     VECTOR_INDEXES_COLLECTION,
     init_db,
 )
+from backend.utils.language_middleware import LanguageMiddleware, get_language, get_translation
 
 load_dotenv()
 
@@ -403,6 +405,26 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Job Recommender System", lifespan=lifespan)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
+
+# Add language middleware
+app.add_middleware(LanguageMiddleware)
+
+# Import and include language routes
+try:
+    from backend.language_routes import router as language_router
+    app.include_router(language_router)
+    print("Language routes added successfully")
+except ImportError:
+    print("Could not import language routes")
 
 # Security
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")

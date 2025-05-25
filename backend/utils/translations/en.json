@@ -1,0 +1,56 @@
+{
+  "welcome": "Welcome to the Job Recommender API",
+  "error.not_found": "Resource not found",
+  "error.unauthorized": "Unauthorized access",
+  "error.validation": "Validation error",
+  "error.server": "Internal server error",
+  "error.bad_request": "Bad request",
+  "error.forbidden": "Forbidden access",
+  "error.conflict": "Resource conflict",
+  "error.too_many_requests": "Too many requests",
+
+  "success.created": "Resource created successfully",
+  "success.updated": "Resource updated successfully",
+  "success.deleted": "Resource deleted successfully",
+  "success.retrieved": "Resource retrieved successfully",
+
+  "auth.login_success": "Login successful",
+  "auth.login_failed": "Login failed",
+  "auth.logout_success": "Logout successful",
+  "auth.token_expired": "Token expired",
+  "auth.invalid_token": "Invalid token",
+  "auth.missing_token": "Missing token",
+  "auth.registration_success": "Registration successful",
+
+  "job.created": "Job created successfully",
+  "job.updated": "Job updated successfully",
+  "job.deleted": "Job deleted successfully",
+  "job.not_found": "Job not found",
+  "job.applied": "Job application submitted successfully",
+
+  "candidate.created": "Candidate profile created successfully",
+  "candidate.updated": "Candidate profile updated successfully",
+  "candidate.deleted": "Candidate profile deleted successfully",
+  "candidate.not_found": "Candidate profile not found",
+
+  "employer.created": "Employer profile created successfully",
+  "employer.updated": "Employer profile updated successfully",
+  "employer.deleted": "Employer profile deleted successfully",
+  "employer.not_found": "Employer profile not found",
+
+  "project.created": "Project created successfully",
+  "project.updated": "Project updated successfully",
+  "project.deleted": "Project deleted successfully",
+  "project.not_found": "Project not found",
+  "project.applied": "Project application submitted successfully",
+
+  "recommendations.jobs": "Job recommendations",
+  "recommendations.candidates": "Candidate recommendations",
+  "recommendations.projects": "Project recommendations",
+  "recommendations.none": "No recommendations found",
+
+  "feedback.submitted": "Feedback submitted successfully",
+  "feedback.updated": "Feedback updated successfully",
+  "feedback.deleted": "Feedback deleted successfully",
+  "feedback.not_found": "Feedback not found"
+} 

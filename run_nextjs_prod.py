@@ -184,7 +184,7 @@ def check_node_npm():
 
 def run_nextjs_frontend():
     """Run the Next.js frontend application"""
-    print("Starting Next.js frontend on http://localhost:3005")
+    print("Starting Next.js frontend on http://localhost:3000")
     try:
         # Change to the frontend directory
         frontend_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "frontend", "lnd-nexus")
@@ -200,7 +200,7 @@ def run_nextjs_frontend():
         if npm_location == "global":
             # Use global npm
             subprocess.run(
-                ["npm", "run", "dev", "--", "-p", "3005"],
+                ["npm", "run", "dev", "--", "-p", "3000"],
                 check=True,
                 text=True,
                 encoding="utf-8",
@@ -246,7 +246,7 @@ def open_browser():
     """Open browser tabs for both applications after a short delay"""
     time.sleep(5)  # Wait for servers to start
     webbrowser.open("http://localhost:8000/docs")  # FastAPI Swagger docs
-    webbrowser.open("http://localhost:3005")  # Next.js app
+    webbrowser.open("http://localhost:3000")  # Next.js app
 
 def handle_interrupt(signum, frame):
     """Handle keyboard interrupt to terminate all processes gracefully"""
@@ -288,8 +288,8 @@ def check_ports(backend_required=True, frontend_required=True):
         print("Use stop_app.py to stop any running instances first.")
         return False
         
-    if frontend_required and is_port_in_use(3005):
-        print("ERROR: Port 3005 is already in use. Next.js frontend cannot start.")
+    if frontend_required and is_port_in_use(3000):
+        print("ERROR: Port 3000 is already in use. Next.js frontend cannot start.")
         print("Make sure no other Next.js applications are running.")
         return False
         

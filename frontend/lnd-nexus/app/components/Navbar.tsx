@@ -13,11 +13,14 @@ import {
   User,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { useLanguage } from "../contexts/LanguageContext";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { isAuthenticated, isLoading, user, logout } = useAuth();
+  const { t, isRTL } = useLanguage();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -61,7 +64,7 @@ export default function Navbar() {
                     className="flex items-center px-3 py-2 rounded-md text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition-colors"
                   >
                     <Home className="h-4 w-4 mr-1.5 text-slate-500" />
-                    Home
+                    {t('nav.home')}
                   </Link>
                 </li>
                 <li>
@@ -70,7 +73,7 @@ export default function Navbar() {
                     className="flex items-center px-3 py-2 rounded-md text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition-colors"
                   >
                     <Users className="h-4 w-4 mr-1.5 text-slate-500" />
-                    Professionals
+                    {t('nav.professionals')}
                   </Link>
                 </li>
                 <li>
@@ -79,7 +82,7 @@ export default function Navbar() {
                     className="flex items-center px-3 py-2 rounded-md text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition-colors"
                   >
                     <Briefcase className="h-4 w-4 mr-1.5 text-slate-500" />
-                    Jobs
+                    {t('nav.jobs')}
                   </Link>
                 </li>
                 <li>
@@ -88,7 +91,7 @@ export default function Navbar() {
                     className="flex items-center px-3 py-2 rounded-md text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition-colors"
                   >
                     <BookOpen className="h-4 w-4 mr-1.5 text-slate-500" />
-                    Resources
+                    {t('nav.resources')}
                   </Link>
                 </li>
                 <li>
@@ -97,7 +100,7 @@ export default function Navbar() {
                     className="flex items-center px-3 py-2 rounded-md text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition-colors"
                   >
                     <MessageSquare className="h-4 w-4 mr-1.5 text-slate-500" />
-                    Community
+                    {t('nav.community')}
                   </Link>
                 </li>
               </ul>
@@ -106,6 +109,9 @@ export default function Navbar() {
 
           <div className="flex items-center space-x-4">
             <div className="hidden md:flex items-center space-x-4">
+              {/* Language Switcher */}
+              <LanguageSwitcher />
+              
               {isLoading ? (
                 <div className="w-16 h-8 bg-gray-200 animate-pulse rounded"></div>
               ) : isAuthenticated ? (
@@ -117,7 +123,7 @@ export default function Navbar() {
                       className="text-slate-700 hover:text-blue-700 hover:bg-blue-50"
                     >
                       <User className="h-4 w-4 mr-1.5" />
-                      {user?.full_name || 'Dashboard'}
+                      {user?.full_name || t('nav.dashboard')}
                     </Button>
                   </Link>
                   <Button
@@ -127,7 +133,7 @@ export default function Navbar() {
                     onClick={handleLogout}
                   >
                     <LogOut className="h-4 w-4 mr-1.5" />
-                    Logout
+                    {t('nav.logout')}
                   </Button>
                 </>
               ) : (
@@ -138,7 +144,7 @@ export default function Navbar() {
                       size="sm"
                       className="text-slate-700 hover:text-blue-700 hover:bg-blue-50"
                     >
-                      Sign In
+                      {t('nav.signin')}
                     </Button>
                   </Link>
                   <Link href="/register">
@@ -146,7 +152,7 @@ export default function Navbar() {
                       size="sm"
                       className="bg-gradient-to-r from-blue-700 to-blue-600 text-white border-none shadow-sm hover:shadow-md hover:from-blue-800 hover:to-blue-700 transition-all"
                     >
-                      Register
+                      {t('nav.register')}
                     </Button>
                   </Link>
                 </>
@@ -173,7 +179,7 @@ export default function Navbar() {
                   className="flex items-center px-3 py-2.5 rounded-md text-slate-700 hover:text-blue-600 hover:bg-slate-50"
                 >
                   <Home className="h-5 w-5 mr-3 text-slate-500" />
-                  Home
+                  {t('nav.home')}
                 </Link>
               </li>
               <li>
@@ -182,7 +188,7 @@ export default function Navbar() {
                   className="flex items-center px-3 py-2.5 rounded-md text-slate-700 hover:text-blue-600 hover:bg-slate-50"
                 >
                   <Users className="h-5 w-5 mr-3 text-slate-500" />
-                  Find Professionals
+                  {t('nav.professionals')}
                 </Link>
               </li>
               <li>
@@ -191,7 +197,7 @@ export default function Navbar() {
                   className="flex items-center px-3 py-2.5 rounded-md text-slate-700 hover:text-blue-600 hover:bg-slate-50"
                 >
                   <Briefcase className="h-5 w-5 mr-3 text-slate-500" />
-                  Job Board
+                  {t('nav.jobs')}
                 </Link>
               </li>
               <li>

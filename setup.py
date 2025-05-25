@@ -408,8 +408,17 @@ def install_dependencies():
             else:
                 # Install frontend dependencies
                 npm_result = run_command(["npm", "install"], cwd=frontend_path)
-                if npm_result.returncode == 0:
+                
+                # Install language support dependencies
+                print("Installing language support dependencies...")
+                lang_deps_result = run_command(
+                    ["npm", "install", "@radix-ui/react-dropdown-menu", "clsx", "tailwind-merge"], 
+                    cwd=frontend_path
+                )
+                
+                if npm_result.returncode == 0 and lang_deps_result.returncode == 0:
                     print_success("Frontend dependencies installed successfully.")
+                    print_success("Language support dependencies installed successfully.")
                 else:
                     print_error("Failed to install frontend dependencies.")
                     print_warning("You can continue without frontend dependencies, but the Next.js frontend will not work.")
@@ -741,6 +750,13 @@ def print_completion_message():
     print(f"  - Streamlit Frontend: {Colors.BLUE}http://localhost:8501{Colors.ENDC}")
     if os.path.exists(frontend_path):
         print(f"  - Next.js Frontend: {Colors.BLUE}http://localhost:3000{Colors.ENDC}")
+    
+    # Add language support information
+    print("\nLanguage Support:")
+    print(f"  - The application supports {Colors.BOLD}English{Colors.ENDC} and {Colors.BOLD}Arabic{Colors.ENDC} languages")
+    print(f"  - Language can be switched using the language selector in the navigation bar")
+    print(f"  - Backend API supports language selection through Accept-Language header or lang query parameter")
+    print(f"  - Frontend automatically handles RTL layout for Arabic language")
     
     print("\nFor more information, see:")
     print(f"  - {Colors.BOLD}README.md{Colors.ENDC} - General information about the application")
