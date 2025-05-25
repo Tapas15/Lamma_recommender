@@ -1,114 +1,217 @@
-from fastapi import Request, Response
-from starlette.middleware.base import BaseHTTPMiddleware
-from typing import Dict, Any, Optional
 import json
 import os
-from pathlib import Path
+from typing import Dict, List, Optional
+from fastapi import Request, Response
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.types import ASGIApp
 
-# Define supported languages
+# Supported languages
 SUPPORTED_LANGUAGES = ["en", "ar"]
 DEFAULT_LANGUAGE = "en"
 
-# Load translations
-translations: Dict[str, Dict[str, str]] = {}
+# Directory for translation files
+TRANSLATIONS_DIR = os.path.join(os.path.dirname(__file__), "translations")
+os.makedirs(TRANSLATIONS_DIR, exist_ok=True)
 
-def load_translations():
-    """Load translation files for all supported languages"""
-    global translations
-    
-    # Get the current directory
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    translations_dir = os.path.join(current_dir, "translations")
-    
-    # Create translations directory if it doesn't exist
-    os.makedirs(translations_dir, exist_ok=True)
-    
-    # Load translations for each supported language
+# Load translation files
+_translations: Dict[str, Dict[str, str]] = {}
+
+def _load_translations():
+    """Load all translation files into memory"""
     for lang in SUPPORTED_LANGUAGES:
-        translation_file = os.path.join(translations_dir, f"{lang}.json")
-        
-        # Create default translation files if they don't exist
-        if not os.path.exists(translation_file):
-            if lang == "en":
-                # English translations (default)
-                default_translations = {
-                    "welcome": "Welcome to the Job Recommender API",
-                    "error.not_found": "Resource not found",
-                    "error.unauthorized": "Unauthorized access",
-                    "error.validation": "Validation error",
-                    "success.created": "Resource created successfully",
-                    "success.updated": "Resource updated successfully",
-                    "success.deleted": "Resource deleted successfully",
-                }
-            elif lang == "ar":
-                # Arabic translations
-                default_translations = {
-                    "welcome": "مرحبًا بك في واجهة برمجة تطبيقات توصية الوظائف",
-                    "error.not_found": "المورد غير موجود",
-                    "error.unauthorized": "وصول غير مصرح به",
-                    "error.validation": "خطأ في التحقق من الصحة",
-                    "success.created": "تم إنشاء المورد بنجاح",
-                    "success.updated": "تم تحديث المورد بنجاح",
-                    "success.deleted": "تم حذف المورد بنجاح",
-                }
-            else:
-                default_translations = {}
-                
-            # Save default translations to file
-            with open(translation_file, "w", encoding="utf-8") as f:
-                json.dump(default_translations, f, ensure_ascii=False, indent=2)
-        
-        # Load translations from file
-        try:
-            with open(translation_file, "r", encoding="utf-8") as f:
-                translations[lang] = json.load(f)
-        except Exception as e:
-            print(f"Error loading translations for {lang}: {str(e)}")
-            translations[lang] = {}
+        trans_file = os.path.join(TRANSLATIONS_DIR, f"{lang}.json")
+        if os.path.exists(trans_file):
+            with open(trans_file, "r", encoding="utf-8") as f:
+                _translations[lang] = json.load(f)
+        else:
+            # Create empty translation file if it doesn't exist
+            _translations[lang] = {}
+            with open(trans_file, "w", encoding="utf-8") as f:
+                json.dump({}, f, ensure_ascii=False, indent=2)
 
-# Load translations when module is imported
-load_translations()
+# Load translations on module import
+_load_translations()
+
+# Load image translations
+_image_translations: Dict[str, Dict[str, str]] = {}
+
+def _load_image_translations():
+    """Load all image translation files into memory"""
+    for lang in SUPPORTED_LANGUAGES:
+        trans_file = os.path.join(TRANSLATIONS_DIR, f"{lang}_images.json")
+        if os.path.exists(trans_file):
+            with open(trans_file, "r", encoding="utf-8") as f:
+                _image_translations[lang] = json.load(f)
+        else:
+            # Create empty translation file if it doesn't exist
+            _image_translations[lang] = {}
+            with open(trans_file, "w", encoding="utf-8") as f:
+                json.dump({}, f, ensure_ascii=False, indent=2)
+
+# Load image translations on module import
+_load_image_translations()
 
 def get_translation(key: str, lang: str = DEFAULT_LANGUAGE) -> str:
-    """Get translation for a key in the specified language"""
-    if lang not in SUPPORTED_LANGUAGES:
+    """Get a translation for a key in the specified language"""
+    if lang not in _translations:
         lang = DEFAULT_LANGUAGE
-        
-    return translations.get(lang, {}).get(key, key)
+    
+    # Get nested keys
+    parts = key.split(".")
+    current = _translations[lang]
+    
+    for part in parts:
+        if isinstance(current, dict) and part in current:
+            current = current[part]
+        else:
+            # Return the key if translation not found
+            return key
+    
+    if isinstance(current, str):
+        return current
+    return key
+
+def get_image_translation(key: str, lang: str = DEFAULT_LANGUAGE) -> str:
+    """Get an image path translation for a key in the specified language"""
+    if lang not in _image_translations:
+        lang = DEFAULT_LANGUAGE
+    
+    return _image_translations[lang].get(key, "")
+
+def translate_response(response_data: Dict, lang: str) -> Dict:
+    """Translate response data based on translation keys"""
+    if isinstance(response_data, dict):
+        translated_data = {}
+        for key, value in response_data.items():
+            if isinstance(value, dict):
+                translated_data[key] = translate_response(value, lang)
+            elif isinstance(value, list):
+                translated_data[key] = [
+                    translate_response(item, lang) if isinstance(item, (dict, list)) else item
+                    for item in value
+                ]
+            elif isinstance(value, str) and value.startswith("__t:"):
+                # Handle translation keys (format: "__t:key.path")
+                trans_key = value[4:]
+                translated_data[key] = get_translation(trans_key, lang)
+            elif isinstance(value, str) and value.startswith("__img:"):
+                # Handle image translation keys (format: "__img:key.path")
+                img_key = value[6:]
+                translated_data[key] = get_image_translation(img_key, lang)
+            else:
+                translated_data[key] = value
+        return translated_data
+    elif isinstance(response_data, list):
+        return [
+            translate_response(item, lang) if isinstance(item, (dict, list)) else item
+            for item in response_data
+        ]
+    return response_data
 
 class LanguageMiddleware(BaseHTTPMiddleware):
-    """Middleware to handle language selection based on Accept-Language header or query parameter"""
+    """Middleware to handle language preferences and translate responses"""
+    
+    def __init__(self, app: ASGIApp):
+        super().__init__(app)
     
     async def dispatch(self, request: Request, call_next) -> Response:
-        # Get language from query parameter first (highest priority)
-        lang = request.query_params.get("lang")
+        # Get language preference from various sources
+        lang = self._get_language_preference(request)
         
-        # If not in query params, try to get from header
-        if not lang:
-            accept_language = request.headers.get("Accept-Language", "")
-            # Parse the Accept-Language header
-            if accept_language:
-                # Extract the first language code
-                lang_parts = accept_language.split(",")[0].strip().split(";")[0].strip()
-                # Get just the language code (e.g., "en" from "en-US")
-                lang = lang_parts.split("-")[0].lower()
-        
-        # If language is not supported, use default
-        if lang not in SUPPORTED_LANGUAGES:
-            lang = DEFAULT_LANGUAGE
-        
-        # Add language to request state
+        # Set language in request state for route handlers
         request.state.lang = lang
         
-        # Process the request
+        # Call next middleware or route handler
         response = await call_next(request)
         
-        # Add language header to response
-        response.headers["Content-Language"] = lang
+        # Return unmodified response for non-JSON responses
+        if response.headers.get("content-type", "").lower() != "application/json":
+            return response
         
-        return response
+        # Parse JSON response
+        response_body = await response.body()
+        response_data = json.loads(response_body)
+        
+        # Translate response data
+        translated_data = translate_response(response_data, lang)
+        
+        # Create new response with translated data
+        translated_body = json.dumps(translated_data).encode("utf-8")
+        
+        # Create new response with same status code and headers
+        new_response = Response(
+            content=translated_body,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            media_type="application/json",
+        )
+        
+        return new_response
+    
+    def _get_language_preference(self, request: Request) -> str:
+        """Get language preference from various sources"""
+        # Check for explicit language parameter in query or form
+        lang = request.query_params.get("lang")
+        
+        if not lang:
+            # Check cookie
+            lang = request.cookies.get("lang")
+        
+        if not lang:
+            # Check Accept-Language header
+            accept_lang = request.headers.get("Accept-Language", "")
+            if accept_lang:
+                # Extract language code from Accept-Language
+                parts = accept_lang.split(",")
+                for part in parts:
+                    code = part.split(";")[0].strip().lower()
+                    if code in SUPPORTED_LANGUAGES:
+                        lang = code
+                        break
+        
+        # Fallback to default language
+        if not lang or lang not in SUPPORTED_LANGUAGES:
+            lang = DEFAULT_LANGUAGE
+        
+        return lang
 
-# Function to be used in API endpoints
-def get_language(request: Request) -> str:
-    """Get the language from the request state"""
-    return getattr(request.state, "lang", DEFAULT_LANGUAGE) 
+# Helper function to get current language from request
+def get_current_language(request: Request) -> str:
+    """Get the current language from the request"""
+    return getattr(request.state, "lang", DEFAULT_LANGUAGE)
+
+# Function to add translations
+def add_translation(key: str, value: str, lang: str = DEFAULT_LANGUAGE) -> None:
+    """Add a new translation to the specified language"""
+    if lang not in SUPPORTED_LANGUAGES:
+        raise ValueError(f"Unsupported language: {lang}")
+    
+    # Split key into parts
+    parts = key.split(".")
+    
+    # Navigate through nested dictionary
+    current = _translations.setdefault(lang, {})
+    for part in parts[:-1]:
+        current = current.setdefault(part, {})
+    
+    # Set the value
+    current[parts[-1]] = value
+    
+    # Save to file
+    trans_file = os.path.join(TRANSLATIONS_DIR, f"{lang}.json")
+    with open(trans_file, "w", encoding="utf-8") as f:
+        json.dump(_translations[lang], f, ensure_ascii=False, indent=2)
+
+# Function to add image translations
+def add_image_translation(key: str, value: str, lang: str = DEFAULT_LANGUAGE) -> None:
+    """Add a new image translation to the specified language"""
+    if lang not in SUPPORTED_LANGUAGES:
+        raise ValueError(f"Unsupported language: {lang}")
+    
+    # Add the image translation
+    _image_translations.setdefault(lang, {})[key] = value
+    
+    # Save to file
+    trans_file = os.path.join(TRANSLATIONS_DIR, f"{lang}_images.json")
+    with open(trans_file, "w", encoding="utf-8") as f:
+        json.dump(_image_translations[lang], f, ensure_ascii=False, indent=2) 

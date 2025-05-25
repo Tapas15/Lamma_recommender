@@ -10,6 +10,7 @@ A comprehensive job recommendation system with FastAPI backend and Streamlit fro
 - Project recommendations
 - Employer and candidate profiles
 - Job and project posting and application management
+- Multi-language support (English and Arabic) with RTL layout
 
 ## Project Structure
 
@@ -22,22 +23,39 @@ Latest_lamma/
 │   │   ├── models.py        # Pydantic models
 │   │   ├── extended_models.py # Extended Pydantic models
 │   │   ├── database.py      # Database connection and operations
-│   │   └── embedding.py     # Vector embedding functions
+│   │   ├── embedding.py     # Vector embedding functions
+│   │   └── language_middleware.py # Language detection and translation
+│   ├── routers/             # API route modules
+│   │   ├── language_router.py # Language-related endpoints
+│   │   └── ...              # Other endpoint modules
 │   ├── init_db.py           # Database initialization script
 │   └── maintenance.py       # Database maintenance utilities
-├── pages/                    # Streamlit pages
-│   ├── profile.py           # User profile page
-│   ├── job_recommendations.py # Job recommendations page
-│   └── ...                  # Other pages
-├── streamlit_app.py          # Main Streamlit application
+├── frontend/                # Next.js frontend
+│   ├── lnd-nexus/           # Next.js application
+│   │   ├── app/             # Next.js app directory
+│   │   │   ├── components/  # React components
+│   │   │   │   ├── TranslatableImage.tsx # Language-aware image component
+│   │   │   │   ├── TranslatableContent.tsx # Language-aware content component
+│   │   │   │   └── LanguageSwitcher.tsx # Language switching UI
+│   │   │   ├── locales/     # Translation files
+│   │   │   │   ├── en.json  # English translations
+│   │   │   │   └── ar.json  # Arabic translations
+│   │   │   ├── providers/   # React context providers
+│   │   │   │   └── i18n-provider.tsx # i18n/language provider
+│   │   │   └── ...
+│   │   ├── scripts/         # Utility scripts
+│   │   │   ├── extract-messages.js # Extract translatable strings
+│   │   │   └── sync-translations.js # Sync translation files
+│   │   └── ...
 ├── run_backend.py            # Script to run the backend
 ├── run_app.py               # Script to run both backend and frontend
 ├── run_app.bat              # Windows batch file to run the application
 ├── setup.py                 # Automated setup script
 ├── setup.bat                # Windows setup script
 ├── setup.sh                 # Unix setup script
+├── LANGUAGE_TRANSLATION.md  # Language translation documentation
 ├── RUN_INSTRUCTIONS.md      # Detailed run instructions
-└── README.md                 # This file
+└── README.md                # This file
 ```
 
 ## Setup
@@ -47,6 +65,7 @@ Latest_lamma/
 - Python 3.8+
 - MongoDB
 - Ollama (for local embeddings)
+- Node.js and npm (for the frontend)
 
 #### Installing Ollama
 

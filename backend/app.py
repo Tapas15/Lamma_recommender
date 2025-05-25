@@ -18,6 +18,7 @@ import uuid
 from fastapi.middleware.cors import CORSMiddleware
 
 # Use absolute imports for local modules
+from backend.routers.language_router import router as language_router
 from utils.models import (
     UserType,
     User,
@@ -65,7 +66,7 @@ from utils.database import (
     VECTOR_INDEXES_COLLECTION,
     init_db,
 )
-from backend.utils.language_middleware import LanguageMiddleware, get_language, get_translation
+from backend.utils.language_middleware import LanguageMiddleware, get_current_language
 
 load_dotenv()
 
@@ -418,13 +419,9 @@ app.add_middleware(
 # Add language middleware
 app.add_middleware(LanguageMiddleware)
 
-# Import and include language routes
-try:
-    from backend.language_routes import router as language_router
-    app.include_router(language_router)
-    print("Language routes added successfully")
-except ImportError:
-    print("Could not import language routes")
+# Include language router
+app.include_router(language_router)
+print("Language routes added successfully")
 
 # Security
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")

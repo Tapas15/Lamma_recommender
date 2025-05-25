@@ -1,0 +1,98 @@
+{
+  "common": {
+    "loading": "جاري التحميل...",
+    "error": "حدث خطأ",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "search": "بحث",
+    "more": "المزيد",
+    "back": "رجوع",
+    "next": "التالي"
+  },
+  "nav": {
+    "home": "الرئيسية",
+    "professionals": "المحترفين",
+    "jobs": "الوظائف",
+    "resources": "الموارد",
+    "community": "المجتمع",
+    "signin": "تسجيل الدخول",
+    "register": "التسجيل",
+    "dashboard": "لوحة التحكم",
+    "logout": "تسجيل الخروج"
+  },
+  "home": {
+    "hero": {
+      "tagline": "السوق الرائد للتعلم والتطوير",
+      "title": "تواصل مع محترفي التعلم والتطوير",
+      "description": "ابحث عن مدربين خبراء، أو انشر مشاريعك للتعلم والتطوير، أو اعرض خبرتك المهنية - كل ذلك في منصة واحدة قوية مبنية للمؤسسات.",
+      "dashboard_btn": "لوحة التحكم",
+      "explore_btn": "استكشاف المنصة"
+    },
+    "features": {
+      "modern_stack": "تقنيات حديثة",
+      "community_driven": "مدعوم من المجتمع",
+      "production_ready": "جاهز للإنتاج"
+    }
+  },
+  "jobs": {
+    "title": "الوظائف",
+    "filters": {
+      "title": "التصفية",
+      "location": "الموقع",
+      "remote": "عن بعد",
+      "experience": "الخبرة",
+      "salary": "الراتب",
+      "clear": "مسح الكل"
+    },
+    "post_job": "نشر وظيفة",
+    "no_jobs": "لم يتم العثور على وظائف",
+    "apply": "تقديم",
+    "save": "حفظ"
+  },
+  "professionals": {
+    "title": "المحترفين",
+    "filters": {
+      "title": "التصفية",
+      "skills": "المهارات",
+      "experience": "الخبرة",
+      "location": "الموقع",
+      "availability": "التوفر",
+      "clear": "مسح الكل"
+    },
+    "no_professionals": "لم يتم العثور على محترفين",
+    "contact": "تواصل",
+    "view_profile": "عرض الملف الشخصي"
+  },
+  "auth": {
+    "signin": {
+      "title": "تسجيل الدخول",
+      "email": "البريد الإلكتروني",
+      "password": "كلمة المرور",
+      "remember_me": "تذكرني",
+      "forgot_password": "نسيت كلمة المرور؟",
+      "submit": "تسجيل الدخول",
+      "no_account": "ليس لديك حساب؟",
+      "create_account": "أنشئ حسابًا"
+    },
+    "register": {
+      "title": "التسجيل",
+      "name": "الاسم الكامل",
+      "email": "البريد الإلكتروني",
+      "password": "كلمة المرور",
+      "confirm_password": "تأكيد كلمة المرور",
+      "account_type": "نوع الحساب",
+      "candidate": "محترف",
+      "employer": "مؤسسة",
+      "submit": "تسجيل",
+      "have_account": "لديك حساب بالفعل؟",
+      "signin": "تسجيل الدخول"
+    }
+  },
+  "language": {
+    "english": "English",
+    "arabic": "العربية",
+    "translate_all": "ترجمة كل المحتوى"
+  }
+} 

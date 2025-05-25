@@ -4,7 +4,7 @@ import { Metadata } from "next";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { AuthProvider } from "./contexts/AuthContext";
-import { LanguageProvider } from "./contexts/LanguageContext";
+import { I18nProvider } from "./providers/i18n-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,11 +22,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
-          <LanguageProvider>
+          <I18nProvider>
             <Navbar />
             {children}
             <Footer />
-          </LanguageProvider>
+          </I18nProvider>
         </AuthProvider>
       </body>
     </html>

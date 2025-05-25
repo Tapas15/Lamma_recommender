@@ -1,0 +1,98 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "search": "Search",
+    "more": "More",
+    "back": "Back",
+    "next": "Next"
+  },
+  "nav": {
+    "home": "Home",
+    "professionals": "Professionals",
+    "jobs": "Jobs",
+    "resources": "Resources",
+    "community": "Community",
+    "signin": "Sign In",
+    "register": "Register",
+    "dashboard": "Dashboard",
+    "logout": "Logout"
+  },
+  "home": {
+    "hero": {
+      "tagline": "The Premier L&D Marketplace",
+      "title": "Connect With Learning & Development Professionals",
+      "description": "Find expert trainers, post your L&D projects, or showcase your professional expertise - all in one powerful platform built for enterprise.",
+      "dashboard_btn": "My Dashboard",
+      "explore_btn": "Explore Platform"
+    },
+    "features": {
+      "modern_stack": "Modern Stack",
+      "community_driven": "Community Driven",
+      "production_ready": "Production Ready"
+    }
+  },
+  "jobs": {
+    "title": "Jobs",
+    "filters": {
+      "title": "Filters",
+      "location": "Location",
+      "remote": "Remote",
+      "experience": "Experience",
+      "salary": "Salary",
+      "clear": "Clear All"
+    },
+    "post_job": "Post a Job",
+    "no_jobs": "No jobs found",
+    "apply": "Apply",
+    "save": "Save"
+  },
+  "professionals": {
+    "title": "Professionals",
+    "filters": {
+      "title": "Filters",
+      "skills": "Skills",
+      "experience": "Experience",
+      "location": "Location",
+      "availability": "Availability",
+      "clear": "Clear All"
+    },
+    "no_professionals": "No professionals found",
+    "contact": "Contact",
+    "view_profile": "View Profile"
+  },
+  "auth": {
+    "signin": {
+      "title": "Sign In",
+      "email": "Email",
+      "password": "Password",
+      "remember_me": "Remember me",
+      "forgot_password": "Forgot password?",
+      "submit": "Sign In",
+      "no_account": "Don't have an account?",
+      "create_account": "Create one"
+    },
+    "register": {
+      "title": "Register",
+      "name": "Full Name",
+      "email": "Email",
+      "password": "Password",
+      "confirm_password": "Confirm Password",
+      "account_type": "Account Type",
+      "candidate": "Professional",
+      "employer": "Organization",
+      "submit": "Register",
+      "have_account": "Already have an account?",
+      "signin": "Sign In"
+    }
+  },
+  "language": {
+    "english": "English",
+    "arabic": "العربية",
+    "translate_all": "Translate All Content"
+  }
+} 

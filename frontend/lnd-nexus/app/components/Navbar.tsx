@@ -13,14 +13,14 @@ import {
   User,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
-import { useLanguage } from "../contexts/LanguageContext";
+import { useI18n } from "../providers/i18n-provider";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { isAuthenticated, isLoading, user, logout } = useAuth();
-  const { t, isRTL } = useLanguage();
+  const { t, isRTL } = useI18n();
 
   useEffect(() => {
     const handleScroll = () => {

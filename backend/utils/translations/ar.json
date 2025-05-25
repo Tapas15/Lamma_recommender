@@ -8,12 +8,10 @@
   "error.forbidden": "وصول محظور",
   "error.conflict": "تعارض في المورد",
   "error.too_many_requests": "طلبات كثيرة جدًا",
-
   "success.created": "تم إنشاء المورد بنجاح",
   "success.updated": "تم تحديث المورد بنجاح",
   "success.deleted": "تم حذف المورد بنجاح",
   "success.retrieved": "تم استرجاع المورد بنجاح",
-
   "auth.login_success": "تم تسجيل الدخول بنجاح",
   "auth.login_failed": "فشل تسجيل الدخول",
   "auth.logout_success": "تم تسجيل الخروج بنجاح",
@@ -21,36 +19,31 @@
   "auth.invalid_token": "رمز غير صالح",
   "auth.missing_token": "الرمز مفقود",
   "auth.registration_success": "تم التسجيل بنجاح",
-
   "job.created": "تم إنشاء الوظيفة بنجاح",
   "job.updated": "تم تحديث الوظيفة بنجاح",
   "job.deleted": "تم حذف الوظيفة بنجاح",
   "job.not_found": "الوظيفة غير موجودة",
   "job.applied": "تم تقديم طلب الوظيفة بنجاح",
-
   "candidate.created": "تم إنشاء ملف المرشح بنجاح",
   "candidate.updated": "تم تحديث ملف المرشح بنجاح",
   "candidate.deleted": "تم حذف ملف المرشح بنجاح",
   "candidate.not_found": "ملف المرشح غير موجود",
-
   "employer.created": "تم إنشاء ملف صاحب العمل بنجاح",
   "employer.updated": "تم تحديث ملف صاحب العمل بنجاح",
   "employer.deleted": "تم حذف ملف صاحب العمل بنجاح",
   "employer.not_found": "ملف صاحب العمل غير موجود",
-
   "project.created": "تم إنشاء المشروع بنجاح",
   "project.updated": "تم تحديث المشروع بنجاح",
   "project.deleted": "تم حذف المشروع بنجاح",
   "project.not_found": "المشروع غير موجود",
   "project.applied": "تم تقديم طلب المشروع بنجاح",
-
   "recommendations.jobs": "توصيات الوظائف",
   "recommendations.candidates": "توصيات المرشحين",
   "recommendations.projects": "توصيات المشاريع",
   "recommendations.none": "لم يتم العثور على توصيات",
-
   "feedback.submitted": "تم تقديم الملاحظات بنجاح",
   "feedback.updated": "تم تحديث الملاحظات بنجاح",
   "feedback.deleted": "تم حذف الملاحظات بنجاح",
-  "feedback.not_found": "الملاحظات غير موجودة"
-} 
+  "feedback.not_found": "الملاحظات غير موجودة",
+  "api.language.changed": "تم تغيير اللغة بنجاح"
+}
