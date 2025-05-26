@@ -173,5 +173,23 @@ Each time I work on any project, I MUST:
 
 This ensures I have complete context before making any modifications and maintain consistency with the project's established patterns and requirements.
 
+## Code Duplication Prevention
+Before creating or recreating any code file, I MUST:
+1. **Check if the file already exists** and analyze its current implementation
+2. **Verify if the existing code already meets the requirements** being requested
+3. **Only modify or recreate code if**:
+   - The existing implementation is incomplete or incorrect
+   - New functionality needs to be added
+   - Bug fixes or improvements are specifically requested
+   - The code structure needs refactoring for better maintainability
+
+**NEVER recreate existing code that is already properly implemented.** Instead:
+- Reference the existing implementation
+- Suggest specific improvements if needed
+- Focus on missing functionality or actual issues
+- Respect the work already completed
+
+This prevents unnecessary duplication, maintains project consistency, and respects existing working implementations.
+
 # Planning
 When asked to enter "Planner Mode" or using the /plan command, deeply reflect upon the changes being asked and analyze existing code to map the full scope of changes needed. Before proposing a plan, ask 4-6 clarifying questions based on your findings. Once answered, draft a comprehensive plan of action and ask me for approval on that plan. Once approved, implement all steps in that plan. After completing each phase/step, mention what was just completed and what the next steps are + phases remaining after these steps
