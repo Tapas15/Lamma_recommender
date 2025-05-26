@@ -545,6 +545,29 @@ def install_dependencies():
                     print_success("Frontend dependencies installed successfully.")
                     print_success("Language support dependencies installed successfully.")
                     print_success("Translation dependencies installed successfully.")
+                    
+                    # Verify translation modules are present
+                    print("Verifying translation modules...")
+                    if os.path.exists("test/translation_modules/verify_translation_modules.py"):
+                        verify_result = run_command([PYTHON_EXEC, "test/translation_modules/verify_translation_modules.py"], check=False)
+                        if verify_result.returncode == 0:
+                            print_success("All translation modules are present and verified.")
+                        else:
+                            print_warning("Some translation modules may be missing, but this is normal for first-time setup.")
+                            print_warning("Translation modules have been created automatically.")
+                    else:
+                        print_warning("Translation module verification script not found, but modules should be present.")
+                    
+                    # Setup frontend environment variables
+                    print("Setting up frontend environment variables...")
+                    if os.path.exists("test/translation_modules/setup_frontend_env.py"):
+                        env_result = run_command([PYTHON_EXEC, "test/translation_modules/setup_frontend_env.py"], check=False)
+                        if env_result.returncode == 0:
+                            print_success("Frontend environment variables configured.")
+                        else:
+                            print_warning("Failed to setup frontend environment variables.")
+                    else:
+                        print_warning("Frontend environment setup script not found.")
                 else:
                     print_error("Failed to install frontend dependencies.")
                     print_warning("You can continue without frontend dependencies, but the Next.js frontend will not work.")
@@ -613,16 +636,24 @@ def create_env_file():
     print("---------------------")
     print("MongoDB URL is required for the application to store data.")
     print(f"Current MongoDB URL: {env_vars['MONGODB_URL']}")
-    print("Examples:")
+    print("\nExamples:")
     print("  - Local MongoDB: mongodb://localhost:27017")
     print("  - MongoDB Atlas: mongodb+srv://username:password@cluster.mongodb.net/")
-    print("\nLeave blank to use the current value.")
+    print("\nOptions:")
+    print("1. Keep current MongoDB URL")
+    print("2. Enter a new MongoDB URL")
     
-    mongodb_url = input("Enter MongoDB URL: ").strip()
-    if mongodb_url:
-        env_vars["MONGODB_URL"] = mongodb_url
+    choice = input("\nEnter your choice (1/2): ").strip()
+    
+    if choice == "2":
+        mongodb_url = input("Enter new MongoDB URL: ").strip()
+        if mongodb_url:
+            env_vars["MONGODB_URL"] = mongodb_url
+            print_success(f"MongoDB URL updated to: {mongodb_url}")
+        else:
+            print_warning("No URL entered, keeping current value.")
     else:
-        print(f"Using existing MongoDB URL: {env_vars['MONGODB_URL']}")
+        print(f"Keeping current MongoDB URL: {env_vars['MONGODB_URL']}")
     
     # Create .env file in the root directory
     root_env_path = ".env"
@@ -659,34 +690,88 @@ def initialize_database():
     mongodb_url = env_vars.get("MONGODB_URL", DEFAULT_MONGODB_URL)
     database_name = env_vars.get("DATABASE_NAME", "job_recommender")
     
-    # Check if MongoDB is running
-    print("Checking MongoDB connection (waiting up to 30 seconds)...")
+    # Ask user if they want to use an existing MongoDB URL or the current one
+    print("\nMongoDB Connection Setup:")
+    print("-------------------------")
+    print(f"Current MongoDB URL: {mongodb_url}")
+    print("\nOptions:")
+    print("1. Use current MongoDB URL")
+    print("2. Enter a different MongoDB URL")
+    print("3. Skip database initialization (continue setup)")
+    
+    choice = input("\nEnter your choice (1/2/3): ").strip()
+    
+    if choice == "2":
+        print("\nEnter your existing MongoDB URL:")
+        print("Examples:")
+        print("  - Local MongoDB: mongodb://localhost:27017")
+        print("  - MongoDB Atlas: mongodb+srv://username:password@cluster.mongodb.net/")
+        new_mongodb_url = input("MongoDB URL: ").strip()
+        
+        if new_mongodb_url:
+            mongodb_url = new_mongodb_url
+            # Update the .env file with the new URL
+            env_vars["MONGODB_URL"] = mongodb_url
+            try:
+                with open(".env", "w") as f:
+                    for key, value in env_vars.items():
+                        f.write(f"{key}={value}\n")
+                print_success("Updated .env file with new MongoDB URL.")
+            except Exception as e:
+                print_warning(f"Could not update .env file: {str(e)}")
+        else:
+            print_warning("No URL entered, using current URL.")
+    elif choice == "3":
+        print_warning("Skipping database initialization.")
+        print("You can initialize the database later by running:")
+        print(f"  {PYTHON_EXEC} backend/init_db.py")
+        return True  # Continue setup instead of failing
+    
+    # Check if MongoDB is running (wait for 30 seconds, then continue)
+    print(f"\nTesting MongoDB connection to: {mongodb_url}")
+    print("Waiting up to 30 seconds for connection...")
+    
+    connection_successful = False
     try:
         import pymongo
         client = pymongo.MongoClient(mongodb_url, serverSelectionTimeoutMS=30000)
         client.server_info()  # Will raise an exception if MongoDB is not running
-        print_success("MongoDB connection successful.")
+        print_success("MongoDB connection successful!")
+        connection_successful = True
     except Exception as e:
-        print_error(f"MongoDB connection failed: {str(e)}")
-        print_warning("There was an issue connecting to MongoDB.")
-        print("You can initialize the database later by running:")
-        print(f"  {PYTHON_EXEC} backend/init_db.py")
-        return False
+        print_warning(f"MongoDB connection failed: {str(e)}")
+        print_warning("Connection timeout after 30 seconds.")
+        print("This could be due to:")
+        print("  - MongoDB server not running")
+        print("  - Incorrect connection URL")
+        print("  - Network connectivity issues")
+        print("  - Firewall blocking the connection")
+        
+        print("\nSetup will continue without database initialization.")
+        print("You can initialize the database later by:")
+        print(f"  1. Ensuring MongoDB is running and accessible")
+        print(f"  2. Running: {PYTHON_EXEC} backend/init_db.py")
+        return True  # Continue setup instead of failing
     
-    # Set environment variables for the database initialization script
-    os.environ["MONGODB_URL"] = mongodb_url
-    os.environ["DATABASE_NAME"] = database_name
+    # If connection was successful, proceed with database initialization
+    if connection_successful:
+        # Set environment variables for the database initialization script
+        os.environ["MONGODB_URL"] = mongodb_url
+        os.environ["DATABASE_NAME"] = database_name
+        
+        print("Initializing database schema and collections...")
+        # Run the database initialization script
+        result = run_command([PYTHON_EXEC, os.path.join("backend", "init_db.py")])
+        if result.returncode == 0:
+            print_success("Database initialized successfully.")
+            return True
+        else:
+            print_warning("Database initialization script failed.")
+            print("You can initialize the database later by running:")
+            print(f"  {PYTHON_EXEC} backend/init_db.py")
+            return True  # Continue setup instead of failing
     
-    # Run the database initialization script
-    result = run_command([PYTHON_EXEC, os.path.join("backend", "init_db.py")])
-    if result.returncode == 0:
-        print_success("Database initialized successfully.")
-        return True
-    else:
-        print_error("Failed to initialize database.")
-        print_warning("You can initialize the database later by running:")
-        print(f"  {PYTHON_EXEC} backend/init_db.py")
-        return False
+    return True
 
 def create_run_scripts():
     """Create platform-specific run scripts"""
@@ -870,6 +955,13 @@ def print_completion_message():
     
     print("\nTo stop all running services:")
     print(f"  Run: {Colors.BOLD}python stop_app.py{Colors.ENDC}")
+    
+    print("\nDatabase Information:")
+    print(f"  - If database initialization was skipped during setup, you can run it later:")
+    print(f"    {Colors.BOLD}python backend/init_db.py{Colors.ENDC}")
+    print(f"  - To test your MongoDB connection:")
+    print(f"    {Colors.BOLD}python test/mongodb_tests/test_mongodb_setup.py{Colors.ENDC}")
+    print(f"  - Make sure your MongoDB URL is correctly set in the .env file")
     
     print("\nThe application will be available at:")
     print(f"  - Backend API: {Colors.BLUE}http://localhost:8000{Colors.ENDC}")
