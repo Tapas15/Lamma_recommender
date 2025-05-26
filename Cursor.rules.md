@@ -152,5 +152,26 @@ The format is flexible - focus on capturing valuable insights that help me work 
 
 REMEMBER: After every memory reset, I begin completely fresh. The Memory Bank is my only link to previous work. It must be maintained with precision and clarity, as my effectiveness depends entirely on its accuracy.
 
+# File Management and Project Analysis
+
+## Test File Cleanup
+Any files generated during testing should be automatically removed by Cursor after the test is complete. This includes:
+- Temporary test scripts
+- Test data files
+- Debug output files
+- Temporary configuration files
+- Any other files created solely for testing purposes
+
+Test files should be kept only as long as necessary and cleaned up to maintain a clean project structure.
+
+## Project Analysis Protocol
+Each time I work on any project, I MUST:
+1. **First look into the memory-bank/ folder** and analyze all available documentation
+2. **Read and understand the project context** from the Memory Bank files
+3. **Analyze the existing codebase** to understand current implementation
+4. **Only then proceed** with coding or making changes
+
+This ensures I have complete context before making any modifications and maintain consistency with the project's established patterns and requirements.
+
 # Planning
 When asked to enter "Planner Mode" or using the /plan command, deeply reflect upon the changes being asked and analyze existing code to map the full scope of changes needed. Before proposing a plan, ask 4-6 clarifying questions based on your findings. Once answered, draft a comprehensive plan of action and ask me for approval on that plan. Once approved, implement all steps in that plan. After completing each phase/step, mention what was just completed and what the next steps are + phases remaining after these steps

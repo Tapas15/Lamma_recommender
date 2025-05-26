@@ -693,7 +693,48 @@ def create_env_file():
     choice = input("\nEnter your choice (1/2): ").strip()
     
     if choice == "2":
-        mongodb_url = input("Enter new MongoDB URL: ").strip()
+        print("\nWaiting 30 seconds for MongoDB URL input. If no input is provided, will keep current URL...")
+        
+        # Use timeout for MongoDB URL input
+        mongodb_url = None
+        try:
+            import threading
+            import queue
+            import time
+            
+            def get_url_input(q):
+                try:
+                    user_input = input("Enter new MongoDB URL: ").strip()
+                    q.put(user_input)
+                except:
+                    q.put(None)
+            
+            q = queue.Queue()
+            input_thread = threading.Thread(target=get_url_input, args=(q,))
+            input_thread.daemon = True
+            input_thread.start()
+            
+            # Wait for 30 seconds with countdown
+            for remaining in range(30, 0, -1):
+                try:
+                    mongodb_url = q.get(timeout=1)
+                    if mongodb_url is not None:
+                        break
+                except queue.Empty:
+                    # Show countdown every 5 seconds
+                    if remaining % 5 == 0 or remaining <= 5:
+                        print(f"\rWaiting for MongoDB URL... {remaining} seconds remaining (will keep current URL)", end="", flush=True)
+                    continue
+            
+            if mongodb_url is None:
+                print("\n\nTimeout reached. Keeping current MongoDB URL.")
+                mongodb_url = ""
+                
+        except Exception as e:
+            print(f"\nError with timeout mechanism: {e}")
+            print("Keeping current MongoDB URL.")
+            mongodb_url = ""
+        
         if mongodb_url:
             env_vars["MONGODB_URL"] = mongodb_url
             print_success(f"MongoDB URL updated to: {mongodb_url}")
@@ -746,14 +787,94 @@ def initialize_database():
     print("2. Enter a different MongoDB URL")
     print("3. Skip database initialization (continue setup)")
     
-    choice = input("\nEnter your choice (1/2/3): ").strip()
+    print("\nWaiting 30 seconds for input. If no input is provided, will use current MongoDB URL...")
+    
+    # Use timeout for input
+    choice = None
+    try:
+        import threading
+        import queue
+        import time
+        
+        def get_input(q):
+            try:
+                user_input = input("\nEnter your choice (1/2/3): ").strip()
+                q.put(user_input)
+            except:
+                q.put(None)
+        
+        q = queue.Queue()
+        input_thread = threading.Thread(target=get_input, args=(q,))
+        input_thread.daemon = True
+        input_thread.start()
+        
+        # Wait for 30 seconds with countdown
+        for remaining in range(30, 0, -1):
+            try:
+                choice = q.get(timeout=1)
+                if choice is not None:
+                    break
+            except queue.Empty:
+                # Show countdown every 5 seconds
+                if remaining % 5 == 0 or remaining <= 5:
+                    print(f"\rWaiting for input... {remaining} seconds remaining (will use current MongoDB URL)", end="", flush=True)
+                continue
+        
+        if choice is None:
+            print("\n\nTimeout reached. Using current MongoDB URL (option 1).")
+            choice = "1"
+                
+    except Exception as e:
+        print(f"\nError with timeout mechanism: {e}")
+        print("Using current MongoDB URL (option 1).")
+        choice = "1"
     
     if choice == "2":
         print("\nEnter your existing MongoDB URL:")
         print("Examples:")
         print("  - Local MongoDB: mongodb://localhost:27017")
         print("  - MongoDB Atlas: mongodb+srv://username:password@cluster.mongodb.net/")
-        new_mongodb_url = input("MongoDB URL: ").strip()
+        print("\nWaiting 30 seconds for MongoDB URL input. If no input is provided, will use current URL...")
+        
+        # Use timeout for MongoDB URL input
+        new_mongodb_url = None
+        try:
+            import threading
+            import queue
+            import time
+            
+            def get_url_input(q):
+                try:
+                    user_input = input("MongoDB URL: ").strip()
+                    q.put(user_input)
+                except:
+                    q.put(None)
+            
+            q = queue.Queue()
+            input_thread = threading.Thread(target=get_url_input, args=(q,))
+            input_thread.daemon = True
+            input_thread.start()
+            
+            # Wait for 30 seconds with countdown
+            for remaining in range(30, 0, -1):
+                try:
+                    new_mongodb_url = q.get(timeout=1)
+                    if new_mongodb_url is not None:
+                        break
+                except queue.Empty:
+                    # Show countdown every 5 seconds
+                    if remaining % 5 == 0 or remaining <= 5:
+                        print(f"\rWaiting for MongoDB URL... {remaining} seconds remaining (will use current URL)", end="", flush=True)
+                    continue
+            
+            if new_mongodb_url is None:
+                print("\n\nTimeout reached. Using current MongoDB URL.")
+                new_mongodb_url = ""
+                
+        except Exception as e:
+            print(f"\nError with timeout mechanism: {e}")
+            print("Using current MongoDB URL.")
+            new_mongodb_url = ""
         
         if new_mongodb_url:
             mongodb_url = new_mongodb_url
