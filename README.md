@@ -1,393 +1,432 @@
 # Job Recommender System
 
-A comprehensive job recommendation system with FastAPI backend and Streamlit frontend.
+A comprehensive AI-powered job recommendation system with FastAPI backend, Next.js frontend, and Streamlit interface. Features advanced vector embeddings, multi-language support with real-time translation, and intelligent matching algorithms.
 
-## Features
+## 🌟 Features
 
-- Job and candidate recommendation engine using vector embeddings
-- Skill gap analysis for candidates
-- Career path recommendations
-- Project recommendations
-- Employer and candidate profiles
-- Job and project posting and application management
-- Multi-language support (English and Arabic) with RTL layout
+### Core Functionality
+- **AI-Powered Recommendations**: Job and candidate matching using vector embeddings with Ollama
+- **Skill Gap Analysis**: Intelligent analysis of candidate skills vs. job requirements
+- **Career Path Recommendations**: AI-driven career progression suggestions
+- **Project Recommendations**: Matching candidates with relevant projects
+- **Market Trends Analysis**: Real-time job market insights and trends
 
-## Project Structure
+### Multi-Language Support
+- **English and Arabic Support**: Complete RTL (Right-to-Left) layout for Arabic
+- **Real-time Translation**: Powered by LibreTranslate for instant page translation
+- **Image OCR Translation**: Extract and translate text from images using Tesseract.js
+- **Translation Memory**: Local caching system for improved performance
+- **Language-aware Components**: Smart UI components that adapt to language direction
+
+### User Management
+- **Dual User Types**: Separate interfaces for employers and candidates
+- **Profile Management**: Comprehensive profile creation and management
+- **Application Tracking**: Complete job application lifecycle management
+- **Recommendation Feedback**: Machine learning from user interactions
+
+## 🏗️ Project Structure
 
 ```
 Latest_lamma/
-├── backend/                  # FastAPI backend code
-│   ├── app.py               # Main FastAPI application
-│   ├── utils/               # Utility modules
-│   │   ├── __init__.py      # Package initialization
-│   │   ├── models.py        # Pydantic models
-│   │   ├── extended_models.py # Extended Pydantic models
-│   │   ├── database.py      # Database connection and operations
-│   │   ├── embedding.py     # Vector embedding functions
-│   │   └── language_middleware.py # Language detection and translation
-│   ├── routers/             # API route modules
-│   │   ├── language_router.py # Language-related endpoints
-│   │   └── ...              # Other endpoint modules
-│   ├── init_db.py           # Database initialization script
-│   └── maintenance.py       # Database maintenance utilities
-├── frontend/                # Next.js frontend
-│   ├── lnd-nexus/           # Next.js application
-│   │   ├── app/             # Next.js app directory
-│   │   │   ├── components/  # React components
-│   │   │   │   ├── TranslatableImage.tsx # Language-aware image component
-│   │   │   │   ├── TranslatableContent.tsx # Language-aware content component
-│   │   │   │   └── LanguageSwitcher.tsx # Language switching UI
-│   │   │   ├── locales/     # Translation files
-│   │   │   │   ├── en.json  # English translations
-│   │   │   │   └── ar.json  # Arabic translations
-│   │   │   ├── providers/   # React context providers
-│   │   │   │   └── i18n-provider.tsx # i18n/language provider
-│   │   │   └── ...
-│   │   ├── scripts/         # Utility scripts
-│   │   │   ├── extract-messages.js # Extract translatable strings
-│   │   │   └── sync-translations.js # Sync translation files
-│   │   └── ...
-├── run_backend.py            # Script to run the backend
-├── run_app.py               # Script to run both backend and frontend
-├── run_app.bat              # Windows batch file to run the application
-├── setup.py                 # Automated setup script
-├── setup.bat                # Windows setup script
-├── setup.sh                 # Unix setup script
-├── LANGUAGE_TRANSLATION.md  # Language translation documentation
-├── RUN_INSTRUCTIONS.md      # Detailed run instructions
-└── README.md                # This file
+├── backend/                     # FastAPI backend
+│   ├── app.py                  # Main FastAPI application
+│   ├── utils/                  # Core utilities
+│   │   ├── models.py           # Pydantic models
+│   │   ├── database.py         # MongoDB operations
+│   │   ├── embedding.py        # Vector embedding functions
+│   │   └── extended_models.py  # Extended data models
+│   ├── routers/                # API route modules
+│   ├── tests/                  # Backend-specific tests
+│   └── init_db.py             # Database initialization
+├── frontend/                   # Next.js frontend
+│   └── lnd-nexus/             # Next.js application
+│       ├── app/               # Next.js app directory
+│       │   ├── components/    # React components
+│       │   │   ├── LanguageSwitcher.tsx    # Language switching UI
+│       │   │   ├── TranslatableImage.tsx   # Image translation component
+│       │   │   └── TranslatableContent.tsx # Content translation component
+│       │   ├── lib/           # Translation utilities
+│       │   │   ├── translate.ts           # Core translation functions
+│       │   │   ├── imageTranslate.ts      # Image OCR and translation
+│       │   │   └── translationMemory.ts   # Translation caching system
+│       │   ├── locales/       # Translation files
+│       │   │   ├── en.json    # English translations
+│       │   │   └── ar.json    # Arabic translations
+│       │   └── providers/     # React context providers
+│       └── .env.local         # Frontend environment variables
+├── pages/                      # Streamlit pages
+│   ├── candidate_profile.py   # Candidate management
+│   ├── employer_profile.py    # Employer management
+│   ├── job_recommendations.py # Job matching
+│   └── skill_gap.py          # Skill analysis
+├── tests/                      # Organized test directory
+│   ├── test_suite/            # Main test suite
+│   ├── workflow_functions/    # Test workflow utilities
+│   └── PROJECT_CLEANUP_REPORT.txt # Cleanup documentation
+├── test/                       # Additional test organization
+│   ├── translation_modules/   # Translation testing utilities
+│   ├── mongodb_tests/         # Database testing
+│   ├── temporary_files/       # Temporary test files
+│   └── documentation/         # Test documentation
+├── memory-bank/               # Project documentation and context
+├── utils/                     # Shared utilities
+├── myenv/                     # Python virtual environment
+├── setup.py                   # Automated setup script
+├── run_app.py                 # Application runner
+├── run_nextjs_app.py          # Next.js application runner
+└── README.md                  # This file
 ```
 
-## Setup
+## 🔧 Prerequisites
 
-### Prerequisites
+### Required Software
+- **Python 3.10**: Specifically required for optimal compatibility
+- **Node.js 18+**: For Next.js frontend
+- **MongoDB**: Database for storing application data
+- **Docker**: For LibreTranslate service (optional but recommended)
 
-- Python 3.8+
-- MongoDB
-- Ollama (for local embeddings)
-- Node.js and npm (for the frontend)
+### AI Services
+- **Ollama**: For local AI embeddings and language models
+- **LibreTranslate**: For real-time translation (runs in Docker)
 
-#### Installing Ollama
+### Installation Links
+- [Python 3.10](https://www.python.org/downloads/release/python-3100/)
+- [Node.js](https://nodejs.org/)
+- [MongoDB](https://www.mongodb.com/try/download/community)
+- [Docker](https://www.docker.com/products/docker-desktop)
+- [Ollama](https://ollama.com/)
 
-The setup script will attempt to install Ollama automatically, but you can also install it manually:
+## 🚀 Quick Start
+
+### Option 1: Automated Setup (Recommended)
+
+The setup script will automatically install all dependencies and configure the application:
 
 **Windows:**
-- Download and install from [ollama.com/download/windows](https://ollama.com/download/windows)
-- After installation, start Ollama from the Start Menu
-
-**Linux:**
-```bash
-curl -fsSL https://ollama.com/install.sh | sh
-```
-
-**macOS:**
-- Download and install from [ollama.com/download/mac](https://ollama.com/download/mac)
-
-After installation, you can pull the required model:
-```bash
-ollama pull llama3.2
-```
-
-### Installation
-
-#### Option 1: Automated Setup (Recommended)
-
-Run the setup script which will automatically create a virtual environment, install dependencies, and set up the application:
-
-On Windows:
 ```bash
 setup.bat
 ```
 
-On Linux/Mac:
+**Linux/Mac:**
 ```bash
 chmod +x setup.sh
 ./setup.sh
 ```
 
-Or directly with Python:
+**Direct Python:**
 ```bash
 python setup.py
 ```
 
-The setup script will:
-- Create a Python virtual environment
-- Install all required dependencies
-- Set up environment variables
-- Initialize the database
-- Create platform-specific run scripts
-- Provide an option to run the application immediately
+### What the Setup Script Does:
+1. ✅ Installs Ollama and required AI models
+2. ✅ Sets up LibreTranslate Docker container
+3. ✅ Creates Python 3.10 virtual environment
+4. ✅ Installs all Python dependencies
+5. ✅ Installs Next.js frontend dependencies
+6. ✅ Configures environment variables
+7. ✅ Initializes MongoDB database
+8. ✅ Creates platform-specific run scripts
+9. ✅ Sets up translation modules
+10. ✅ Offers to run the application immediately
 
-#### Option 2: Manual Installation
+### Option 2: Manual Installation
 
-1. Clone the repository:
+If you prefer manual setup:
+
+1. **Clone the repository:**
 ```bash
-git clone https://github.com/yourusername/Latest_lamma.git
+git clone <repository-url>
 cd Latest_lamma
 ```
 
-2. Create a virtual environment and install dependencies:
+2. **Create Python 3.10 virtual environment:**
 ```bash
-python -m venv myenv
-source myenv/bin/activate  # On Windows: myenv\Scripts\activate
-pip install -r backend/requirements.txt
+python3.10 -m venv myenv
+# Windows:
+myenv\Scripts\activate
+# Linux/Mac:
+source myenv/bin/activate
+```
+
+3. **Install Python dependencies:**
+```bash
+pip install -r requirements.txt
 pip install streamlit
 ```
 
-3. Set up environment variables:
+4. **Install frontend dependencies:**
 ```bash
-# Create a .env file in the backend directory
-echo "OLLAMA_API_BASE=http://localhost:11434" > backend/.env
-echo "OLLAMA_MODEL=llama3.2" >> backend/.env
-echo "SECRET_KEY=your_secret_key" >> backend/.env
-echo "MONGODB_URL=mongodb://localhost:27017" >> backend/.env
-echo "DATABASE_NAME=job_recommender" >> backend/.env
+cd frontend/lnd-nexus
+npm install
+npm install tesseract.js lucide-react @radix-ui/react-dropdown-menu
+cd ../..
 ```
 
-4. Initialize the database:
+5. **Set up environment variables:**
 ```bash
-cd backend
-python init_db.py
+# Create .env file with your configuration
+echo "MONGODB_URL=mongodb://localhost:27017" > .env
+echo "OLLAMA_API_BASE=http://localhost:11434" >> .env
+echo "OLLAMA_MODEL=llama3.2" >> .env
+echo "LIBRETRANSLATE_URL=http://localhost:5000" >> .env
 ```
 
-## Running the Application
-
-### Option 1: Run Both Services Together (Recommended)
-
-The easiest way to run the complete application is to use the provided `run_app.py` script:
-
-```bash
-python run_app.py
-```
-
-This script will:
-- Start the FastAPI backend on http://localhost:8000
-- Start the Streamlit frontend on http://localhost:8501
-- Open browser tabs for both services automatically
-
-On Windows, you can also double-click the `run_app.bat` file.
-
-### Option 2: Run Services Separately
-
-If you prefer to run the services in separate terminals:
-
-#### Backend
-
-Run the FastAPI backend:
-```bash
-python run_backend.py
-```
-
-The API will be available at http://localhost:8000 and the API documentation at http://localhost:8000/docs
-
-#### Frontend
-
-Run the Streamlit frontend:
-```bash
-python -m streamlit run streamlit_app.py
-```
-
-The web application will be available at http://localhost:8501
-
-For more detailed instructions, see the [RUN_INSTRUCTIONS.md](RUN_INSTRUCTIONS.md) file.
-
-## Visual Demonstration
-
-The application includes an automated visual demonstration that showcases the registration and login flow for both employers and candidates. This is useful for quickly understanding how the application works or for demonstration purposes.
-
-To run the visual demo:
-
-```bash
-python tests/visual_demo.py
-```
-
-On Windows, you can also double-click the `run_visual_demo.bat` file.
-
-The demo will:
-1. Automatically start the backend and frontend services if needed
-2. Open a Chrome browser and perform registration and login steps
-3. Navigate through different sections of the application
-4. Display the created test credentials at the end
-
-For more options and details, see [tests/VISUAL_DEMO_README.md](tests/VISUAL_DEMO_README.md).
-
-## Testing
-
-### Comprehensive Test Suite
-
-The application includes a comprehensive test suite that tests all API endpoints and user flows. To run the tests:
-
-```bash
-python tests/run_full_tests.py
-```
-
-### Test Logging
-
-To see detailed information about the API requests being made during tests, use the `--show-requests` flag:
-
-```bash
-python tests/run_full_tests.py --show-requests
-```
-
-Or use the provided convenience scripts:
-
-On Windows:
-```bash
-run_tests_with_logging.bat
-```
-
-On Linux/Mac:
-```bash
-./run_tests_with_logging.sh
-```
-
-This will display:
-- Formatted JSON data being sent in each request
-- HTTP method and URL for each API call
-- Headers included in each request
-- Complete request body
-
-This feature is particularly useful for:
-- Debugging API issues
-- Understanding the data flow
-- Verifying correct request formatting
-- Learning how the API works
-
-### Additional Test Options
-
-The test runner supports several command-line options:
-
-```bash
-python tests/run_full_tests.py --help
-```
-
-Options include:
-- `--api-url`: Specify a custom API URL
-- `--streamlit-url`: Specify a custom Streamlit URL
-- `--no-services`: Don't start or manage services (assumes they are already running)
-- `--no-cleanup`: Don't stop services after tests complete
-- `--wait-time`: Additional time to wait for services to fully initialize (seconds)
-- `--show-requests`: Show detailed HTTP request information
-
-## Troubleshooting
-
-### "No module named 'utils'" Error
-
-If you encounter the error "No module named 'utils'" when running the backend, it's likely a Python import path issue. Try the following solutions:
-
-1. Make sure you have `__init__.py` files in both the `backend/` and `backend/utils/` directories.
-2. Run the backend using the provided `run_backend.py` script at the root level.
-3. If running with uvicorn directly, use the module format:
-```bash
-python -m uvicorn backend.app:app --reload
-```
-
-### MongoDB Connection Issues
-
-If you're having trouble connecting to MongoDB:
-
-1. Ensure MongoDB is running on your system:
-```bash
-# Check MongoDB status on Linux/Mac
-sudo systemctl status mongodb
-
-# On Windows, check if the MongoDB service is running
-```
-
-2. Verify your MongoDB connection string in the `.env` file.
-
-3. Run the database initialization script:
+6. **Initialize database:**
 ```bash
 python backend/init_db.py
 ```
 
-### Embedding Generation Issues
+## 🏃‍♂️ Running the Application
 
-If you're having issues with embedding generation:
+### Complete Application (Backend + Frontend)
 
-1. Make sure Ollama is installed and running:
+**Streamlit Interface:**
 ```bash
-# Check if Ollama is running
-curl http://localhost:11434/api/tags
+python run_app.py
 ```
+- Backend API: http://localhost:8000
+- Streamlit UI: http://localhost:8501
 
-2. Verify that the Llama model is available in Ollama:
+**Next.js Interface:**
 ```bash
-ollama list
+python run_nextjs_app.py
 ```
+- Backend API: http://localhost:8000
+- Next.js UI: http://localhost:3000
 
-3. If not, pull the model:
+### Individual Services
+
+**Backend Only:**
 ```bash
-ollama pull llama3.2
+python run_backend.py
+```
+- API Documentation: http://localhost:8000/docs
+
+**Next.js Frontend Only:**
+```bash
+cd frontend/lnd-nexus
+npm run dev
+```
+- Development server: http://localhost:3000
+
+**Streamlit Frontend Only:**
+```bash
+streamlit run streamlit_app.py
+```
+- Streamlit app: http://localhost:8501
+
+## 🌐 Translation Features
+
+### Supported Languages
+- **English**: Primary language with full feature support
+- **Arabic**: Complete RTL layout with real-time translation
+
+### Translation Capabilities
+- **Page Translation**: Translate entire pages instantly
+- **Image OCR**: Extract and translate text from images
+- **Translation Memory**: Cache translations for improved performance
+- **Language Detection**: Automatic source language detection
+- **RTL Support**: Proper right-to-left layout for Arabic
+
+### Translation Services Setup
+
+**LibreTranslate (Docker):**
+```bash
+docker run -d --name libretranslate -p 5000:5000 libretranslate/libretranslate:latest
 ```
 
-## API Documentation
-
-Once the backend is running, you can access the API documentation at:
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc 
-
-# Job Recommender System Test Framework
-
-A comprehensive testing framework for the Job Recommender System API and Streamlit frontend.
-
-## Overview
-
-This testing framework provides end-to-end automated testing for the Job Recommender System, covering:
-
-- Employer and candidate registration and login flows
-- Job and project creation
-- Job applications and recommendations
-- Service management (automatic start/stop)
-- Diagnostic tools for debugging
-
-## Project Structure
-
-```
-├── tests/                   # Main testing directory
-│   ├── run_full_tests.py    # Main test runner
-│   └── test_suite/          # Test suite components
-│       ├── README.md        # Detailed documentation
-│       ├── test_api.py      # API wrapper
-│       ├── test_config.py   # Configuration and test data
-│       ├── test_flow.py     # Test flows
-│       └── test_services.py # Service management
-├── diagnostics/             # Diagnostic tools (not included in Git)
-└── api_collections/         # API collection files (not included in Git)
+**Verify Translation Service:**
+```bash
+python test/mongodb_tests/test_mongodb_setup.py
 ```
 
-## Features
+## 🧪 Testing
 
-- **Automated Service Management**: Automatically detects, starts, and stops the backend and frontend services
-- **Complete Test Flows**: Tests the entire application from registration to recommendations
-- **Robust Error Handling**: Provides detailed error reporting and diagnostics
-- **Flexible Configuration**: Supports command-line options for customization
-- **Real-time Reporting**: Uses Rich library for beautiful console output
+### Comprehensive Test Suite
 
-## Running Tests
-
-Run the full test suite with default settings:
-
+**Run All Tests:**
 ```bash
 python tests/run_full_tests.py
 ```
 
-### Command-line Options
-
+**Visual Demo:**
 ```bash
-python tests/run_full_tests.py --help
+python tests/visual_demo.py
 ```
 
-- `--api-url`: Custom API URL (default: http://localhost:8000)
-- `--streamlit-url`: Custom Streamlit URL (default: http://localhost:8501)
-- `--no-services`: Don't start or manage services
-- `--no-cleanup`: Don't stop services after tests complete
+**Test with Detailed Logging:**
+```bash
+python tests/run_full_tests.py --show-requests
+```
 
-## Notes and Workarounds
+### Test Organization
 
-- Employer registration doesn't return an ID, so we use a fallback ID for job creation
-- Complex candidate data can cause server errors, so simplified candidate data is used
+The project uses a well-organized test structure:
 
-## Contributing
+- `tests/` - Main test suite with comprehensive API and workflow tests
+- `test/translation_modules/` - Translation functionality tests
+- `test/mongodb_tests/` - Database connectivity tests
+- `test/temporary_files/` - Temporary and experimental test files
+- `backend/tests/` - Backend-specific unit tests
 
-Feel free to extend the test suite by adding more test cases to the test flows or creating specialized diagnostic tools for specific functionality. 
+### Test Features
+- **Automated Service Management**: Starts/stops services automatically
+- **Complete User Flows**: Tests registration, login, job creation, applications
+- **API Endpoint Testing**: Comprehensive API validation
+- **Visual Browser Testing**: Automated UI testing with Selenium
+- **Error Reporting**: Detailed error diagnostics and reporting
+
+## 🔧 Configuration
+
+### Environment Variables
+
+**Backend (.env):**
+```env
+MONGODB_URL=mongodb://localhost:27017
+DATABASE_NAME=job_recommender
+OLLAMA_API_BASE=http://localhost:11434
+OLLAMA_MODEL=llama3.2
+SECRET_KEY=your_secret_key_here
+LIBRETRANSLATE_URL=http://localhost:5000
+```
+
+**Frontend (.env.local):**
+```env
+NEXT_PUBLIC_LIBRETRANSLATE_URL=http://localhost:5000
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+### Service Ports
+- **Backend API**: 8000
+- **Streamlit**: 8501
+- **Next.js**: 3000
+- **MongoDB**: 27017
+- **Ollama**: 11434
+- **LibreTranslate**: 5000
+
+## 🛠️ Development
+
+### Adding New Features
+
+1. **Backend**: Add routes in `backend/routers/`
+2. **Frontend**: Add components in `frontend/lnd-nexus/app/components/`
+3. **Streamlit**: Add pages in `pages/`
+4. **Tests**: Add tests in appropriate `test/` subdirectories
+
+### Translation Development
+
+1. **Add Translation Functions**: Extend `frontend/lnd-nexus/app/lib/translate.ts`
+2. **Update Language Files**: Modify `frontend/lnd-nexus/app/locales/`
+3. **Test Translation**: Use `test/translation_modules/verify_translation_modules.py`
+
+### Database Development
+
+1. **Models**: Update `backend/utils/models.py`
+2. **Database Operations**: Extend `backend/utils/database.py`
+3. **Test Database**: Use `test/mongodb_tests/test_mongodb_setup.py`
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**Python Version Issues:**
+```bash
+# Verify Python 3.10 is installed
+python3.10 --version
+# or
+py -3.10 --version
+```
+
+**MongoDB Connection:**
+```bash
+# Test MongoDB connection
+python test/mongodb_tests/test_mongodb_setup.py
+```
+
+**Translation Modules Missing:**
+```bash
+# Fix translation modules
+python test/translation_modules/fix_translation_modules.py
+```
+
+**Ollama Not Running:**
+```bash
+# Start Ollama service
+ollama serve
+# Pull required model
+ollama pull llama3.2
+```
+
+**LibreTranslate Not Available:**
+```bash
+# Start LibreTranslate container
+docker run -d --name libretranslate -p 5000:5000 libretranslate/libretranslate:latest
+```
+
+### Service Management
+
+**Stop All Services:**
+```bash
+python stop_app.py
+```
+
+**Check Service Status:**
+```bash
+# Check if services are running
+curl http://localhost:8000/docs  # Backend
+curl http://localhost:3000       # Next.js
+curl http://localhost:8501       # Streamlit
+curl http://localhost:5000/languages  # LibreTranslate
+```
+
+## 📚 Documentation
+
+### Additional Documentation
+- [RUN_INSTRUCTIONS.md](RUN_INSTRUCTIONS.md) - Detailed running instructions
+- [LANGUAGE_SUPPORT.md](LANGUAGE_SUPPORT.md) - Language feature documentation
+- [NEXTJS_INTEGRATION.md](NEXTJS_INTEGRATION.md) - Next.js frontend details
+- [TRANSLATION_FEATURE.md](TRANSLATION_FEATURE.md) - Translation system details
+- [test/PROJECT_CLEANUP_REPORT.txt](test/PROJECT_CLEANUP_REPORT.txt) - Project organization
+
+### API Documentation
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new functionality
+4. Ensure all tests pass
+5. Update documentation
+6. Submit a pull request
+
+### Development Guidelines
+- Use Python 3.10 for all development
+- Add tests to appropriate `test/` subdirectories
+- Update translation files for new UI text
+- Follow existing code organization patterns
+- Document new features in README.md
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🆘 Support
+
+For support and questions:
+1. Check the troubleshooting section above
+2. Review the documentation in the `memory-bank/` directory
+3. Run the diagnostic scripts in `test/` directories
+4. Check the project cleanup report for file organization
+
+## 🔄 Version History
+
+- **Latest**: Multi-language support with real-time translation
+- **Previous**: AI-powered recommendations with vector embeddings
+- **Initial**: Basic job recommendation system
+
+---
+
+**Note**: This project requires Python 3.10 specifically for optimal compatibility with all dependencies and features. The automated setup script will detect and use Python 3.10 automatically. 

@@ -438,13 +438,60 @@ def create_virtual_environment():
             print_success("Using existing virtual environment.")
             return True
     
-    # Create virtual environment
-    result = run_command([sys.executable, "-m", "venv", VENV_DIR])
-    if result.returncode == 0:
-        print_success("Virtual environment created successfully.")
-        return True
-    else:
-        print_error("Failed to create virtual environment.")
+    # Try to find Python 3.10 executable
+    python_executables = [
+        "python3.10",
+        "python3.10.exe",
+        "py -3.10",
+        "python",  # fallback to current python
+        sys.executable  # final fallback
+    ]
+    
+    python_cmd = None
+    for cmd in python_executables:
+        try:
+            if cmd == "py -3.10":
+                # Special handling for Windows py launcher
+                result = run_command(["py", "-3.10", "--version"], check=False)
+            else:
+                result = run_command([cmd, "--version"], check=False)
+            
+            if result.returncode == 0:
+                version_output = result.stdout.strip()
+                if "Python 3.10" in version_output:
+                    python_cmd = cmd if cmd != "py -3.10" else ["py", "-3.10"]
+                    print_success(f"Found Python 3.10: {version_output}")
+                    break
+                elif "Python 3." in version_output:
+                    print_warning(f"Found {version_output}, but Python 3.10 is recommended")
+                    if python_cmd is None:  # Use as fallback
+                        python_cmd = cmd
+        except Exception:
+            continue
+    
+    if python_cmd is None:
+        print_error("Could not find a suitable Python executable.")
+        print("Please ensure Python 3.10 is installed and available in your PATH.")
+        print("You can download Python 3.10 from: https://www.python.org/downloads/")
+        return False
+    
+    # Create virtual environment with the found Python executable
+    try:
+        if isinstance(python_cmd, list):
+            # Handle py launcher case
+            cmd = python_cmd + ["-m", "venv", VENV_DIR]
+        else:
+            cmd = [python_cmd, "-m", "venv", VENV_DIR]
+        
+        result = run_command(cmd)
+        if result.returncode == 0:
+            print_success("Virtual environment created successfully with Python 3.10.")
+            return True
+        else:
+            print_error("Failed to create virtual environment.")
+            return False
+    except Exception as e:
+        print_error(f"Error creating virtual environment: {str(e)}")
         return False
 
 def install_dependencies():
