@@ -1,6 +1,7 @@
 // Translation utility functions for LibreTranslate integration
 
 const LIBRETRANSLATE_URL = process.env.NEXT_PUBLIC_LIBRETRANSLATE_URL || 'http://localhost:5000';
+const FALLBACK_MODE = process.env.NEXT_PUBLIC_TRANSLATION_FALLBACK_MODE === 'true';
 
 export interface TranslationResponse {
   translatedText: string;
@@ -16,15 +17,29 @@ export interface LanguageInfo {
  */
 export async function isTranslationAvailable(): Promise<boolean> {
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+    
     const response = await fetch(`${LIBRETRANSLATE_URL}/languages`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
+      signal: controller.signal,
     });
+    
+    clearTimeout(timeoutId);
     return response.ok;
   } catch (error) {
-    console.error('Translation service check failed:', error);
+    if (error instanceof Error) {
+      if (error.name === 'AbortError') {
+        console.warn('Translation service check timed out - service may not be running');
+      } else {
+        console.warn('Translation service not available:', error.message);
+      }
+    } else {
+      console.warn('Translation service not available:', String(error));
+    }
     return false;
   }
 }
@@ -38,6 +53,12 @@ export async function translateHtml(
   targetLanguage: string = 'ar'
 ): Promise<string> {
   if (!html || html.trim() === '') {
+    return html;
+  }
+
+  // Check if translation service is available first
+  if (FALLBACK_MODE || !(await isTranslationAvailable())) {
+    console.warn('Translation service not available, returning original HTML');
     return html;
   }
 
@@ -76,6 +97,12 @@ export async function translateText(
   targetLanguage: string = 'ar'
 ): Promise<string> {
   if (!text || text.trim() === '') {
+    return text;
+  }
+
+  // Check if translation service is available first
+  if (FALLBACK_MODE || !(await isTranslationAvailable())) {
+    console.warn('Translation service not available, returning original text');
     return text;
   }
 
