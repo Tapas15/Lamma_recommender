@@ -165,6 +165,263 @@ def is_libretranslate_running():
     except requests.exceptions.RequestException:
         return False
 
+def download_docker_windows():
+    """Download Docker Desktop installer for Windows"""
+    print("Downloading Docker Desktop for Windows...")
+    try:
+        # Create a temporary directory for the download
+        temp_dir = os.path.join(os.environ.get('TEMP', '.'), 'docker_setup')
+        os.makedirs(temp_dir, exist_ok=True)
+        
+        # Docker Desktop download URL for Windows
+        docker_url = "https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe"
+        installer_path = os.path.join(temp_dir, "Docker-Desktop-Installer.exe")
+        
+        print("This may take several minutes depending on your internet connection...")
+        with requests.get(docker_url, stream=True) as r:
+            r.raise_for_status()
+            total_size = int(r.headers.get('content-length', 0))
+            downloaded = 0
+            
+            with open(installer_path, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    if chunk:
+                        f.write(chunk)
+                        downloaded += len(chunk)
+                        if total_size > 0:
+                            percent = (downloaded / total_size) * 100
+                            print(f"\rDownloading: {percent:.1f}%", end="", flush=True)
+        
+        print("\n")
+        print_success("Docker Desktop installer downloaded successfully.")
+        print(f"Installer location: {installer_path}")
+        print("\nIMPORTANT: Docker Desktop requires:")
+        print("  - Windows 10 64-bit: Pro, Enterprise, or Education (Build 15063 or later)")
+        print("  - WSL 2 feature enabled")
+        print("  - Virtualization enabled in BIOS")
+        
+        # Ask if user wants to run the installer now
+        response = input("\nDo you want to run the Docker Desktop installer now? (y/n): ").lower()
+        if response == 'y':
+            print("Running Docker Desktop installer...")
+            print("Please follow the installation wizard and restart your computer if prompted.")
+            subprocess.Popen([installer_path])
+            print("\nAfter installation and restart:")
+            print("1. Start Docker Desktop")
+            print("2. Complete the initial setup")
+            print("3. Restart this setup script")
+            sys.exit(0)
+        else:
+            print("Please run the installer manually and then restart this setup script.")
+            print("After installation, make sure Docker Desktop is running before continuing.")
+            return False
+            
+    except Exception as e:
+        print_error(f"Failed to download Docker Desktop: {str(e)}")
+        print("Please download and install Docker Desktop manually from:")
+        print("https://www.docker.com/products/docker-desktop")
+        print("After installation, restart this setup script.")
+        return False
+
+def install_docker_linux():
+    """Install Docker on Linux"""
+    print("Installing Docker for Linux...")
+    try:
+        # Detect Linux distribution
+        try:
+            with open('/etc/os-release', 'r') as f:
+                os_info = f.read().lower()
+        except:
+            os_info = ""
+        
+        if 'ubuntu' in os_info or 'debian' in os_info:
+            print("Detected Ubuntu/Debian system. Installing Docker...")
+            
+            # Update package index
+            print("Updating package index...")
+            result = run_command(["sudo", "apt-get", "update"], check=False)
+            if result.returncode != 0:
+                print_warning("Failed to update package index, but continuing...")
+            
+            # Install prerequisites
+            print("Installing prerequisites...")
+            prereq_result = run_command([
+                "sudo", "apt-get", "install", "-y",
+                "ca-certificates", "curl", "gnupg", "lsb-release"
+            ], check=False)
+            
+            if prereq_result.returncode != 0:
+                print_warning("Failed to install some prerequisites, but continuing...")
+            
+            # Add Docker's official GPG key
+            print("Adding Docker's GPG key...")
+            run_command(["sudo", "mkdir", "-p", "/etc/apt/keyrings"], check=False)
+            
+            # Download and add GPG key
+            gpg_result = run_command([
+                "curl", "-fsSL", "https://download.docker.com/linux/ubuntu/gpg"
+            ], check=False)
+            
+            if gpg_result.returncode == 0:
+                # Add the repository
+                print("Adding Docker repository...")
+                repo_cmd = [
+                    "sudo", "sh", "-c",
+                    'echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list'
+                ]
+                run_command(repo_cmd, check=False)
+                
+                # Update package index again
+                print("Updating package index with Docker repository...")
+                run_command(["sudo", "apt-get", "update"], check=False)
+                
+                # Install Docker
+                print("Installing Docker Engine...")
+                install_result = run_command([
+                    "sudo", "apt-get", "install", "-y",
+                    "docker-ce", "docker-ce-cli", "containerd.io", "docker-compose-plugin"
+                ], check=False)
+                
+                if install_result.returncode == 0:
+                    print_success("Docker installed successfully.")
+                    
+                    # Start and enable Docker service
+                    print("Starting Docker service...")
+                    run_command(["sudo", "systemctl", "start", "docker"], check=False)
+                    run_command(["sudo", "systemctl", "enable", "docker"], check=False)
+                    
+                    # Add current user to docker group
+                    print("Adding current user to docker group...")
+                    username = os.environ.get('USER', 'user')
+                    run_command(["sudo", "usermod", "-aG", "docker", username], check=False)
+                    
+                    print_success("Docker installation completed.")
+                    print_warning("You may need to log out and log back in for group changes to take effect.")
+                    print_warning("Or run: newgrp docker")
+                    return True
+                else:
+                    print_error("Failed to install Docker packages.")
+                    return False
+            else:
+                print_error("Failed to add Docker GPG key.")
+                return False
+                
+        elif 'centos' in os_info or 'rhel' in os_info or 'fedora' in os_info:
+            print("Detected CentOS/RHEL/Fedora system. Installing Docker...")
+            
+            # Install using yum/dnf
+            package_manager = "dnf" if 'fedora' in os_info else "yum"
+            
+            # Install prerequisites
+            print("Installing prerequisites...")
+            run_command(["sudo", package_manager, "install", "-y", "yum-utils"], check=False)
+            
+            # Add Docker repository
+            print("Adding Docker repository...")
+            run_command([
+                "sudo", "yum-config-manager", "--add-repo",
+                "https://download.docker.com/linux/centos/docker-ce.repo"
+            ], check=False)
+            
+            # Install Docker
+            print("Installing Docker...")
+            install_result = run_command([
+                "sudo", package_manager, "install", "-y",
+                "docker-ce", "docker-ce-cli", "containerd.io", "docker-compose-plugin"
+            ], check=False)
+            
+            if install_result.returncode == 0:
+                print_success("Docker installed successfully.")
+                
+                # Start and enable Docker service
+                print("Starting Docker service...")
+                run_command(["sudo", "systemctl", "start", "docker"], check=False)
+                run_command(["sudo", "systemctl", "enable", "docker"], check=False)
+                
+                # Add current user to docker group
+                print("Adding current user to docker group...")
+                username = os.environ.get('USER', 'user')
+                run_command(["sudo", "usermod", "-aG", "docker", username], check=False)
+                
+                print_success("Docker installation completed.")
+                print_warning("You may need to log out and log back in for group changes to take effect.")
+                return True
+            else:
+                print_error("Failed to install Docker packages.")
+                return False
+        else:
+            print_warning("Unsupported Linux distribution for automatic Docker installation.")
+            print("Please install Docker manually using your distribution's package manager.")
+            print("Visit: https://docs.docker.com/engine/install/")
+            return False
+            
+    except Exception as e:
+        print_error(f"Failed to install Docker: {str(e)}")
+        print("Please install Docker manually using your distribution's package manager.")
+        print("Visit: https://docs.docker.com/engine/install/")
+        return False
+
+def start_docker_service():
+    """Start Docker service if it's not running"""
+    print("Starting Docker service...")
+    try:
+        if IS_LINUX:
+            # On Linux, try to start the Docker service
+            result = run_command(["sudo", "systemctl", "start", "docker"], check=False)
+            if result.returncode == 0:
+                print_success("Docker service started successfully.")
+                
+                # Wait for Docker to be ready
+                for _ in range(10):
+                    if is_docker_running():
+                        return True
+                    time.sleep(1)
+                
+                print_warning("Docker service started but may not be fully ready.")
+                return True
+            else:
+                print_warning("Failed to start Docker service.")
+                return False
+        else:
+            # On Windows/Mac, Docker Desktop needs to be started manually
+            print_warning("Please start Docker Desktop manually.")
+            print("Docker Desktop should be available in your system tray or applications.")
+            return False
+            
+    except Exception as e:
+        print_error(f"Failed to start Docker service: {str(e)}")
+        return False
+
+def pull_translation_images():
+    """Pull additional translation-related Docker images"""
+    print("Pulling additional translation images...")
+    
+    # List of useful translation and language processing images
+    translation_images = [
+        "libretranslate/libretranslate:latest",
+        "libretranslate/libretranslate:v1.3.11",  # Stable version
+    ]
+    
+    success_count = 0
+    for image in translation_images:
+        try:
+            print(f"Pulling {image}...")
+            result = run_command(["docker", "pull", image], check=False)
+            if result.returncode == 0:
+                print_success(f"Successfully pulled {image}")
+                success_count += 1
+            else:
+                print_warning(f"Failed to pull {image}")
+        except Exception as e:
+            print_warning(f"Error pulling {image}: {str(e)}")
+    
+    if success_count > 0:
+        print_success(f"Successfully pulled {success_count} translation images.")
+        return True
+    else:
+        print_warning("Failed to pull any translation images.")
+        return False
+
 def download_ollama_windows():
     """Download Ollama installer for Windows"""
     print("Downloading Ollama for Windows...")
@@ -345,81 +602,128 @@ def setup_libretranslate():
     # Check if Docker is installed
     if is_docker_installed():
         print_success("Docker is installed.")
+    else:
+        print_warning("Docker is not installed.")
+        print("LibreTranslate requires Docker to run. Attempting automatic installation...")
         
-        # Check if Docker is running
-        if is_docker_running():
-            print_success("Docker is running.")
-            
-            # Check if LibreTranslate is already running
-            if is_libretranslate_running():
-                print_success("LibreTranslate is already running.")
-                return True
-            
-            # Pull and run LibreTranslate Docker image
-            print("Pulling LibreTranslate Docker image (this might take a while)...")
-            try:
-                # Pull the image
-                pull_result = run_command(["docker", "pull", LIBRETRANSLATE_DOCKER_IMAGE], check=False)
-                if pull_result.returncode != 0:
-                    print_warning("Failed to pull LibreTranslate Docker image.")
-                    print_warning("You can pull it manually later with:")
-                    print(f"  docker pull {LIBRETRANSLATE_DOCKER_IMAGE}")
-                else:
-                    print_success("LibreTranslate Docker image pulled successfully.")
-                
-                # Check if container with the same name is already running
-                check_result = run_command(["docker", "ps", "-q", "--filter", "name=libretranslate"], check=False)
-                if check_result.stdout.strip():
-                    print_warning("A container named 'libretranslate' is already running.")
-                    print_warning("Using the existing container.")
-                    return True
-                
-                # Run the container
-                print("Starting LibreTranslate container...")
-                run_result = run_command([
-                    "docker", "run", "-d",
-                    "--name", "libretranslate",
-                    "-p", f"{LIBRETRANSLATE_PORT}:{LIBRETRANSLATE_PORT}",
-                    LIBRETRANSLATE_DOCKER_IMAGE
-                ], check=False)
-                
-                if run_result.returncode != 0:
-                    print_warning("Failed to start LibreTranslate container.")
-                    print_warning("You can start it manually later with:")
-                    print(f"  docker run -d --name libretranslate -p {LIBRETRANSLATE_PORT}:{LIBRETRANSLATE_PORT} {LIBRETRANSLATE_DOCKER_IMAGE}")
-                    return False
-                
-                print_success("LibreTranslate container started successfully.")
-                
-                # Wait for service to start
-                print("Waiting for LibreTranslate service to start...")
-                for _ in range(10):
-                    if is_libretranslate_running():
-                        print_success("LibreTranslate service is running.")
-                        return True
-                    time.sleep(1)
-                
-                print_warning("LibreTranslate service might not have started properly.")
-                print_warning("You can check its status with:")
-                print("  docker logs libretranslate")
+        if IS_WINDOWS:
+            print("Attempting to download Docker Desktop for Windows...")
+            if not download_docker_windows():
+                print_warning("Automatic Docker installation failed.")
+                print_warning("Please install Docker Desktop manually from:")
+                print_warning("https://www.docker.com/products/docker-desktop")
+                print_warning("Continuing setup without LibreTranslate.")
                 return False
-                
-            except Exception as e:
-                print_warning(f"Error setting up LibreTranslate: {str(e)}")
+            # If download_docker_windows() succeeds, it will exit the script for manual installation
+        elif IS_LINUX:
+            print("Attempting to install Docker for Linux...")
+            if not install_docker_linux():
+                print_warning("Automatic Docker installation failed.")
+                print_warning("Please install Docker manually using your distribution's package manager.")
+                print_warning("Visit: https://docs.docker.com/engine/install/")
+                print_warning("Continuing setup without LibreTranslate.")
+                return False
+            else:
+                print_success("Docker installed successfully.")
+        else:  # macOS
+            print_warning("Automatic Docker installation not supported on macOS.")
+            print_warning("Please install Docker Desktop manually from:")
+            print_warning("https://www.docker.com/products/docker-desktop")
+            print_warning("Continuing setup without LibreTranslate.")
+            return False
+    
+    # Check if Docker is running
+    if is_docker_running():
+        print_success("Docker is running.")
+    else:
+        print_warning("Docker is installed but not running.")
+        
+        # Try to start Docker service on Linux
+        if IS_LINUX:
+            print("Attempting to start Docker service...")
+            if start_docker_service():
+                print_success("Docker service started.")
+            else:
+                print_warning("Failed to start Docker service.")
+                print_warning("Please start Docker manually and then run:")
+                print(f"  docker run -d --name libretranslate -p {LIBRETRANSLATE_PORT}:{LIBRETRANSLATE_PORT} {LIBRETRANSLATE_DOCKER_IMAGE}")
                 print_warning("Continuing setup without LibreTranslate.")
                 return False
         else:
-            print_warning("Docker is installed but not running.")
-            print_warning("Please start Docker and then run:")
+            print_warning("Please start Docker Desktop and then run:")
             print(f"  docker run -d --name libretranslate -p {LIBRETRANSLATE_PORT}:{LIBRETRANSLATE_PORT} {LIBRETRANSLATE_DOCKER_IMAGE}")
             print_warning("Continuing setup without LibreTranslate.")
             return False
-    else:
-        print_warning("Docker is not installed.")
-        print_warning("LibreTranslate requires Docker to run.")
-        print_warning("Please install Docker from https://www.docker.com/products/docker-desktop")
-        print_warning("After installing Docker, you can run LibreTranslate with:")
-        print(f"  docker run -d --name libretranslate -p {LIBRETRANSLATE_PORT}:{LIBRETRANSLATE_PORT} {LIBRETRANSLATE_DOCKER_IMAGE}")
+    
+    # Check if LibreTranslate is already running
+    if is_libretranslate_running():
+        print_success("LibreTranslate is already running.")
+        return True
+    
+    # Pull translation images
+    print("Pulling translation Docker images (this might take a while)...")
+    try:
+        # Pull additional translation images
+        pull_translation_images()
+        
+        # Check if container with the same name is already running
+        check_result = run_command(["docker", "ps", "-q", "--filter", "name=libretranslate"], check=False)
+        if check_result.stdout.strip():
+            print_warning("A container named 'libretranslate' is already running.")
+            print_warning("Using the existing container.")
+            return True
+        
+        # Check if container exists but is stopped
+        check_stopped = run_command(["docker", "ps", "-aq", "--filter", "name=libretranslate"], check=False)
+        if check_stopped.stdout.strip():
+            print("Found existing LibreTranslate container. Starting it...")
+            start_result = run_command(["docker", "start", "libretranslate"], check=False)
+            if start_result.returncode == 0:
+                print_success("Existing LibreTranslate container started successfully.")
+            else:
+                print_warning("Failed to start existing container. Creating a new one...")
+                # Remove the old container
+                run_command(["docker", "rm", "libretranslate"], check=False)
+        
+        # Run the container with additional options for better performance
+        print("Starting LibreTranslate container...")
+        run_result = run_command([
+            "docker", "run", "-d",
+            "--name", "libretranslate",
+            "-p", f"{LIBRETRANSLATE_PORT}:{LIBRETRANSLATE_PORT}",
+            "--restart", "unless-stopped",  # Auto-restart policy
+            "-e", "LT_DISABLE_WEB_UI=false",  # Enable web UI
+            "-e", "LT_UPDATE_MODELS=true",    # Auto-update models
+            LIBRETRANSLATE_DOCKER_IMAGE
+        ], check=False)
+        
+        if run_result.returncode != 0:
+            print_warning("Failed to start LibreTranslate container.")
+            print_warning("You can start it manually later with:")
+            print(f"  docker run -d --name libretranslate -p {LIBRETRANSLATE_PORT}:{LIBRETRANSLATE_PORT} {LIBRETRANSLATE_DOCKER_IMAGE}")
+            return False
+        
+        print_success("LibreTranslate container started successfully.")
+        
+        # Wait for service to start
+        print("Waiting for LibreTranslate service to start...")
+        for i in range(30):  # Increased timeout to 30 seconds
+            if is_libretranslate_running():
+                print_success("LibreTranslate service is running.")
+                print(f"LibreTranslate web interface available at: http://localhost:{LIBRETRANSLATE_PORT}")
+                return True
+            time.sleep(1)
+            if i % 5 == 0:  # Show progress every 5 seconds
+                print(f"Still waiting... ({i}/30 seconds)")
+        
+        print_warning("LibreTranslate service might not have started properly.")
+        print_warning("You can check its status with:")
+        print("  docker logs libretranslate")
+        print_warning("The service might still be initializing. Please wait a few more minutes.")
+        return False
+        
+    except Exception as e:
+        print_warning(f"Error setting up LibreTranslate: {str(e)}")
         print_warning("Continuing setup without LibreTranslate.")
         return False
 
@@ -1136,6 +1440,15 @@ def print_completion_message():
     if os.path.exists(frontend_path):
         print(f"  - Next.js Frontend: {Colors.BLUE}http://localhost:3000{Colors.ENDC}")
     print(f"  - LibreTranslate API: {Colors.BLUE}http://localhost:5000{Colors.ENDC}")
+    print(f"  - LibreTranslate Web UI: {Colors.BLUE}http://localhost:5000{Colors.ENDC}")
+    
+    print("\nDocker and Translation Services:")
+    print(f"  - Docker installation is handled automatically for Windows and Linux")
+    print(f"  - LibreTranslate container is configured with auto-restart policy")
+    print(f"  - Translation models are automatically updated")
+    print(f"  - To check LibreTranslate status: {Colors.BOLD}docker logs libretranslate{Colors.ENDC}")
+    print(f"  - To restart LibreTranslate: {Colors.BOLD}docker restart libretranslate{Colors.ENDC}")
+    print(f"  - To stop LibreTranslate: {Colors.BOLD}docker stop libretranslate{Colors.ENDC}")
     
     # Add language support information
     print("\nLanguage Support:")
