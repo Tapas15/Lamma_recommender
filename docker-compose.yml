@@ -1,0 +1,131 @@
+version: '3.8'
+
+services:
+  # Main Job Recommender Application
+  job-recommender:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"      # Nginx reverse proxy
+      - "3000:3000"  # Next.js frontend (direct access)
+      - "8000:8000"  # FastAPI backend (direct access)
+    environment:
+      - MONGODB_URL=mongodb://mongodb:27017
+      - DATABASE_NAME=job_recommender
+      - LIBRETRANSLATE_URL=http://libretranslate:5000
+      - OLLAMA_API_BASE=http://ollama:11434
+      - OLLAMA_MODEL=llama3.2
+      - SECRET_KEY=your-production-secret-key-here
+    volumes:
+      - app_logs:/app/logs
+      - app_data:/app/data
+    depends_on:
+      - mongodb
+      - libretranslate
+      - ollama
+    restart: unless-stopped
+    networks:
+      - job-recommender-network
+
+  # MongoDB Database
+  mongodb:
+    image: mongo:7.0
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password123
+      - MONGO_INITDB_DATABASE=job_recommender
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+      - ./docker/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    restart: unless-stopped
+    networks:
+      - job-recommender-network
+
+  # LibreTranslate Service
+  libretranslate:
+    image: libretranslate/libretranslate:latest
+    ports:
+      - "5000:5000"
+    environment:
+      - LT_DISABLE_WEB_UI=false
+      - LT_UPDATE_MODELS=true
+      - LT_THREADS=4
+      - LT_CHAR_LIMIT=5000
+    volumes:
+      - libretranslate_data:/app/db
+    restart: unless-stopped
+    networks:
+      - job-recommender-network
+
+  # Ollama Service
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    networks:
+      - job-recommender-network
+    # GPU support (uncomment if you have NVIDIA GPU)
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  # Redis for caching (optional)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - job-recommender-network
+    command: redis-server --appendonly yes
+
+  # Nginx Load Balancer (for scaling)
+  nginx-lb:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./docker/nginx-lb.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - job-recommender
+    restart: unless-stopped
+    networks:
+      - job-recommender-network
+
+volumes:
+  mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local
+  libretranslate_data:
+    driver: local
+  ollama_data:
+    driver: local
+  redis_data:
+    driver: local
+  app_logs:
+    driver: local
+  app_data:
+    driver: local
+
+networks:
+  job-recommender-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16 
