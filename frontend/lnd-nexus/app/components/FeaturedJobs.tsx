@@ -165,11 +165,11 @@ export default function FeaturedJobs() {
         </div>
 
         {jobs.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {jobs.map((job) => (
               <JobCard key={job.id} job={transformJobData(job)} />
-            ))}
-          </div>
+          ))}
+        </div>
         ) : (
           <div className="text-center py-12">
             <p className="text-slate-600 mb-4">No featured jobs available at the moment.</p>

@@ -5,22 +5,28 @@ import Link from "next/link";
 
 interface ProfessionalCardProps {
   professional: {
-    id: string;
+  id: string;
     full_name: string;
     bio?: string;
     location?: string;
-    experience_years?: number;
+    experience_years?: number | string;
     skills?: {
       languages_frameworks?: string[];
       ai_ml_data?: string[];
       tools_platforms?: string[];
+      tools?: string[];
       soft_skills?: string[];
     };
     education?: any[];
     experience?: any[];
     availability?: string;
     profile_views?: number;
-    job_search_status?: string;
+    job_search_status?: string | {
+      currently_looking?: boolean;
+      available_from?: string;
+      desired_job_titles?: string[];
+      preferred_employment_type?: string[];
+    };
   };
 }
 
@@ -32,6 +38,7 @@ export default function ProfessionalCard({ professional }: ProfessionalCardProps
       if (professional.skills.languages_frameworks) allSkills.push(...professional.skills.languages_frameworks);
       if (professional.skills.ai_ml_data) allSkills.push(...professional.skills.ai_ml_data);
       if (professional.skills.tools_platforms) allSkills.push(...professional.skills.tools_platforms);
+      if (professional.skills.tools) allSkills.push(...professional.skills.tools);
       if (professional.skills.soft_skills) allSkills.push(...professional.skills.soft_skills);
     }
     return allSkills.slice(0, 4); // Show top 4 skills
@@ -44,7 +51,7 @@ export default function ProfessionalCard({ professional }: ProfessionalCardProps
     if (professional.experience && professional.experience.length > 0) {
       const latest = professional.experience[0];
       return latest.title || latest.position || "L&D Professional";
-    }
+}
     return "L&D Professional";
   };
 
@@ -57,15 +64,26 @@ export default function ProfessionalCard({ professional }: ProfessionalCardProps
     return "Qualified Professional";
   };
 
-  const formatExperience = (years?: number) => {
+  const formatExperience = (years?: number | string) => {
     if (!years) return "Entry Level";
-    if (years === 1) return "1 year";
-    if (years < 5) return `${years} years`;
-    if (years < 10) return `${years}+ years`;
+    
+    // Convert string to number if needed
+    const numYears = typeof years === 'string' ? parseInt(years) || 0 : years;
+    
+    if (numYears === 1) return "1 year";
+    if (numYears < 5) return `${numYears} years`;
+    if (numYears < 10) return `${numYears}+ years`;
     return "Senior Level";
   };
 
   const getAvailabilityStatus = () => {
+    // Handle complex job_search_status object
+    if (typeof professional.job_search_status === 'object' && professional.job_search_status) {
+      if (professional.job_search_status.currently_looking) return "Available";
+      return "Open to offers";
+    }
+    
+    // Handle simple string status
     if (professional.job_search_status === "actively_looking") return "Available";
     if (professional.job_search_status === "open_to_opportunities") return "Open to offers";
     if (professional.availability === "available") return "Available";
@@ -85,11 +103,11 @@ export default function ProfessionalCard({ professional }: ProfessionalCardProps
         <div className="flex items-center space-x-3">
           <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
             {professional.full_name?.charAt(0)?.toUpperCase() || "P"}
-          </div>
+        </div>
           <div>
             <h3 className="text-lg font-semibold text-slate-900 mb-1">
               {professional.full_name || "Professional"}
-            </h3>
+          </h3>
             <p className="text-sm text-slate-600">{getLatestRole()}</p>
           </div>
         </div>
@@ -149,13 +167,13 @@ export default function ProfessionalCard({ professional }: ProfessionalCardProps
       )}
 
       {/* Actions */}
-      <div className="flex space-x-3">
+        <div className="flex space-x-3">
         <Link
           href={`/professionals/${professional.id}`}
           className="flex-1 bg-blue-600 text-white text-center py-2 px-4 rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
         >
-          View Profile
-        </Link>
+              View Profile
+            </Link>
         <button className="flex-1 border border-slate-300 text-slate-700 py-2 px-4 rounded-md hover:bg-slate-50 transition-colors text-sm font-medium">
           Contact
         </button>

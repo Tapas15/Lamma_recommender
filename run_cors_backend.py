@@ -36,7 +36,7 @@ def create_cors_startup_script():
 # It applies CORS middleware to the FastAPI app on startup
 
 from fastapi.middleware.cors import CORSMiddleware
-from backend.app import app
+from backend.app_with_candidates import app
 
 # Add CORS middleware
 app.add_middleware(
@@ -61,21 +61,23 @@ def run_backend_with_cors(reload_mode=True):
             os.environ['PYTHONIOENCODING'] = 'utf-8'
             
         print("Starting Job Recommender API backend with CORS middleware...")
+        print("Using enhanced backend (backend/app_with_candidates.py) with all APIs + working candidates endpoint...")
         
         # Create the CORS startup script
         if not create_cors_startup_script():
             print("Failed to create CORS startup script. Running without CORS middleware.")
             # Run without CORS middleware as fallback
-            uvicorn.run("backend.app:app", host="0.0.0.0", port=8000, reload=reload_mode, log_level="info")
+            uvicorn.run("backend.app_with_candidates:app", host="0.0.0.0", port=8000, reload=reload_mode, log_level="info")
             return
             
         # Use import string format for reload mode
         # The startup script will be executed when the app is loaded
         uvicorn.run("backend.cors_startup:app", host="0.0.0.0", port=8000, reload=reload_mode, log_level="info")
+        
     except KeyboardInterrupt:
         print("Backend process terminated by user")
     except Exception as e:
-        print(f"Error running backend: {str(e)}")
+        print(f"Error running enhanced backend: {str(e)}")
         print("Trying to run without reload mode...")
         try:
             # Try again without reload mode

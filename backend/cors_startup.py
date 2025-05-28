@@ -3,7 +3,7 @@
 # It applies CORS middleware to the FastAPI app on startup
 
 from fastapi.middleware.cors import CORSMiddleware
-from backend.app import app
+from backend.app_with_candidates import app
 
 # Add CORS middleware
 app.add_middleware(

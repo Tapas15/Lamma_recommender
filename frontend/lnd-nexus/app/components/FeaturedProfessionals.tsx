@@ -39,11 +39,11 @@ export default function FeaturedProfessionals() {
           // API failed or returned empty, use fallback data
           console.log('FeaturedProfessionals: No data from API, using fallback data');
           setProfessionals([
-            {
-              id: "1",
+  {
+    id: "1",
               full_name: "Sarah Johnson",
               bio: "Experienced L&D professional specializing in digital transformation and employee development programs.",
-              location: "New York, NY",
+    location: "New York, NY",
               experience_years: 8,
               skills: {
                 languages_frameworks: ["JavaScript", "Python"],
@@ -56,12 +56,12 @@ export default function FeaturedProfessionals() {
               availability: "available",
               profile_views: 156,
               job_search_status: "open_to_opportunities"
-            },
-            {
-              id: "2",
+  },
+  {
+    id: "2",
               full_name: "Michael Chen",
               bio: "Corporate trainer and instructional designer with expertise in creating engaging learning experiences.",
-              location: "San Francisco, CA",
+    location: "San Francisco, CA",
               experience_years: 6,
               skills: {
                 languages_frameworks: ["React", "Node.js"],
@@ -218,8 +218,8 @@ export default function FeaturedProfessionals() {
               Connect with top Learning & Development professionals ready to drive your organization's growth.
             </p>
           </div>
-          <Link 
-            href="/professionals" 
+          <Link
+            href="/professionals"
             className="hidden md:flex items-center text-blue-600 hover:text-blue-700 font-medium"
           >
             View all
@@ -231,8 +231,8 @@ export default function FeaturedProfessionals() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {professionals.map((professional) => (
               <ProfessionalCard key={professional.id} professional={professional} />
-            ))}
-          </div>
+          ))}
+        </div>
         ) : (
           <div className="text-center py-12">
             <p className="text-slate-600 mb-4">No featured professionals available at the moment.</p>
@@ -247,8 +247,8 @@ export default function FeaturedProfessionals() {
         )}
 
         <div className="mt-8 text-center md:hidden">
-          <Link 
-            href="/professionals" 
+          <Link
+            href="/professionals"
             className="text-blue-600 hover:text-blue-700 font-medium inline-flex items-center"
           >
             View all
