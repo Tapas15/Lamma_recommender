@@ -27,14 +27,60 @@ export default function FeaturedProfessionals() {
         console.log('Window location:', typeof window !== 'undefined' ? window.location.href : 'SSR');
         
         const candidatesData = await candidatesApi.getCandidatesPublic();
-        console.log('FeaturedProfessionals: API call successful, received data:', candidatesData);
+        console.log('FeaturedProfessionals: API call completed, received data:', candidatesData);
         
-        // Take only the first 2 candidates for featured section
-        setProfessionals(candidatesData.slice(0, 2));
-        setError(null);
-        console.log('FeaturedProfessionals: Set professionals state with', candidatesData.slice(0, 2).length, 'items');
+        // Check if we got real data or empty array (which means API failed)
+        if (candidatesData && candidatesData.length > 0) {
+          // Take only the first 2 candidates for featured section
+          setProfessionals(candidatesData.slice(0, 2));
+          setError(null);
+          console.log('FeaturedProfessionals: Using real data with', candidatesData.slice(0, 2).length, 'items');
+        } else {
+          // API failed or returned empty, use fallback data
+          console.log('FeaturedProfessionals: No data from API, using fallback data');
+          setProfessionals([
+            {
+              id: "1",
+              full_name: "Sarah Johnson",
+              bio: "Experienced L&D professional specializing in digital transformation and employee development programs.",
+              location: "New York, NY",
+              experience_years: 8,
+              skills: {
+                languages_frameworks: ["JavaScript", "Python"],
+                ai_ml_data: ["Machine Learning", "Data Analysis"],
+                tools_platforms: ["LMS", "Articulate", "Adobe Captivate"],
+                soft_skills: ["Leadership", "Communication", "Project Management"]
+              },
+              education: [{ degree: "Master's in Education Technology" }],
+              experience: [{ title: "Senior L&D Manager" }],
+              availability: "available",
+              profile_views: 156,
+              job_search_status: "open_to_opportunities"
+            },
+            {
+              id: "2",
+              full_name: "Michael Chen",
+              bio: "Corporate trainer and instructional designer with expertise in creating engaging learning experiences.",
+              location: "San Francisco, CA",
+              experience_years: 6,
+              skills: {
+                languages_frameworks: ["React", "Node.js"],
+                ai_ml_data: ["Learning Analytics"],
+                tools_platforms: ["Moodle", "Canvas", "Zoom"],
+                soft_skills: ["Training", "Curriculum Design", "Team Building"]
+              },
+              education: [{ degree: "Bachelor's in Instructional Design" }],
+              experience: [{ title: "Instructional Designer" }],
+              availability: "available",
+              profile_views: 89,
+              job_search_status: "actively_looking"
+            }
+          ]);
+          setError(null);
+        }
       } catch (err: any) {
-        console.log('FeaturedProfessionals: API call failed, using fallback data');
+        // This should never happen now since API doesn't throw errors
+        console.log('FeaturedProfessionals: Unexpected error, using fallback data');
         console.error('Error details:', err);
         
         // Always use fallback data and don't show error to users
