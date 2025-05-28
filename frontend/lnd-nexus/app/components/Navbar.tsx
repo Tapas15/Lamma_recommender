@@ -7,6 +7,7 @@ import {
   Home,
   Users,
   Briefcase,
+  FolderOpen,
   BookOpen,
   MessageSquare,
   LogOut,
@@ -83,6 +84,15 @@ export default function Navbar() {
                   >
                     <Briefcase className="h-4 w-4 mr-1.5 text-slate-500" />
                     {t('nav.jobs')}
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/projects"
+                    className="flex items-center px-3 py-2 rounded-md text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition-colors"
+                  >
+                    <FolderOpen className="h-4 w-4 mr-1.5 text-slate-500" />
+                    {t('nav.projects')}
                   </Link>
                 </li>
                 <li>
@@ -201,6 +211,15 @@ export default function Navbar() {
                 >
                   <Briefcase className="h-5 w-5 mr-3 text-slate-500" />
                   {t('nav.jobs')}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/projects"
+                  className="flex items-center px-3 py-2.5 rounded-md text-slate-700 hover:text-blue-600 hover:bg-slate-50"
+                >
+                  <FolderOpen className="h-5 w-5 mr-3 text-slate-500" />
+                  {t('nav.projects')}
                 </Link>
               </li>
               <li>

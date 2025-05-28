@@ -1,35 +1,5 @@
 # Cursor Rules - Project Intelligence
 
-## MANDATORY: Memory Bank Analysis Protocol
-
-**BEFORE ANY TASK EXECUTION, I MUST:**
-1. **Read memory-bank/ folder completely** - ALL files in order:
-   - projectbrief.md (foundation)
-   - productContext.md (user goals) 
-   - activeContext.md (current focus)
-   - systemPatterns.md (architecture)
-   - techContext.md (technologies)
-   - progress.md (status)
-   - Any additional context files
-2. **Analyze existing codebase** for current implementation
-3. **Review .cursorrules** for project patterns
-4. **Only then execute** the requested task
-
-This ensures complete context, prevents code duplication, and maintains consistency with established patterns.
-
-## Project Overview
-
-This is a comprehensive **Job Recommendation System** with:
-- **FastAPI backend** with RESTful APIs and JWT authentication
-- **Dual frontend**: Streamlit (testing/debugging) + Next.js (production)
-- **MongoDB database** for flexible data storage
-- **Ollama embeddings** for semantic matching (llama3.2 model)
-- **Vector-based recommendations** using semantic similarity
-- **Advanced analytics** and feedback collection system
-- **Comprehensive testing framework** with demo data generation
-
-**Current Focus**: API enhancements, testing infrastructure, performance optimization, and analytics dashboard development.
-
 ## Project Patterns
 
 ### Architecture Patterns
@@ -69,49 +39,28 @@ This is a comprehensive **Job Recommendation System** with:
 
 ## Project Intelligence
 
-### Current Development Status
-- **API Development**: Enhanced with advanced filtering, market trends, feedback collection, and skill clustering
-- **Testing Infrastructure**: Comprehensive demo data generation and test scripts implemented
-- **Performance Focus**: Caching strategies and vector search optimization in progress
-- **Frontend Development**: Streamlit complete (100%), Next.js in progress (65%)
-- **Authentication**: JWT implementation 80% complete, refresh tokens pending
-- **Database Integration**: MongoDB integration 85% complete with vector indexing
-
-### Recent Major Achievements
-- **Demo Data Generation**: Realistic candidate, employer, and job/project creation scripts
-- **Advanced API Endpoints**: Market trends prediction, recommendation feedback, skill clusters analysis
-- **Enhanced Filtering**: Experience, education, location, availability, and remote work preferences
-- **Testing Framework**: Visual demonstrations, performance testing, and comprehensive API validation
-- **Import Path Fixes**: Resolved backend startup issues with relative imports
-- **Setup Script Improvements**: Better Unicode handling and error management
-
 ### Critical Implementation Paths
-- **Vector Embeddings Pipeline**: Ollama → MongoDB → Semantic Search → Recommendations
-- **Authentication Flow**: Registration → JWT → Token Validation → API Access
-- **Recommendation Engine**: Profile Analysis → Vector Matching → Filtering → Ranking → Feedback Loop
-- **Testing Workflow**: Demo Data → API Testing → Performance Validation → Issue Resolution
-- **Analytics Pipeline**: User Actions → Feedback Collection → Performance Metrics → Insights
+- Authentication flow
+- Profile management
+- Job posting system
+- Recommendation engine using vector embeddings
+- Skill gap analysis
+- Feedback collection and analysis
+- Skill relationship modeling
 
-### Active Development Areas
-- **Performance Optimization**: Vector search speed, caching implementation, response times
-- **Analytics Dashboard**: Recommendation performance metrics, user engagement tracking
-- **A/B Testing Framework**: Algorithm comparison and improvement validation
-- **Frontend Enhancement**: Next.js production interface, responsive design, cross-browser compatibility
-- **Scalability Improvements**: Horizontal scaling, batch processing, monitoring systems
+### Known Challenges
+- MongoDB connection stability
+- Embedding generation performance
+- Memory usage optimization
+- Complex user flows
+- Import path management
+- Authentication token handling for testing
 
-### Known Technical Challenges
-- **MongoDB Connection Stability**: Intermittent connection issues in certain scenarios
-- **Vector Search Performance**: Optimization needed for large datasets
-- **Memory Usage**: Embedding generation and storage optimization required
-- **Caching Strategy**: Implementation of effective caching for frequently accessed data
-- **Cross-Platform Compatibility**: Ensuring consistent behavior across different environments
-
-### Testing Patterns
-- **Demo Data Generation**: Faker library for realistic test data creation
-- **API Validation**: JWT authentication testing with comprehensive endpoint coverage
-- **Visual Demonstrations**: Streamlit-based workflow testing and validation
-- **Performance Testing**: Response time monitoring and optimization validation
-- **Mock Testing**: Isolated component testing with simulated data
+### Tool Usage
+- Virtual environment for dependency management
+- Platform-independent setup scripts
+- Automated testing framework
+- Batch files for service management
 
 ## User Preferences
 - Modular code organization
@@ -156,49 +105,4 @@ This is a comprehensive **Job Recommendation System** with:
 - Growth rate and market demand calculation
 - Parameterized endpoint with confidence thresholds
 - Detailed cluster statistics and metadata
-- Comprehensive documentation with examples
-
-## Project Structure Intelligence
-
-### Key Directories
-- **`backend/`**: FastAPI application with routes, models, services, and utilities
-- **`pages/`**: Streamlit frontend pages for testing and debugging interface
-- **`utils/`**: Shared utility functions for both frontend and backend
-- **`tests/`**: Comprehensive testing framework with demo data generation
-- **`memory-bank/`**: Project documentation and context (ALWAYS READ FIRST)
-- **`frontend/`**: Next.js production frontend (in development)
-- **`docker/`**: Containerization configuration for deployment
-
-### Critical Files
-- **`streamlit_app.py`**: Main Streamlit application entry point (26KB, 531 lines)
-- **`app.py`**: Core application logic (117KB, 3109 lines) - MASSIVE FILE
-- **`setup.py`**: Comprehensive setup script (71KB, 1593 lines) - CRITICAL FOR ENVIRONMENT
-- **`requirements.txt`**: Python dependencies (27 packages)
-- **`docker-compose.yml`**: Multi-service deployment configuration
-- **`.cursorrules`**: This file - project intelligence and patterns
-
-### Test Scripts (in `tests/` directory)
-- **Demo Data Generation**: `create_demo_candidates.py`, `create_demo_employers.py`, `create_demo_jobs_projects.py`
-- **API Testing**: `test_endpoint.py`, `test_recommendation_system.py`, `test_market_trends.py`
-- **Performance Testing**: `test_performance.py`, `check_all_embeddings.py`
-- **Workflow Testing**: `visual_workflow_test.py`, `complete_workflow_test.py`
-
-### Service Management Scripts
-- **`start_services.py/.bat`**: Automated service startup
-- **`run_backend.py/.bat`**: Backend server management
-- **`run_app.py/.bat`**: Frontend application management
-- **`stop_app.py`**: Graceful service shutdown
-- **`manage_app.bat/.sh`**: Cross-platform application management
-
-### Documentation Files
-- **`README.md`**: Main project documentation (14KB, 432 lines)
-- **`STARTUP_GUIDE.md`**: Quick start instructions
-- **`RUN_INSTRUCTIONS.md`**: Detailed execution guide
-- **`DOCKER_DEPLOYMENT.md`**: Containerization guide
-- **`NEXTJS_INTEGRATION.md`**: Frontend integration documentation
-
-### Database and ML Components
-- **`init_db.py`**: Database initialization and setup
-- **Ollama Integration**: Local embedding generation using llama3.2 model
-- **MongoDB Collections**: users, jobs, projects, applications, skills, embeddings, feedback, analytics
-- **Vector Indexing**: Semantic search capabilities with performance optimization 
+- Comprehensive documentation with examples 

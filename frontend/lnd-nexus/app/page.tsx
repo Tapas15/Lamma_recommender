@@ -2,6 +2,7 @@ import Hero from "./components/Hero";
 import HowItWorks from "./components/HowItWorks";
 import FeaturedProfessionals from "./components/FeaturedProfessionals";
 import FeaturedJobs from "./components/FeaturedJobs";
+import FeaturedProjects from "./components/FeaturedProjects";
 import ResourceHub from "./components/ResourceHub";
 import Testimonials from "./components/Testimonials";
 import Pricing from "./components/Pricing";
@@ -14,6 +15,7 @@ export default function Home() {
       <HowItWorks />
       <FeaturedProfessionals />
       <FeaturedJobs />
+      <FeaturedProjects />
       <ResourceHub />
       <Testimonials />
       <Pricing />
