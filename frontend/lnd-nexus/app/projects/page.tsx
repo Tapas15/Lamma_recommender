@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -12,238 +12,231 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { Checkbox } from "../components/ui/checkbox";
-import { Search, Filter, FolderOpen, Calendar, Users } from "lucide-react";
-import { useI18n } from "../providers/i18n-provider";
-
-// Mock data for projects
-const MOCK_PROJECTS = [
-  {
-    id: "1",
-    title: "Digital Learning Platform Development",
-    clientName: "TechCorp Solutions",
-    clientLogo: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&auto=format&fit=crop",
-    location: "Remote",
-    projectType: "development" as const,
-    duration: "6 months",
-    budget: "$50,000 - $75,000",
-    postedDate: "2 days ago",
-    description: "Develop a comprehensive digital learning platform with interactive modules, progress tracking, and analytics dashboard...",
-    skills: [
-      "React/Next.js",
-      "Learning Management Systems",
-      "UI/UX Design",
-      "Database Design"
-    ],
-    status: "open"
-  },
-  {
-    id: "2",
-    title: "Corporate Training Content Creation",
-    clientName: "Global Enterprises Inc",
-    clientLogo: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&auto=format&fit=crop",
-    location: "New York, NY",
-    projectType: "content" as const,
-    duration: "3 months",
-    budget: "$25,000 - $40,000",
-    postedDate: "1 week ago",
-    description: "Create engaging training content for leadership development program including videos, interactive modules, and assessments...",
-    skills: [
-      "Instructional Design",
-      "Video Production",
-      "Content Writing",
-      "Assessment Design"
-    ],
-    status: "open"
-  },
-  {
-    id: "3",
-    title: "Learning Analytics Dashboard",
-    clientName: "EduTech Innovations",
-    clientLogo: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&auto=format&fit=crop",
-    location: "Remote",
-    projectType: "analytics" as const,
-    duration: "4 months",
-    budget: "$30,000 - $50,000",
-    postedDate: "3 days ago",
-    description: "Build comprehensive analytics dashboard for tracking learner progress, engagement metrics, and performance insights...",
-    skills: [
-      "Data Analytics",
-      "Dashboard Development",
-      "Python/R",
-      "Data Visualization"
-    ],
-    status: "open"
-  }
-];
+import { Search, Filter, FolderOpen, Calendar, Users, DollarSign } from "lucide-react";
+import { projectsApi } from "../services/api";
 
 export default function Projects() {
-  const { t } = useI18n();
+  const [allProjects, setAllProjects] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [projectType, setProjectType] = useState("all");
+  const [selectedType, setSelectedType] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
   const [remoteOnly, setRemoteOnly] = useState(false);
-  
-  // Filter projects based on search and filters
-  const filteredProjects = MOCK_PROJECTS.filter(project => {
-    const matchesSearch = !searchTerm || 
-      project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      project.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      project.skills.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        setLoading(true);
+        const projectsData = await projectsApi.getProjectsPublic();
+        setAllProjects(projectsData);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching projects:', err);
+        setError('Failed to load projects');
+        setAllProjects([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
+
+  // Filter projects based on search criteria
+  const filteredProjects = allProjects.filter(project => {
+    const matchesSearch = project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         project.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         project.description.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesType = projectType === "all" || project.projectType === projectType;
-    const matchesRemote = !remoteOnly || project.location.toLowerCase().includes("remote");
-    
-    return matchesSearch && matchesType && matchesRemote;
+    const matchesType = selectedType === "all" || project.project_type === selectedType;
+    const matchesStatus = selectedStatus === "all" || project.status === selectedStatus;
+    const matchesRemote = !remoteOnly || (project.location && project.location.toLowerCase().includes('remote'));
+
+    return matchesSearch && matchesType && matchesStatus && matchesRemote;
   });
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p className="mt-2 text-gray-600">Loading projects...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <p className="text-red-600">{error}</p>
+            <p className="text-gray-500 mt-2">Please try again later</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-slate-50 py-8">
-      <div className="container mx-auto px-4 max-w-7xl">
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="container mx-auto px-4">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-            L&D Projects
-          </h1>
-          <p className="text-lg text-slate-600 max-w-3xl">
-            Discover exciting Learning & Development projects from organizations worldwide. 
-            Find opportunities that match your expertise and grow your portfolio.
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">L&D Projects</h1>
+          <p className="text-gray-600">
+            Discover exciting learning and development projects from organizations worldwide
           </p>
         </div>
 
         {/* Search and Filters */}
-        <Card className="mb-8">
-          <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {/* Search */}
-              <div className="md:col-span-2">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
-                  <Input
-                    placeholder="Search projects, skills, or keywords..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-
-              {/* Project Type Filter */}
-              <div>
-                <Select value={projectType} onValueChange={setProjectType}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Project Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="development">Development</SelectItem>
-                    <SelectItem value="content">Content Creation</SelectItem>
-                    <SelectItem value="analytics">Analytics</SelectItem>
-                    <SelectItem value="consulting">Consulting</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Remote Filter */}
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="remote"
-                  checked={remoteOnly}
-                  onCheckedChange={(checked) => setRemoteOnly(checked === true)}
-                />
-                <label htmlFor="remote" className="text-sm font-medium">
-                  Remote Only
-                </label>
-              </div>
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Search projects..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Results */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredProjects.map((project) => (
-            <Card key={project.id} className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <FolderOpen className="h-6 w-6 text-blue-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-slate-900 line-clamp-2">
-                        {project.title}
-                      </h3>
-                      <p className="text-sm text-slate-600">{project.clientName}</p>
-                    </div>
-                  </div>
-                </div>
+            {/* Project Type Filter */}
+            <Select value={selectedType} onValueChange={setSelectedType}>
+              <SelectTrigger>
+                <SelectValue placeholder="Project Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="development">Development</SelectItem>
+                <SelectItem value="content">Content Creation</SelectItem>
+                <SelectItem value="consulting">Consulting</SelectItem>
+                <SelectItem value="training">Training</SelectItem>
+              </SelectContent>
+            </Select>
 
-                <div className="space-y-3 mb-4">
-                  <div className="flex items-center text-sm text-slate-600">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    {project.duration} • {project.postedDate}
-                  </div>
-                  <div className="flex items-center text-sm text-slate-600">
-                    <Users className="h-4 w-4 mr-2" />
-                    {project.location}
-                  </div>
-                  <div className="text-sm font-medium text-green-600">
-                    {project.budget}
-                  </div>
-                </div>
+            {/* Status Filter */}
+            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <SelectTrigger>
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="open">Open</SelectItem>
+                <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+              </SelectContent>
+            </Select>
 
-                <p className="text-sm text-slate-600 mb-4 line-clamp-3">
-                  {project.description}
-                </p>
+            {/* Remote Filter */}
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="remote"
+                checked={remoteOnly}
+                onCheckedChange={(checked) => setRemoteOnly(checked === true)}
+              />
+              <label htmlFor="remote" className="text-sm font-medium">
+                Remote Only
+              </label>
+            </div>
+          </div>
 
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {project.skills.slice(0, 3).map((skill, index) => (
-                    <span
-                      key={index}
-                      className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                  {project.skills.length > 3 && (
-                    <span className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-full">
-                      +{project.skills.length - 3} more
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex space-x-2">
-                  <Button className="flex-1" size="sm">
-                    Apply Now
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    Save
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-600">
+              {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''} found
+            </p>
+            <Button variant="outline" size="sm">
+              <Filter className="h-4 w-4 mr-2" />
+              More Filters
+            </Button>
+          </div>
         </div>
 
-        {/* No results */}
-        {filteredProjects.length === 0 && (
+        {/* Projects Grid */}
+        {filteredProjects.length === 0 ? (
           <div className="text-center py-12">
-            <FolderOpen className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-slate-900 mb-2">
-              No projects found
-            </h3>
-            <p className="text-slate-600">
-              Try adjusting your search criteria or check back later for new projects.
-            </p>
+            <FolderOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No projects found</h3>
+            <p className="text-gray-600">Try adjusting your search criteria</p>
           </div>
-        )}
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProjects.map((project) => (
+              <Card key={project.id} className="hover:shadow-lg transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                        <FolderOpen className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900 line-clamp-1">
+                          {project.title}
+                        </h3>
+                        <p className="text-sm text-gray-600">{project.company}</p>
+                      </div>
+                    </div>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      project.status === 'open' ? 'bg-green-100 text-green-800' :
+                      project.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {project.status || 'Open'}
+                    </span>
+                  </div>
 
-        {/* Pagination */}
-        {filteredProjects.length > 0 && (
-          <div className="flex justify-center mt-8">
-            <Button variant="outline" className="mx-1">1</Button>
-            <Button variant="outline" className="mx-1">2</Button>
-            <Button variant="outline" className="mx-1">3</Button>
-            <Button variant="outline" className="mx-1">Next</Button>
+                  <p className="text-gray-700 text-sm mb-4 line-clamp-3">
+                    {project.description}
+                  </p>
+
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center text-xs text-gray-500">
+                      <Calendar className="h-3 w-3 mr-1" />
+                      <span>{project.duration || 'Flexible duration'}</span>
+                    </div>
+                    <div className="flex items-center text-xs text-gray-500">
+                      <DollarSign className="h-3 w-3 mr-1" />
+                      <span>{project.budget_range || 'Budget negotiable'}</span>
+                    </div>
+                    <div className="flex items-center text-xs text-gray-500">
+                      <Users className="h-3 w-3 mr-1" />
+                      <span>{project.project_type || 'Development'}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-1 mb-4">
+                    {project.skills_required && project.skills_required.slice(0, 2).map((skill: string, index: number) => (
+                      <span
+                        key={index}
+                        className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                    {project.skills_required && project.skills_required.length > 2 && (
+                      <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                        +{project.skills_required.length - 2}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex space-x-2">
+                    <Button size="sm" className="flex-1">
+                      Apply
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      Save
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         )}
       </div>

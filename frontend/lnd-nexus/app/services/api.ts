@@ -125,24 +125,36 @@ export class ApiError extends Error {
 
 // Helper function to handle API responses
 async function handleResponse<T>(response: Response): Promise<T> {
+  console.log('handleResponse: Processing response with status:', response.status);
+  console.log('handleResponse: Response ok:', response.ok);
+  
   if (!response.ok) {
     let errorData;
     try {
-      errorData = await response.json();
+      const responseText = await response.text();
+      console.log('handleResponse: Error response text:', responseText);
+      errorData = responseText ? JSON.parse(responseText) : { detail: 'Unknown error' };
     } catch (e) {
+      console.log('handleResponse: Failed to parse error response:', e);
       errorData = { detail: 'Unknown error' };
     }
     
     const errorMessage = errorData.detail || `API error: ${response.status}`;
+    console.log('handleResponse: Throwing error:', errorMessage);
     throw new ApiError(errorMessage, response.status, errorData);
   }
   
   // Check if response is empty
   const contentType = response.headers.get('content-type');
+  console.log('handleResponse: Content-Type:', contentType);
+  
   if (contentType && contentType.includes('application/json')) {
-    return await response.json() as T;
+    const result = await response.json() as T;
+    console.log('handleResponse: Successfully parsed JSON response');
+    return result;
   }
   
+  console.log('handleResponse: Returning empty object (no JSON content)');
   return {} as T;
 }
 
@@ -239,12 +251,24 @@ export const authApi = {
 
 // Jobs API
 export const jobsApi = {
-  // Get all jobs
+  // Get all jobs (requires authentication)
   getJobs: async (token: string): Promise<any[]> => {
     const response = await fetch(`${API_BASE_URL}/jobs`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    return handleResponse<any[]>(response);
+  },
+  
+  // Get all jobs (public - no authentication required)
+  getJobsPublic: async (): Promise<any[]> => {
+    const response = await fetch(`${API_BASE_URL}/jobs/public`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
       },
     });
     
@@ -363,6 +387,18 @@ export const projectsApi = {
     return handleResponse<any[]>(response);
   },
   
+  // Get all projects (public - no authentication required)
+  getProjectsPublic: async (): Promise<any[]> => {
+    const response = await fetch(`${API_BASE_URL}/projects/public`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    return handleResponse<any[]>(response);
+  },
+  
   // Get project by ID
   getProject: async (token: string, projectId: string): Promise<any> => {
     const response = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
@@ -384,6 +420,53 @@ export const projectsApi = {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(projectData),
+    });
+    
+    return handleResponse<any>(response);
+  },
+};
+
+// Candidates API
+export const candidatesApi = {
+  // Get all candidates (public - no authentication required)
+  getCandidatesPublic: async (): Promise<any[]> => {
+    const url = `${API_BASE_URL}/candidates/public`;
+    console.log('candidatesApi.getCandidatesPublic: Making request to:', url);
+    console.log('candidatesApi.getCandidatesPublic: API_BASE_URL:', API_BASE_URL);
+    
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      console.log('candidatesApi.getCandidatesPublic: Response status:', response.status);
+      console.log('candidatesApi.getCandidatesPublic: Response ok:', response.ok);
+      
+      if (!response.ok) {
+        console.log('candidatesApi.getCandidatesPublic: API returned error, returning empty array for fallback');
+        return []; // Return empty array instead of throwing error
+      }
+      
+      const result = await response.json();
+      console.log('candidatesApi.getCandidatesPublic: Successfully received', result.length, 'candidates');
+      return result;
+    } catch (error) {
+      console.log('candidatesApi.getCandidatesPublic: Request failed, returning empty array for fallback');
+      console.error('Error:', error);
+      return []; // Return empty array instead of throwing error
+    }
+  },
+  
+  // Get candidate by ID
+  getCandidate: async (candidateId: string): Promise<any> => {
+    const response = await fetch(`${API_BASE_URL}/candidate/${candidateId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
     
     return handleResponse<any>(response);

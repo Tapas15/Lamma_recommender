@@ -18,7 +18,7 @@ import uuid
 from fastapi.middleware.cors import CORSMiddleware
 
 # Use absolute imports for local modules
-from backend.routers.language_router import router as language_router
+# from backend.routers.language_router import router as language_router
 from utils.models import (
     UserType,
     User,
@@ -66,7 +66,7 @@ from utils.database import (
     VECTOR_INDEXES_COLLECTION,
     init_db,
 )
-from backend.utils.language_middleware import LanguageMiddleware, get_current_language
+# from backend.utils.language_middleware import LanguageMiddleware, get_current_language
 
 load_dotenv()
 
@@ -417,11 +417,11 @@ app.add_middleware(
 )
 
 # Add language middleware
-app.add_middleware(LanguageMiddleware)
+# app.add_middleware(LanguageMiddleware)
 
 # Include language router
-app.include_router(language_router)
-print("Language routes added successfully")
+# app.include_router(language_router)
+# print("Language routes added successfully")
 
 # Security
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")
@@ -608,6 +608,37 @@ async def get_candidate_profile(candidate_id: str):
     except Exception as e:
         print(f"Error in get_candidate_profile: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+
+
+@app.get("/candidates/public")
+async def get_candidates_public():
+    """Get all active candidates - public endpoint (no authentication required)"""
+    try:
+        candidates = (
+            await Database.get_collection(CANDIDATES_COLLECTION)
+            .find({})
+            .to_list(length=None)
+        )
+        # Remove sensitive fields and clean up the response
+        for candidate in candidates:
+            candidate.pop("_id", None)  # Remove MongoDB _id
+            candidate.pop("embedding", None)  # Remove embedding vector
+            candidate.pop("password", None)  # Remove password hash
+            candidate.pop("hashed_password", None)  # Remove any hashed password
+            
+            # Convert datetime objects to strings if they exist
+            if "created_at" in candidate and candidate["created_at"]:
+                candidate["created_at"] = candidate["created_at"].isoformat() if hasattr(candidate["created_at"], 'isoformat') else str(candidate["created_at"])
+            if "last_active" in candidate and candidate["last_active"]:
+                candidate["last_active"] = candidate["last_active"].isoformat() if hasattr(candidate["last_active"], 'isoformat') else str(candidate["last_active"])
+                
+        return candidates
+    except Exception as e:
+        print(f"Error in get_candidates_public: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve candidates: {str(e)}")
 
 
 @app.post("/register/employer", response_model=ExtendedEmployer)
@@ -837,6 +868,22 @@ async def get_jobs(current_user: dict = Depends(get_current_user)):
         .find({"is_active": True})
         .to_list(length=None)
     )
+    return jobs
+
+
+
+@app.get("/jobs/public", response_model=List[Job])
+async def get_jobs_public():
+    """Get all active jobs - public endpoint (no authentication required)"""
+    jobs = (
+        await Database.get_collection(JOBS_COLLECTION)
+        .find({"is_active": True})
+        .to_list(length=None)
+    )
+    # Remove sensitive fields and clean up the response
+    for job in jobs:
+        job.pop("_id", None)  # Remove MongoDB _id
+        job.pop("embedding", None)  # Remove embedding vector
     return jobs
 
 
@@ -1271,6 +1318,21 @@ async def get_projects(
         raise HTTPException(
             status_code=500, detail=f"Failed to retrieve projects: {str(e)}"
         )
+
+@app.get("/projects/public", response_model=List[Project])
+async def get_projects_public():
+    """Get all active projects - public endpoint (no authentication required)"""
+    projects = (
+        await Database.get_collection(PROJECTS_COLLECTION)
+        .find({"is_active": True})
+        .to_list(length=None)
+    )
+    # Remove sensitive fields and clean up the response
+    for project in projects:
+        project.pop("_id", None)  # Remove MongoDB _id
+        project.pop("embedding", None)  # Remove embedding vector if exists
+    return projects
+
 
 
 @app.get("/employer-projects", response_model=List[Project])
@@ -6419,6 +6481,9 @@ async def get_candidate_profile(candidate_id: str):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
+
+
+
 @app.post("/register/employer", response_model=ExtendedEmployer)
 async def register_employer(user: ExtendedEmployerCreate):
     try:
@@ -6646,6 +6711,22 @@ async def get_jobs(current_user: dict = Depends(get_current_user)):
         .find({"is_active": True})
         .to_list(length=None)
     )
+    return jobs
+
+
+
+@app.get("/jobs/public", response_model=List[Job])
+async def get_jobs_public():
+    """Get all active jobs - public endpoint (no authentication required)"""
+    jobs = (
+        await Database.get_collection(JOBS_COLLECTION)
+        .find({"is_active": True})
+        .to_list(length=None)
+    )
+    # Remove sensitive fields and clean up the response
+    for job in jobs:
+        job.pop("_id", None)  # Remove MongoDB _id
+        job.pop("embedding", None)  # Remove embedding vector
     return jobs
 
 
@@ -7080,6 +7161,21 @@ async def get_projects(
         raise HTTPException(
             status_code=500, detail=f"Failed to retrieve projects: {str(e)}"
         )
+
+@app.get("/projects/public", response_model=List[Project])
+async def get_projects_public():
+    """Get all active projects - public endpoint (no authentication required)"""
+    projects = (
+        await Database.get_collection(PROJECTS_COLLECTION)
+        .find({"is_active": True})
+        .to_list(length=None)
+    )
+    # Remove sensitive fields and clean up the response
+    for project in projects:
+        project.pop("_id", None)  # Remove MongoDB _id
+        project.pop("embedding", None)  # Remove embedding vector if exists
+    return projects
+
 
 
 @app.get("/employer-projects", response_model=List[Project])
@@ -12615,6 +12711,9 @@ async def get_candidate_profile(candidate_id: str):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
+
+
+
 @app.post("/register/employer", response_model=ExtendedEmployer)
 async def register_employer(user: ExtendedEmployerCreate):
     try:
@@ -12842,6 +12941,22 @@ async def get_jobs(current_user: dict = Depends(get_current_user)):
         .find({"is_active": True})
         .to_list(length=None)
     )
+    return jobs
+
+
+
+@app.get("/jobs/public", response_model=List[Job])
+async def get_jobs_public():
+    """Get all active jobs - public endpoint (no authentication required)"""
+    jobs = (
+        await Database.get_collection(JOBS_COLLECTION)
+        .find({"is_active": True})
+        .to_list(length=None)
+    )
+    # Remove sensitive fields and clean up the response
+    for job in jobs:
+        job.pop("_id", None)  # Remove MongoDB _id
+        job.pop("embedding", None)  # Remove embedding vector
     return jobs
 
 
@@ -13276,6 +13391,21 @@ async def get_projects(
         raise HTTPException(
             status_code=500, detail=f"Failed to retrieve projects: {str(e)}"
         )
+
+@app.get("/projects/public", response_model=List[Project])
+async def get_projects_public():
+    """Get all active projects - public endpoint (no authentication required)"""
+    projects = (
+        await Database.get_collection(PROJECTS_COLLECTION)
+        .find({"is_active": True})
+        .to_list(length=None)
+    )
+    # Remove sensitive fields and clean up the response
+    for project in projects:
+        project.pop("_id", None)  # Remove MongoDB _id
+        project.pop("embedding", None)  # Remove embedding vector if exists
+    return projects
+
 
 
 @app.get("/employer-projects", response_model=List[Project])

@@ -817,6 +817,21 @@ async def get_jobs(current_user: dict = Depends(get_current_user)):
     return jobs
 
 
+@app.get("/jobs/public", response_model=List[Job])
+async def get_jobs_public():
+    """Get all active jobs - public endpoint (no authentication required)"""
+    jobs = (
+        await Database.get_collection(JOBS_COLLECTION)
+        .find({"is_active": True})
+        .to_list(length=None)
+    )
+    # Remove sensitive fields and clean up the response
+    for job in jobs:
+        job.pop("_id", None)  # Remove MongoDB _id
+        job.pop("embedding", None)  # Remove embedding vector
+    return jobs
+
+
 @app.delete("/jobs/{job_id}")
 async def delete_job(job_id: str, current_user: dict = Depends(get_current_user)):
     # Verify user is an employer

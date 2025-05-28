@@ -1,201 +1,344 @@
 "use client";
-import { useState } from "react";
 
-import { Search, Filter, ArrowUpDown, Star } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Filter, MapPin, Briefcase, GraduationCap } from "lucide-react";
 import ProfessionalCard from "../components/ProfessionalCard";
-import { Card, CardContent } from "../components/ui/card";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../components/ui/select";
-
-// Mock data for professionals
-const MOCK_PROFESSIONALS = [
-  {
-    id: "1",
-    name: "Sarah Johnson",
-    title: "Senior L&D Consultant",
-    location: "New York, NY",
-    rating: 4.8,
-    reviewCount: 127,
-    expertise: ["Leadership Development", "Corporate Training", "E-Learning"],
-    certifications: ["ATD Master Trainer", "SHRM-SCP"],
-    bio: "Specialized in creating transformative learning experiences with over 10 years of enterprise training expertise.",
-    ratePerHour: 150,
-    imageUrl:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&auto=format&fit=crop",
-    yearsExperience: 10,
-  },
-  // Add more mock professionals...
-];
-
-// // Mock data for expertise areas
-// const MOCK_EXPERTISE = [
-//   { id: "1", name: "Leadership Development" },
-//   { id: "2", name: "Instructional Design" },
-//   { id: "3", name: "Digital Learning" },
-//   { id: "4", name: "Performance Management" },
-//   { id: "5", name: "Change Management" },
-// ];
+import { candidatesApi } from "../services/api";
 
 export default function ProfessionalsPage() {
+  const [professionals, setProfessionals] = useState<any[]>([]);
+  const [filteredProfessionals, setFilteredProfessionals] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortOrder, setSortOrder] = useState("rating");
-  const [experienceLevel, setExperienceLevel] = useState("");
-  const [rateRange, setRateRange] = useState([0, 500]);
+  const [locationFilter, setLocationFilter] = useState("");
+  const [experienceFilter, setExperienceFilter] = useState("");
+  const [availabilityFilter, setAvailabilityFilter] = useState("");
 
-  return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden mb-10 rounded-2xl">
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-800 to-blue-800"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-600/20 via-transparent to-transparent"></div>
+  useEffect(() => {
+    const fetchProfessionals = async () => {
+      try {
+        setLoading(true);
+        const candidatesData = await candidatesApi.getCandidatesPublic();
+        setProfessionals(candidatesData);
+        setFilteredProfessionals(candidatesData);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching professionals:', err);
+        setError('Failed to load professionals');
+        // Fallback to mock data if API fails
+        const mockData = [
+          {
+            id: "1",
+            full_name: "Sarah Johnson",
+            bio: "Experienced L&D professional specializing in digital transformation and employee development programs.",
+            location: "New York, NY",
+            experience_years: 8,
+            skills: {
+              languages_frameworks: ["JavaScript", "Python"],
+              ai_ml_data: ["Machine Learning", "Data Analysis"],
+              tools_platforms: ["LMS", "Articulate", "Adobe Captivate"],
+              soft_skills: ["Leadership", "Communication", "Project Management"]
+            },
+            education: [{ degree: "Master's in Education Technology" }],
+            experience: [{ title: "Senior L&D Manager" }],
+            availability: "available",
+            profile_views: 156,
+            job_search_status: "open_to_opportunities"
+          },
+          {
+            id: "2",
+            full_name: "Michael Chen",
+            bio: "Corporate trainer and instructional designer with expertise in creating engaging learning experiences.",
+            location: "San Francisco, CA",
+            experience_years: 6,
+            skills: {
+              languages_frameworks: ["React", "Node.js"],
+              ai_ml_data: ["Learning Analytics"],
+              tools_platforms: ["Moodle", "Canvas", "Zoom"],
+              soft_skills: ["Training", "Curriculum Design", "Team Building"]
+            },
+            education: [{ degree: "Bachelor's in Instructional Design" }],
+            experience: [{ title: "Instructional Designer" }],
+            availability: "available",
+            profile_views: 89,
+            job_search_status: "actively_looking"
+          },
+          {
+            id: "3",
+            full_name: "Emily Rodriguez",
+            bio: "Learning technology specialist focused on implementing innovative solutions for corporate training.",
+            location: "Austin, TX",
+            experience_years: 5,
+            skills: {
+              languages_frameworks: ["Vue.js", "PHP"],
+              ai_ml_data: ["Educational Data Mining"],
+              tools_platforms: ["Blackboard", "TalentLMS", "Slack"],
+              soft_skills: ["Innovation", "Problem Solving", "Mentoring"]
+            },
+            education: [{ degree: "Master's in Learning Technologies" }],
+            experience: [{ title: "Learning Technology Specialist" }],
+            availability: "available",
+            profile_views: 134,
+            job_search_status: "actively_looking"
+          },
+          {
+            id: "4",
+            full_name: "David Kim",
+            bio: "Senior training manager with expertise in leadership development and organizational change management.",
+            location: "Seattle, WA",
+            experience_years: 12,
+            skills: {
+              languages_frameworks: ["Angular", "Java"],
+              ai_ml_data: ["Performance Analytics"],
+              tools_platforms: ["SAP SuccessFactors", "Cornerstone", "Workday"],
+              soft_skills: ["Leadership Development", "Change Management", "Strategic Planning"]
+            },
+            education: [{ degree: "MBA in Organizational Development" }],
+            experience: [{ title: "Senior Training Manager" }],
+            availability: "available",
+            profile_views: 203,
+            job_search_status: "open_to_opportunities"
+          }
+        ];
+        setProfessionals(mockData);
+        setFilteredProfessionals(mockData);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-        <div className="relative p-10 md:p-16 text-white">
-          <div className="max-w-4xl">
-            <div className="inline-flex items-center px-4 py-2 rounded-full text-sm text-blue-100 font-medium mb-6 border border-blue-500/40">
-              <Star className="h-4 w-4 mr-2 text-blue-300" />
-              <span>Search our curated network of L&D professionals</span>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
-              Find{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-white">
-                Expert L&D Professionals
-              </span>
+    fetchProfessionals();
+  }, []);
+
+  useEffect(() => {
+    let filtered = professionals;
+
+    // Search filter
+    if (searchTerm) {
+      filtered = filtered.filter(professional =>
+        professional.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        professional.bio?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        professional.skills?.languages_frameworks?.some((skill: string) => 
+          skill.toLowerCase().includes(searchTerm.toLowerCase())
+        ) ||
+        professional.skills?.ai_ml_data?.some((skill: string) => 
+          skill.toLowerCase().includes(searchTerm.toLowerCase())
+        ) ||
+        professional.skills?.tools_platforms?.some((skill: string) => 
+          skill.toLowerCase().includes(searchTerm.toLowerCase())
+        ) ||
+        professional.skills?.soft_skills?.some((skill: string) => 
+          skill.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      );
+    }
+
+    // Location filter
+    if (locationFilter) {
+      filtered = filtered.filter(professional =>
+        professional.location?.toLowerCase().includes(locationFilter.toLowerCase())
+      );
+    }
+
+    // Experience filter
+    if (experienceFilter) {
+      filtered = filtered.filter(professional => {
+        const years = professional.experience_years || 0;
+        switch (experienceFilter) {
+          case "entry": return years <= 2;
+          case "mid": return years >= 3 && years <= 7;
+          case "senior": return years >= 8;
+          default: return true;
+        }
+      });
+    }
+
+    // Availability filter
+    if (availabilityFilter) {
+      filtered = filtered.filter(professional => {
+        if (availabilityFilter === "available") {
+          return professional.job_search_status === "actively_looking" || 
+                 professional.availability === "available";
+        }
+        if (availabilityFilter === "open") {
+          return professional.job_search_status === "open_to_opportunities";
+        }
+        return true;
+      });
+    }
+
+    setFilteredProfessionals(filtered);
+  }, [searchTerm, locationFilter, experienceFilter, availabilityFilter, professionals]);
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setLocationFilter("");
+    setExperienceFilter("");
+    setAvailabilityFilter("");
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
+          <div className="mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+              L&D Professionals
             </h1>
-            <p className="text-xl text-blue-100 max-w-3xl">
-              Connect with industry-leading trainers and specialists who can
-              elevate your organization&apos;s learning and development
-              initiatives.
+            <p className="text-lg text-slate-600">
+              Connect with talented Learning & Development professionals
             </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="bg-white rounded-lg shadow-md p-6 animate-pulse">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+                  <div>
+                    <div className="h-5 bg-gray-200 rounded mb-2 w-32"></div>
+                    <div className="h-4 bg-gray-200 rounded w-24"></div>
+                  </div>
+                </div>
+                <div className="h-4 bg-gray-200 rounded mb-4"></div>
+                <div className="space-y-2 mb-4">
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                </div>
+                <div className="flex space-x-2 mb-4">
+                  <div className="h-6 bg-gray-200 rounded-full w-16"></div>
+                  <div className="h-6 bg-gray-200 rounded-full w-20"></div>
+                </div>
+                <div className="flex space-x-3">
+                  <div className="h-10 bg-gray-200 rounded flex-1"></div>
+                  <div className="h-10 bg-gray-200 rounded flex-1"></div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
+    );
+  }
 
-      {/* Search and Filters */}
-      <div className="mb-8">
-        <Card>
-          <CardContent className="p-6 sm:p-8">
-            <h2 className="text-xl font-bold mb-6 text-slate-800 flex items-center gap-2">
-              <span className="bg-blue-600/90 h-6 w-1 rounded-full"></span>
-              Find Your Perfect Match
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Search Input - Fixed overlapping icon */}
-              <div className="relative flex items-center">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Search by title, skills, or location..."
-                  className="pl-10 w-full"
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+            L&D Professionals
+          </h1>
+          <p className="text-lg text-slate-600">
+            Connect with talented Learning & Development professionals
+          </p>
+        </div>
+
+        {/* Search and Filters */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {/* Search */}
+            <div className="lg:col-span-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <input
+                  type="text"
+                  placeholder="Search professionals, skills..."
                   value={searchTerm}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setSearchTerm(e.target.value)
-                  }
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
+            </div>
 
-              {/* Experience Level Filter */}
-              <Select
-                value={experienceLevel}
-                onValueChange={setExperienceLevel}
+            {/* Location Filter */}
+            <div>
+              <select
+                value={locationFilter}
+                onChange={(e) => setLocationFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <SelectTrigger className="w-full">
-                  <Filter className="mr-2 h-4 w-4 text-gray-400 shrink-0" />
-                  <SelectValue placeholder="Experience level" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="any">Any Experience Level</SelectItem>
-                  <SelectItem value="junior">Junior (0-2 years)</SelectItem>
-                  <SelectItem value="mid-level">
-                    Mid Level (2-5 years)
-                  </SelectItem>
-                  <SelectItem value="senior">Senior (5-8 years)</SelectItem>
-                  <SelectItem value="expert">Expert (8+ years)</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Sort Options */}
-              <Select value={sortOrder} onValueChange={setSortOrder}>
-                <SelectTrigger className="w-full">
-                  <ArrowUpDown className="mr-2 h-4 w-4 text-gray-400 shrink-0" />
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="rating">Highest Rated</SelectItem>
-                  <SelectItem value="ratePerHour">Hourly Rate</SelectItem>
-                </SelectContent>
-              </Select>
+                <option value="">All Locations</option>
+                <option value="new york">New York</option>
+                <option value="san francisco">San Francisco</option>
+                <option value="austin">Austin</option>
+                <option value="seattle">Seattle</option>
+                <option value="remote">Remote</option>
+              </select>
             </div>
-          </CardContent>
-        </Card>
-      </div>
 
-      {/* Rate Range Filter - Fixed slider layout */}
-      <div className="mb-8">
-        <Card>
-          <CardContent className="p-6 sm:p-8">
-            <label className="text-lg font-bold mb-6 text-slate-800 flex items-center gap-2">
-              <span className="bg-slate-700/90 h-6 w-1 rounded-full"></span>
-              Hourly Rate Range ($)
-            </label>
-            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-              <div className="relative flex-1 w-full">
-                <div className="flex items-center gap-4">
-                  <input
-                    type="range"
-                    min="0"
-                    max="500"
-                    value={rateRange[0]}
-                    onChange={(e) =>
-                      setRateRange([parseInt(e.target.value), rateRange[1]])
-                    }
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                  />
-                  <input
-                    type="range"
-                    min="0"
-                    max="500"
-                    value={rateRange[1]}
-                    onChange={(e) =>
-                      setRateRange([rateRange[0], parseInt(e.target.value)])
-                    }
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                  />
-                </div>
-              </div>
-              <div className="text-md font-medium bg-gradient-to-r from-slate-800 to-blue-700 text-white px-6 py-2 rounded-md min-w-[140px] text-center shadow-md whitespace-nowrap">
-                ${rateRange[0]} - ${rateRange[1]}
-              </div>
+            {/* Experience Filter */}
+            <div>
+              <select
+                value={experienceFilter}
+                onChange={(e) => setExperienceFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">All Experience</option>
+                <option value="entry">Entry Level (0-2 years)</option>
+                <option value="mid">Mid Level (3-7 years)</option>
+                <option value="senior">Senior Level (8+ years)</option>
+              </select>
             </div>
-          </CardContent>
-        </Card>
-      </div>
 
-      {/* Results Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {MOCK_PROFESSIONALS.map((professional) => (
-          <ProfessionalCard key={professional.id} professional={professional} />
-        ))}
-      </div>
-
-      {/* Pagination */}
-      <div className="relative mt-10">
-        <Card className="relative">
-          <CardContent className="p-6 flex justify-center">
-            <div className="flex items-center gap-2">
-              <Button variant="outline">Previous</Button>
-              <Button variant="default">1</Button>
-              <Button variant="outline">2</Button>
-              <Button variant="outline">3</Button>
-              <Button variant="outline">Next</Button>
+            {/* Availability Filter */}
+            <div>
+              <select
+                value={availabilityFilter}
+                onChange={(e) => setAvailabilityFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">All Availability</option>
+                <option value="available">Available Now</option>
+                <option value="open">Open to Offers</option>
+              </select>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+
+          {/* Clear Filters */}
+          {(searchTerm || locationFilter || experienceFilter || availabilityFilter) && (
+            <div className="mt-4">
+              <button
+                onClick={clearFilters}
+                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+              >
+                Clear all filters
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Results */}
+        <div className="mb-6">
+          <p className="text-slate-600">
+            Showing {filteredProfessionals.length} of {professionals.length} professionals
+          </p>
+        </div>
+
+        {/* Professionals Grid */}
+        {error ? (
+          <div className="text-center py-12">
+            <p className="text-slate-600 mb-4">{error}</p>
+            <p className="text-slate-500">Please try again later</p>
+          </div>
+        ) : filteredProfessionals.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProfessionals.map((professional) => (
+              <ProfessionalCard key={professional.id} professional={professional} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-slate-600 mb-4">No professionals found matching your criteria.</p>
+            <button
+              onClick={clearFilters}
+              className="text-blue-600 hover:text-blue-700 font-medium"
+            >
+              Clear filters to see all professionals
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

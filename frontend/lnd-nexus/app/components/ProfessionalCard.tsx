@@ -1,128 +1,164 @@
-import { Star, Calendar, Verified, User } from "lucide-react";
-import { Button } from "./ui/button";
+"use client";
+
+import { MapPin, Clock, Star, User, Briefcase, GraduationCap } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
-interface Professional {
-  id: string;
-  name: string;
-  title: string;
-  location: string;
-  rating: number;
-  reviewCount: number;
-  expertise: string[];
-  certifications: string[];
-  bio: string;
-  ratePerHour: number;
-  imageUrl?: string;
+
+interface ProfessionalCardProps {
+  professional: {
+    id: string;
+    full_name: string;
+    bio?: string;
+    location?: string;
+    experience_years?: number;
+    skills?: {
+      languages_frameworks?: string[];
+      ai_ml_data?: string[];
+      tools_platforms?: string[];
+      soft_skills?: string[];
+    };
+    education?: any[];
+    experience?: any[];
+    availability?: string;
+    profile_views?: number;
+    job_search_status?: string;
+  };
 }
 
-export default function ProfessionalCard({
-  professional,
-}: {
-  professional: Professional;
-}) {
+export default function ProfessionalCard({ professional }: ProfessionalCardProps) {
+  // Extract top skills from all skill categories
+  const getAllSkills = () => {
+    const allSkills: string[] = [];
+    if (professional.skills) {
+      if (professional.skills.languages_frameworks) allSkills.push(...professional.skills.languages_frameworks);
+      if (professional.skills.ai_ml_data) allSkills.push(...professional.skills.ai_ml_data);
+      if (professional.skills.tools_platforms) allSkills.push(...professional.skills.tools_platforms);
+      if (professional.skills.soft_skills) allSkills.push(...professional.skills.soft_skills);
+    }
+    return allSkills.slice(0, 4); // Show top 4 skills
+  };
+
+  const topSkills = getAllSkills();
+
+  // Get latest experience/role
+  const getLatestRole = () => {
+    if (professional.experience && professional.experience.length > 0) {
+      const latest = professional.experience[0];
+      return latest.title || latest.position || "L&D Professional";
+    }
+    return "L&D Professional";
+  };
+
+  // Get education level
+  const getEducationLevel = () => {
+    if (professional.education && professional.education.length > 0) {
+      const latest = professional.education[0];
+      return latest.degree || latest.qualification || "Qualified Professional";
+    }
+    return "Qualified Professional";
+  };
+
+  const formatExperience = (years?: number) => {
+    if (!years) return "Entry Level";
+    if (years === 1) return "1 year";
+    if (years < 5) return `${years} years`;
+    if (years < 10) return `${years}+ years`;
+    return "Senior Level";
+  };
+
+  const getAvailabilityStatus = () => {
+    if (professional.job_search_status === "actively_looking") return "Available";
+    if (professional.job_search_status === "open_to_opportunities") return "Open to offers";
+    if (professional.availability === "available") return "Available";
+    return "Open to opportunities";
+  };
+
+  const getAvailabilityColor = () => {
+    const status = getAvailabilityStatus();
+    if (status === "Available") return "text-green-600 bg-green-50";
+    return "text-blue-600 bg-blue-50";
+  };
+
   return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group border border-gray-200">
-      <div className="flex items-center p-6 border-b border-gray-100 bg-gradient-to-r from-white via-slate-50 to-white">
-        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-slate-800 via-slate-700 to-blue-700 flex items-center justify-center overflow-hidden shadow-lg transform group-hover:scale-105 transition-transform duration-300 border-2 border-slate-300">
-          {professional.imageUrl ? (
-            <Image
-              src={professional.imageUrl}
-              alt={professional.name}
-              width={80}
-              height={80}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <User className="w-10 h-10 text-white" />
-          )}
-        </div>
-        <div className="ml-5">
-          <h3 className="text-xl font-bold text-slate-800 group-hover:text-slate-700 transition-colors">
-            {professional.name}
-          </h3>
-          <p className="text-slate-700/90 flex items-center mt-1">
-            📍 {professional.location}
-          </p>
-          <div className="flex mt-1">
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                className={`${
-                  i < professional.rating ? "text-amber-400" : "text-gray-300"
-                } h-4 w-4`}
-                fill={i < professional.rating ? "currentColor" : "none"}
-              />
-            ))}
-            <span className="ml-1 text-sm text-slate-700 font-medium">
-              {professional.rating.toFixed(1)} ({professional.reviewCount}{" "}
-              reviews)
-            </span>
+    <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-6 border border-gray-100">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center space-x-3">
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+            {professional.full_name?.charAt(0)?.toUpperCase() || "P"}
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900 mb-1">
+              {professional.full_name || "Professional"}
+            </h3>
+            <p className="text-sm text-slate-600">{getLatestRole()}</p>
           </div>
         </div>
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getAvailabilityColor()}`}>
+          {getAvailabilityStatus()}
+        </span>
       </div>
 
-      <div className="p-6">
-        <div className="mb-4">
-          <div className="flex flex-wrap gap-2 mt-3">
-            {professional.expertise.map((area, index) => (
-              <span
-                key={index}
-                className="bg-slate-100 px-3 py-1 rounded-full text-slate-800 text-sm font-medium border border-slate-200"
-              >
-                {area}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <div className="mb-5">
-          <div className="flex flex-wrap gap-2 mt-3">
-            {professional.certifications.map((cert, index) => (
-              <span
-                key={index}
-                className="flex items-center text-sm text-slate-800 bg-slate-100 px-3 py-1.5 rounded-md border border-slate-200"
-              >
-                <Verified className="text-blue-700 mr-1.5 h-4 w-4" />
-                {cert}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <p className="text-slate-900 mb-6 bg-slate-50 p-4 rounded-lg italic border-l-4 border-slate-400 shadow-md">
-          &quot;{professional.bio}&quot;
+      {/* Bio */}
+      {professional.bio && (
+        <p className="text-slate-600 text-sm mb-4 line-clamp-2">
+          {professional.bio}
         </p>
+      )}
 
-        <div className="flex items-center mb-5 text-slate-800 font-bold bg-slate-50 px-4 py-2.5 rounded-lg shadow-md border border-slate-200">
-          <span className="text-md">
-            Rate:{" "}
-            <span className="text-blue-700">
-              ${professional.ratePerHour}/hour
-            </span>
-          </span>
+      {/* Details */}
+      <div className="space-y-2 mb-4">
+        {professional.location && (
+          <div className="flex items-center text-sm text-slate-600">
+            <MapPin className="h-4 w-4 mr-2 text-slate-400" />
+            {professional.location}
+          </div>
+        )}
+        
+        <div className="flex items-center text-sm text-slate-600">
+          <Briefcase className="h-4 w-4 mr-2 text-slate-400" />
+          {formatExperience(professional.experience_years)} experience
         </div>
 
-        <div className="flex space-x-3">
-          <Button
-            className="flex-grow bg-gradient-to-r from-slate-800 to-blue-700 hover:from-slate-900 hover:to-blue-800 transition-all duration-300 transform hover:-translate-y-1 shadow-md text-white"
-            asChild
-          >
-            <Link href={`/professional-profile/${professional.id}`}>
-              View Profile
-            </Link>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="bg-white hover:bg-slate-100 border-slate-300 hover:border-slate-400 text-slate-700 transition-colors"
-            asChild
-          >
-            <Link href={`/messages?professional=${professional.id}`}>
-              <Calendar className="h-4 w-4" />
-            </Link>
-          </Button>
+        <div className="flex items-center text-sm text-slate-600">
+          <GraduationCap className="h-4 w-4 mr-2 text-slate-400" />
+          {getEducationLevel()}
         </div>
+
+        {professional.profile_views && (
+          <div className="flex items-center text-sm text-slate-600">
+            <User className="h-4 w-4 mr-2 text-slate-400" />
+            {professional.profile_views} profile views
+          </div>
+        )}
+      </div>
+
+      {/* Skills */}
+      {topSkills.length > 0 && (
+        <div className="mb-4">
+          <div className="flex flex-wrap gap-2">
+            {topSkills.map((skill, index) => (
+              <span
+                key={index}
+                className="px-2 py-1 bg-slate-100 text-slate-700 rounded-md text-xs font-medium"
+              >
+                {skill}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="flex space-x-3">
+        <Link
+          href={`/professionals/${professional.id}`}
+          className="flex-1 bg-blue-600 text-white text-center py-2 px-4 rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+        >
+          View Profile
+        </Link>
+        <button className="flex-1 border border-slate-300 text-slate-700 py-2 px-4 rounded-md hover:bg-slate-50 transition-colors text-sm font-medium">
+          Contact
+        </button>
       </div>
     </div>
   );
