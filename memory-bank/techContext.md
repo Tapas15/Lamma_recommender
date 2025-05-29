@@ -12,9 +12,13 @@
 - **Faker**: Library for generating realistic test data
 
 ### Frontend
-- **Streamlit**: Frontend framework for rapid UI development
+- **Streamlit**: Frontend framework for rapid UI development and testing
+- **Next.js**: Modern React framework for production frontend
+- **React**: Component-based UI library with TypeScript support
+- **Tailwind CSS**: Utility-first CSS framework for styling
+- **Plotly**: Interactive data visualization library (current implementation)
+- **Highcharts** (Planned): Advanced charting library for enhanced analytics
 - **Pandas**: Data manipulation and analysis
-- **Plotly**: Interactive data visualization
 - **NumPy**: Numerical computing
 
 ### Testing
@@ -388,3 +392,16 @@
 - Caching implementation is critical for performance
 - Vector search optimization is key for response times
 - New API endpoints are enhancing system capabilities 
+
+### Data Visualization Stack
+- **Current**: Plotly for interactive charts in Streamlit interface
+- **Planned**: Highcharts integration for advanced dashboard visualizations
+- **Chart Types in Development**:
+  - Vector charts for skill relationship networks
+  - Bubble charts for candidate/job matching visualization
+  - Scatter plots for analytics correlation analysis
+  - Timeline charts for career progression tracking
+- **Visualization Features**:
+  - Interactive drill-down capabilities
+  - Responsive design for multi-device support
+  - Accessibility compliance for inclusive design 

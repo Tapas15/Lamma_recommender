@@ -81,6 +81,19 @@ graph TD
 - Cache invalidation strategies
 - Efficient data structures
 
+### Data Visualization Patterns
+- Current implementation using Plotly for basic charts in Streamlit
+- Planning Highcharts integration for enhanced analytics dashboards
+- Chart types being considered:
+  - Vector charts for skill relationship visualization
+  - Bubble charts for candidate/job matching displays
+  - Scatter plots for analytics correlation analysis
+  - Bar and column charts for comparative data
+  - Timeline charts for career progression tracking
+- Interactive chart features for drill-down capabilities
+- Responsive chart design for cross-device compatibility
+- Chart accessibility considerations for inclusive design
+
 ## Core System Flows
 
 ### Authentication Flow

@@ -2,8 +2,8 @@
  * API service for connecting to the FastAPI backend
  */
 
-// Base URL for the API
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+// Base URL for the API - using relative URLs for same-port deployment
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
 
 // Types
 export interface LoginRequest {

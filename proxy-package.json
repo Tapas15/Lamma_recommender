@@ -1,0 +1,22 @@
+{
+  "name": "job-recommender-proxy",
+  "version": "1.0.0",
+  "description": "Unified proxy server for Job Recommender (FastAPI + Next.js)",
+  "main": "setup_proxy_server.js",
+  "scripts": {
+    "start": "node setup_proxy_server.js",
+    "dev": "nodemon setup_proxy_server.js",
+    "install-deps": "npm install express http-proxy-middleware",
+    "unified": "npm run install-deps && npm start"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "http-proxy-middleware": "^2.0.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": ["proxy", "fastapi", "nextjs", "unified", "development"],
+  "author": "Job Recommender Team",
+  "license": "MIT"
+} 

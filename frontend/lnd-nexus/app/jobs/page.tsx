@@ -107,7 +107,7 @@ export default function Jobs() {
   });
 
   if (loading) {
-    return (
+  return (
       <div className="min-h-screen bg-slate-50 py-8">
         <div className="container mx-auto px-4 max-w-7xl">
           <div className="mb-8">
@@ -199,29 +199,29 @@ export default function Jobs() {
                 <Select value={jobType} onValueChange={setJobType}>
                   <SelectTrigger>
                     <SelectValue placeholder="Job Type" />
-                  </SelectTrigger>
-                  <SelectContent>
+              </SelectTrigger>
+              <SelectContent>
                     <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="full-time">Full-time</SelectItem>
-                    <SelectItem value="part-time">Part-time</SelectItem>
-                    <SelectItem value="contract">Contract</SelectItem>
-                    <SelectItem value="freelance">Freelance</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
+                <SelectItem value="full-time">Full-time</SelectItem>
+                <SelectItem value="part-time">Part-time</SelectItem>
+                <SelectItem value="contract">Contract</SelectItem>
+                <SelectItem value="freelance">Freelance</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
               {/* Remote Filter */}
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="remote"
-                  checked={remoteOnly}
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="remote" 
+                checked={remoteOnly}
                   onCheckedChange={(checked) => setRemoteOnly(checked === true)}
                 />
                 <label htmlFor="remote" className="text-sm font-medium">
                   Remote Only
-                </label>
-              </div>
+              </label>
             </div>
+          </div>
           </CardContent>
         </Card>
 
@@ -229,9 +229,9 @@ export default function Jobs() {
         <div className="mb-6">
           <p className="text-slate-600">
             Showing {filteredJobs.length} of {allJobs.length} jobs
-          </p>
-        </div>
-
+        </p>
+      </div>
+      
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredJobs.map((job) => (
             <JobCard key={job.id} job={transformJobData(job)} />
@@ -248,17 +248,17 @@ export default function Jobs() {
               Try adjusting your search criteria or check back later for new opportunities.
             </p>
           </div>
-        )}
-
-        {/* Pagination */}
-        {filteredJobs.length > 0 && (
-          <div className="flex justify-center mt-8">
-            <Button variant="outline" className="mx-1">1</Button>
-            <Button variant="outline" className="mx-1">2</Button>
-            <Button variant="outline" className="mx-1">3</Button>
-            <Button variant="outline" className="mx-1">Next</Button>
-          </div>
-        )}
+      )}
+      
+      {/* Pagination */}
+      {filteredJobs.length > 0 && (
+        <div className="flex justify-center mt-8">
+          <Button variant="outline" className="mx-1">1</Button>
+          <Button variant="outline" className="mx-1">2</Button>
+          <Button variant="outline" className="mx-1">3</Button>
+          <Button variant="outline" className="mx-1">Next</Button>
+        </div>
+      )}
       </div>
     </div>
   );

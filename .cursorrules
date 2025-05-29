@@ -33,9 +33,12 @@
 - MongoDB for flexible data storage
 - JWT with refresh tokens for authentication
 - Local embedding generation with Ollama
-- Streamlit for rapid UI development
+- Streamlit for rapid UI development and testing
+- Next.js for production frontend with enhanced features
 - Structured feedback collection for recommendation improvement
 - Confidence-based skill clustering for relationship analysis
+- Plotly for current data visualization (transitioning to Highcharts)
+- Highcharts integration planned for advanced analytics dashboards
 
 ## Project Intelligence
 
@@ -105,4 +108,11 @@
 - Growth rate and market demand calculation
 - Parameterized endpoint with confidence thresholds
 - Detailed cluster statistics and metadata
-- Comprehensive documentation with examples 
+- Comprehensive documentation with examples
+
+### Data Visualization Evolution
+- **Current State**: Plotly charts in Streamlit for basic visualization
+- **Next Phase**: Highcharts integration for enhanced dashboard experience
+- **Planned Chart Types**: Vector, bubble, scatter, timeline, and bar charts
+- **Focus Areas**: Skill relationships, career progression, analytics performance
+- **Design Goals**: Interactive, responsive, accessible visualizations 
