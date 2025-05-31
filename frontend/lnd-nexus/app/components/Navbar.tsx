@@ -12,6 +12,10 @@ import {
   MessageSquare,
   LogOut,
   User,
+  Target,
+  BarChart3,
+  TrendingUp,
+  Star
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useI18n } from "../providers/i18n-provider";
@@ -68,6 +72,40 @@ export default function Navbar() {
                     {t('nav.home')}
                   </Link>
                 </li>
+                
+                {/* Candidate-specific navigation */}
+                {isAuthenticated && user?.user_type === 'candidate' && (
+                  <>
+                    <li>
+                      <Link
+                        href="/candidate-recommendations"
+                        className="flex items-center px-3 py-2 rounded-md text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition-colors"
+                      >
+                        <Target className="h-4 w-4 mr-1.5 text-slate-500" />
+                        Job Matches
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        href="/skill-gap-analysis"
+                        className="flex items-center px-3 py-2 rounded-md text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition-colors"
+                      >
+                        <BarChart3 className="h-4 w-4 mr-1.5 text-slate-500" />
+                        Skill Analysis
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        href="/career-paths"
+                        className="flex items-center px-3 py-2 rounded-md text-slate-700 hover:text-blue-600 hover:bg-slate-50 transition-colors"
+                      >
+                        <TrendingUp className="h-4 w-4 mr-1.5 text-slate-500" />
+                        Career Paths
+                      </Link>
+                    </li>
+                  </>
+                )}
+                
                 <li>
                   <Link
                     href="/professionals"
@@ -195,6 +233,40 @@ export default function Navbar() {
                   {t('nav.home')}
                 </Link>
               </li>
+              
+              {/* Candidate-specific mobile navigation */}
+              {isAuthenticated && user?.user_type === 'candidate' && (
+                <>
+                  <li>
+                    <Link
+                      href="/candidate-recommendations"
+                      className="flex items-center px-3 py-2.5 rounded-md text-slate-700 hover:text-blue-600 hover:bg-slate-50"
+                    >
+                      <Target className="h-5 w-5 mr-3 text-slate-500" />
+                      Job Matches
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/skill-gap-analysis"
+                      className="flex items-center px-3 py-2.5 rounded-md text-slate-700 hover:text-blue-600 hover:bg-slate-50"
+                    >
+                      <BarChart3 className="h-5 w-5 mr-3 text-slate-500" />
+                      Skill Analysis
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/career-paths"
+                      className="flex items-center px-3 py-2.5 rounded-md text-slate-700 hover:text-blue-600 hover:bg-slate-50"
+                    >
+                      <TrendingUp className="h-5 w-5 mr-3 text-slate-500" />
+                      Career Paths
+                    </Link>
+                  </li>
+                </>
+              )}
+              
               <li>
                 <Link
                   href="/professionals"

@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import TranslationMemoryManager from '@/app/components/TranslationMemoryManager';
+import TranslationMemoryManager from '../../components/TranslationMemoryManager';
 import { Database, BarChart3, Zap } from 'lucide-react';
 
 export default function TranslationMemoryPage() {

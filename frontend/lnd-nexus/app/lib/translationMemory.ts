@@ -139,33 +139,60 @@ export function retrieveTranslation(
 /**
  * Get memory statistics
  */
-export function getMemoryStats(): MemoryStats {
+export function getMemoryStats(): { totalEntries: number; languagePairs: string[] } {
   const memory = getTranslationMemory();
   const entries = Array.from(memory.values());
 
   if (entries.length === 0) {
     return {
       totalEntries: 0,
-      totalSize: 0,
-      oldestEntry: 0,
-      newestEntry: 0,
-      mostUsedEntry: null
+      languagePairs: []
     };
   }
 
-  const totalSize = JSON.stringify(Object.fromEntries(memory)).length;
-  const timestamps = entries.map(e => e.timestamp);
-  const oldestEntry = Math.min(...timestamps);
-  const newestEntry = Math.max(...timestamps);
-  const mostUsedEntry = entries.reduce((prev, current) => 
-    (prev.useCount > current.useCount) ? prev : current
-  );
+  const languagePairs = Array.from(new Set(
+    entries.map(e => `${e.sourceLanguage} → ${e.targetLanguage}`)
+  ));
 
   return {
     totalEntries: entries.length,
-    totalSize,
-    oldestEntry,
-    newestEntry,
-    mostUsedEntry
+    languagePairs
   };
+}
+
+/**
+ * Clear all translation memory
+ */
+export function clearMemoryBank(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+    console.log('Translation memory cleared');
+  } catch (error) {
+    console.error('Error clearing translation memory:', error);
+  }
+}
+
+/**
+ * Save memory bank to a file (download)
+ */
+export function saveMemoryBank(): void {
+  try {
+    const memory = getTranslationMemory();
+    const data = JSON.stringify(Object.fromEntries(memory), null, 2);
+    
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `translation-memory-${Date.now()}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    URL.revokeObjectURL(url);
+    console.log('Translation memory saved to file');
+  } catch (error) {
+    console.error('Error saving translation memory:', error);
+  }
 }

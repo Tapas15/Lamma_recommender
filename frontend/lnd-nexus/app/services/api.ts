@@ -471,4 +471,194 @@ export const candidatesApi = {
     
     return handleResponse<any>(response);
   },
+};
+
+// Add enhanced API endpoints for candidate features
+export const mlApi = {
+  // Skill clusters analysis
+  getSkillClusters: async (token: string, params?: any): Promise<any> => {
+    const queryParams = new URLSearchParams(params);
+    const response = await fetch(`${API_BASE_URL}/ml/skill-clusters?${queryParams}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    return handleResponse<any>(response);
+  },
+
+  // Market trends analysis
+  getMarketTrends: async (token: string, params?: any): Promise<any> => {
+    const queryParams = new URLSearchParams(params);
+    const response = await fetch(`${API_BASE_URL}/ml/market-trends?${queryParams}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    return handleResponse<any>(response);
+  },
+
+  // Learning recommendations
+  getLearningRecommendations: async (token: string, params?: any): Promise<any> => {
+    const queryParams = new URLSearchParams(params);
+    const response = await fetch(`${API_BASE_URL}/ml/learning-recommendations?${queryParams}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    return handleResponse<any>(response);
+  },
+};
+
+// Enhanced recommendations API
+export const enhancedRecommendationsApi = {
+  // Get job recommendations with filters
+  getJobRecommendations: async (token: string, params?: any): Promise<any> => {
+    const queryParams = new URLSearchParams(params);
+    const response = await fetch(`${API_BASE_URL}/recommendations/jobs?${queryParams}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    return handleResponse<any>(response);
+  },
+
+  // Get project recommendations
+  getProjectRecommendations: async (token: string, params?: any): Promise<any> => {
+    const queryParams = new URLSearchParams(params);
+    const response = await fetch(`${API_BASE_URL}/recommendations/projects?${queryParams}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    return handleResponse<any>(response);
+  },
+
+  // Get skill gap analysis
+  getSkillGapAnalysis: async (token: string, jobId?: string, targetRole?: string): Promise<any> => {
+    const params: any = {};
+    if (jobId) params.job_id = jobId;
+    if (targetRole) params.target_role = targetRole;
+    
+    const queryParams = new URLSearchParams(params);
+    const response = await fetch(`${API_BASE_URL}/recommendations/skill-gap?${queryParams}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    return handleResponse<any>(response);
+  },
+
+  // Submit recommendation feedback
+  submitFeedback: async (token: string, feedbackData: any): Promise<any> => {
+    const response = await fetch(`${API_BASE_URL}/recommendations/feedback`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(feedbackData),
+    });
+    
+    return handleResponse<any>(response);
+  },
+
+  // Get feedback analytics
+  getFeedbackAnalytics: async (token: string, params?: any): Promise<any> => {
+    const queryParams = new URLSearchParams(params);
+    const response = await fetch(`${API_BASE_URL}/recommendations/feedback/analytics?${queryParams}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    return handleResponse<any>(response);
+  },
+};
+
+// Career paths API
+export const enhancedCareerPathsApi = {
+  // Get career path recommendations
+  getCareerPaths: async (token: string, currentRole?: string): Promise<any[]> => {
+    const params = currentRole ? `?current_role=${encodeURIComponent(currentRole)}` : '';
+    const response = await fetch(`${API_BASE_URL}/career-paths${params}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    return handleResponse<any[]>(response);
+  },
+
+  // Get specific career path details
+  getCareerPathDetails: async (token: string, pathId: string): Promise<any> => {
+    const response = await fetch(`${API_BASE_URL}/career-paths/${pathId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    return handleResponse<any>(response);
+  },
+};
+
+// Analytics API for candidates
+export const candidateAnalyticsApi = {
+  // Get profile analytics
+  getProfileAnalytics: async (token: string): Promise<any> => {
+    const response = await fetch(`${API_BASE_URL}/analytics/profile`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    return handleResponse<any>(response);
+  },
+
+  // Get job application analytics
+  getApplicationAnalytics: async (token: string): Promise<any> => {
+    const response = await fetch(`${API_BASE_URL}/analytics/applications`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    return handleResponse<any>(response);
+  },
+
+  // Get skill performance analytics
+  getSkillAnalytics: async (token: string): Promise<any> => {
+    const response = await fetch(`${API_BASE_URL}/analytics/skills`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    return handleResponse<any>(response);
+  },
+};
+
+// Export all for easy access
+export {
+  mlApi as ML,
+  enhancedRecommendationsApi as Recommendations,
+  enhancedCareerPathsApi as CareerPaths,
+  candidateAnalyticsApi as Analytics,
 }; 
