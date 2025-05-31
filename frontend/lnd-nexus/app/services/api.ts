@@ -655,6 +655,76 @@ export const candidateAnalyticsApi = {
   },
 };
 
+// Applications API
+export const applicationsApi = {
+  // Get all applications for the current candidate
+  getApplications: async (token: string): Promise<any[]> => {
+    const response = await fetch(`${API_BASE_URL}/applications`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    return handleResponse<any[]>(response);
+  },
+
+  // Apply for a job
+  createApplication: async (token: string, applicationData: any): Promise<any> => {
+    const response = await fetch(`${API_BASE_URL}/applications`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(applicationData),
+    });
+    
+    return handleResponse<any>(response);
+  },
+};
+
+// Saved Jobs API
+export const savedJobsApi = {
+  // Get all saved jobs for the current candidate
+  getSavedJobs: async (token: string): Promise<any[]> => {
+    const response = await fetch(`${API_BASE_URL}/saved-jobs`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    return handleResponse<any[]>(response);
+  },
+
+  // Save a job
+  saveJob: async (token: string, jobData: any): Promise<any> => {
+    const response = await fetch(`${API_BASE_URL}/saved-jobs`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(jobData),
+    });
+    
+    return handleResponse<any>(response);
+  },
+
+  // Remove a saved job
+  removeSavedJob: async (token: string, savedJobId: string): Promise<any> => {
+    const response = await fetch(`${API_BASE_URL}/saved-jobs/${savedJobId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    return handleResponse<any>(response);
+  },
+};
+
 // Export all for easy access
 export {
   mlApi as ML,

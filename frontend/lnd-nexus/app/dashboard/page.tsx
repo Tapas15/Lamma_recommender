@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
-import { jobsApi, enhancedRecommendationsApi, candidateAnalyticsApi, projectsApi } from '../services/api';
+import { jobsApi, enhancedRecommendationsApi, candidateAnalyticsApi, projectsApi, applicationsApi, savedJobsApi } from '../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -49,8 +49,6 @@ interface RecentActivity {
 export default function CandidateDashboard() {
   const { user, token, logout } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [jobs, setJobs] = useState<any[]>([]);
-  const [jobsLoading, setJobsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [projectRecommendations, setProjectRecommendations] = useState<any[]>([]);
@@ -80,19 +78,12 @@ export default function CandidateDashboard() {
   }, [recommendations, loading, error]);
 
   const fetchDashboardData = async () => {
+    if (!token) return;
+    
     try {
       setLoading(true);
-      
-      // Fetch jobs
-      try {
-        const jobsData = await jobsApi.getJobs(token!);
-        const jobsList = Array.isArray(jobsData) ? jobsData : (jobsData as any)?.items || [];
-        setJobs(jobsList.slice(0, 5));
-      } catch (err) {
-        console.log('Jobs not available, using fallback');
-        setJobs(getMockJobs());
-      }
-      
+      setError(null);
+
       // Fetch job recommendations
       try {
         console.log('Fetching job recommendations...');
@@ -101,29 +92,68 @@ export default function CandidateDashboard() {
         
         let recommendations = Array.isArray(recData) ? recData : (recData as any)?.items || [];
         console.log('Initial processed recommendations array:', recommendations);
+        console.log('Recommendations length:', recommendations.length);
         
         // Handle nested job_details structure from backend API
-        if (recommendations.length > 0 && recommendations[0].job_details) {
-          console.log('Found nested job_details, flattening structure...');
-          recommendations = recommendations.map((rec: any) => ({
-            id: rec.job_id || rec.id,
-            title: rec.job_details?.title || rec.title,
-            company: rec.job_details?.company || rec.company,
-            location: rec.job_details?.location || rec.location,
-            salary_range: rec.job_details?.salary_range || rec.salary_range,
-            match_score: rec.match_score,
-            ...rec.job_details // spread other job details
-          }));
-          console.log('Flattened recommendations:', recommendations);
+        if (recommendations.length > 0) {
+          console.log('Processing recommendations structure...');
+          console.log('First recommendation structure:', recommendations[0]);
+          console.log('First recommendation keys:', Object.keys(recommendations[0] || {}));
+          
+          // Check if we have nested job_details structure
+          if (recommendations[0] && recommendations[0].job_details) {
+            console.log('Found nested job_details, flattening structure...');
+            recommendations = recommendations.map((rec: any) => ({
+              id: rec.job_id || rec.id || rec.job_details?.id || rec.job_details?.job_id,
+              title: rec.job_details?.title || rec.title,
+              company: rec.job_details?.company || rec.company,
+              location: rec.job_details?.location || rec.location,
+              salary_range: rec.job_details?.salary_range || rec.salary_range,
+              match_score: rec.match_score,
+              ...rec.job_details // spread other job details
+            }));
+            console.log('Flattened recommendations:', recommendations);
+          }
+          
+          // Additional check for missing title/company
+          if (recommendations[0] && (!recommendations[0].title || !recommendations[0].company)) {
+            console.log('Warning: Missing title or company in recommendations');
+            console.log('Sample recommendation after processing:', recommendations[0]);
+            
+            // Try alternative field names that might be used by backend
+            recommendations = recommendations.map((rec: any) => ({
+              ...rec,
+              id: rec.id || rec.job_id || rec.job_details?.id || rec.job_details?.job_id || rec._id,
+              title: rec.title || rec.job_title || rec.position || rec.name || 'Position Not Specified',
+              company: rec.company || rec.employer || rec.company_name || rec.organization || 'Company Not Specified',
+              location: rec.location || rec.job_location || rec.city || 'Location TBD',
+              match_score: rec.match_score || rec.score || 0
+            }));
+            console.log('Fixed recommendations with alternative field mapping:', recommendations);
+          }
         }
         
         console.log('Final recommendations count:', recommendations.length);
+        console.log('Final processed recommendations:', recommendations);
         
-        if (recommendations.length > 0) {
-          console.log('Using API recommendations');
+        // Validate job IDs
+        recommendations.forEach((rec, index) => {
+          console.log(`Job ${index + 1} validation:`, {
+            hasId: !!rec.id,
+            id: rec.id,
+            hasTitle: !!rec.title,
+            title: rec.title,
+            hasCompany: !!rec.company,
+            company: rec.company
+          });
+        });
+        
+        if (recommendations.length > 0 && recommendations[0].title && recommendations[0].company) {
+          console.log('Using API recommendations with valid data');
           setRecommendations(recommendations);
         } else {
-          console.log('API returned empty, using mock recommendations');
+          console.log('API returned empty or invalid data, using mock recommendations');
+          console.log('Reason: length =', recommendations.length, 'has title =', !!recommendations[0]?.title, 'has company =', !!recommendations[0]?.company);
           const mockRecs = getMockRecommendations();
           console.log('Mock recommendations:', mockRecs);
           setRecommendations(mockRecs);
@@ -150,52 +180,74 @@ export default function CandidateDashboard() {
         setProjectRecommendations(getMockProjectRecommendations());
       }
       
+      // Fetch real dashboard statistics
+      let realStats = { ...stats };
+      
+      // Fetch applications count
+      try {
+        const applications = await applicationsApi.getApplications(token!);
+        realStats.job_applications = Array.isArray(applications) ? applications.length : 0;
+        console.log('Fetched applications count:', realStats.job_applications);
+      } catch (err) {
+        console.log('Failed to fetch applications, using fallback');
+      }
+
+      // Fetch saved jobs count
+      try {
+        const savedJobs = await savedJobsApi.getSavedJobs(token!);
+        realStats.saved_jobs = Array.isArray(savedJobs) ? savedJobs.length : 0;
+        console.log('Fetched saved jobs count:', realStats.saved_jobs);
+      } catch (err) {
+        console.log('Failed to fetch saved jobs, using fallback');
+      }
+
+      // Fetch recommendation matches count
+      try {
+        const allRecs = await enhancedRecommendationsApi.getJobRecommendations(token!, { min_match_score: 70 });
+        const matches = Array.isArray(allRecs) ? allRecs : (allRecs as any)?.items || [];
+        realStats.recommendation_matches = matches.length;
+        console.log('Fetched recommendation matches count:', realStats.recommendation_matches);
+      } catch (err) {
+        console.log('Failed to fetch recommendation matches, using fallback');
+      }
+
       // Fetch analytics if available
       try {
         const analyticsData = await candidateAnalyticsApi.getProfileAnalytics(token!);
         if (analyticsData) {
-          setStats(prev => ({ ...prev, ...analyticsData }));
+          // Merge analytics data with stats
+          if (analyticsData.profile_completion !== undefined) {
+            realStats.profile_completion = analyticsData.profile_completion;
+          }
+          if (analyticsData.profile_views !== undefined) {
+            realStats.profile_views = analyticsData.profile_views;
+          }
+          if (analyticsData.job_applications !== undefined) {
+            realStats.job_applications = analyticsData.job_applications;
+          }
+          if (analyticsData.saved_jobs !== undefined) {
+            realStats.saved_jobs = analyticsData.saved_jobs;
+          }
+          if (analyticsData.recommendation_matches !== undefined) {
+            realStats.recommendation_matches = analyticsData.recommendation_matches;
+          }
+          console.log('Merged analytics data:', analyticsData);
         }
       } catch (err) {
-        console.log('Analytics not available, using mock data');
+        console.log('Analytics not available, using computed stats');
       }
+
+      // Update stats with real data
+      setStats(realStats);
+      console.log('Updated dashboard stats:', realStats);
       
       // Set mock activity
       setRecentActivity(getMockActivity());
       
-    } catch (err: any) {
-      setError('Failed to load dashboard data');
-      // Set fallback data
-      setJobs(getMockJobs());
-      setRecommendations(getMockRecommendations());
-      setProjectRecommendations(getMockProjectRecommendations());
-      setRecentActivity(getMockActivity());
     } finally {
       setLoading(false);
-      setJobsLoading(false);
     }
   };
-
-  const getMockJobs = () => [
-    {
-      id: '1',
-      title: 'Senior Learning Experience Designer',
-      company: 'TechCorp Inc.',
-      location: 'San Francisco, CA',
-      description: 'We are looking for an experienced Learning Experience Designer...',
-      posted_date: '2024-01-15',
-      match_score: 92
-    },
-    {
-      id: '2',
-      title: 'Corporate Training Manager',
-      company: 'Global Learning Corp',
-      location: 'Remote',
-      description: 'Join our team to lead corporate training initiatives...',
-      posted_date: '2024-01-12',
-      match_score: 85
-    }
-  ];
 
   const getMockRecommendations = () => [
     {
@@ -462,7 +514,10 @@ export default function CandidateDashboard() {
               <CardContent>
                 <div className="space-y-4">
                   {(recommendations || []).map((job, index) => {
-                    console.log('Rendering job recommendation:', job);
+                    console.log(`Rendering job recommendation ${index + 1}:`, job);
+                    console.log(`Job ${index + 1} title:`, job.title);
+                    console.log(`Job ${index + 1} company:`, job.company);
+                    console.log(`Job ${index + 1} all keys:`, Object.keys(job || {}));
                     return (
                       <div key={`rec-${job.id || `idx-${index}`}`} className="flex justify-between items-center p-4 border rounded-lg hover:bg-gray-50">
                         <div className="flex-1">
@@ -485,9 +540,19 @@ export default function CandidateDashboard() {
                           <Badge variant="secondary" className="bg-green-100 text-green-800">
                             {job.match_score || 0}% Match
                           </Badge>
-                          <Button size="sm" asChild>
-                            <Link href={`/jobs/${job.id || 'unknown'}`}>View</Link>
-                          </Button>
+                          {job.id && job.id !== 'unknown' ? (
+                            <Button size="sm" asChild>
+                              <Link href={`/jobs/${job.id}`}>View</Link>
+                            </Button>
+                          ) : (
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              asChild
+                            >
+                              <Link href="/candidate-recommendations">Browse Jobs</Link>
+                            </Button>
+                          )}
                         </div>
                       </div>
                     );
@@ -536,61 +601,6 @@ export default function CandidateDashboard() {
                     </div>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Recent Jobs */}
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle className="flex items-center gap-2">
-                    <Briefcase className="h-5 w-5" />
-                    Recent Job Postings
-                  </CardTitle>
-                  <Button asChild variant="outline" size="sm">
-                    <Link href="/jobs">
-                      View All <ChevronRight className="h-4 w-4 ml-1" />
-                    </Link>
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {jobsLoading ? (
-                  <div className="space-y-3">
-                    {[1, 2, 3].map((i) => (
-                      <div key={`loading-${i}`} className="animate-pulse">
-                        <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                        <div className="h-3 bg-gray-200 rounded w-3/4"></div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (jobs || []).length > 0 ? (
-                  <div className="space-y-4">
-                    {(jobs || []).map((job, index) => (
-                      <div key={`job-${job.id || `idx-${index}`}`} className="border rounded-lg p-4 hover:bg-gray-50">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-gray-900">{job.title}</h3>
-                            <p className="text-sm text-gray-500 mb-2">{job.company} • {job.location}</p>
-                            <p className="text-sm text-gray-700 line-clamp-2">{job.description}</p>
-                          </div>
-                          <div className="ml-4 flex flex-col items-end gap-2">
-                            <span className="text-xs text-gray-500">
-                              {new Date(job.posted_date).toLocaleDateString()}
-                            </span>
-                            <Button size="sm" asChild>
-                              <Link href={`/jobs/${job.id || 'unknown'}`}>View</Link>
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-gray-500 text-center py-4">
-                    No recent jobs found. Check back later for new opportunities.
-                  </p>
-                )}
               </CardContent>
             </Card>
           </div>

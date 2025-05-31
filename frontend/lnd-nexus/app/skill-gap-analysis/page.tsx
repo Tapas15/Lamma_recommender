@@ -87,7 +87,7 @@ export default function SkillGapAnalysisPage() {
     
     try {
       const data = await jobsApi.getJobs(token);
-      const jobsList = Array.isArray(data) ? data : data.items || [];
+      const jobsList = Array.isArray(data) ? data : (data as any)?.items || [];
       setJobs(jobsList.slice(0, 20)); // Limit to first 20 jobs
     } catch (err) {
       console.error('Failed to load jobs:', err);
@@ -301,16 +301,16 @@ export default function SkillGapAnalysisPage() {
         {/* Analysis Results */}
         {analysis && (
           <div className="space-y-6">
-            {/* Overall Summary */}
+            {/* Overview */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Brain className="h-5 w-5" />
-                  Analysis Summary
+                  <BarChart3 className="h-5 w-5" />
+                  Analysis Overview
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                   <div className="text-center">
                     <div className="text-3xl font-bold text-blue-600 mb-2">
                       {analysis.overall_match_percentage}%
@@ -321,14 +321,14 @@ export default function SkillGapAnalysisPage() {
                   
                   <div className="text-center">
                     <div className="text-3xl font-bold text-green-600 mb-2">
-                      {analysis.matching_skills.length}
+                      {(analysis.matching_skills || []).length}
                     </div>
                     <p className="text-gray-600">Matching Skills</p>
                   </div>
                   
                   <div className="text-center">
                     <div className="text-3xl font-bold text-red-600 mb-2">
-                      {analysis.missing_skills.length}
+                      {(analysis.missing_skills || []).length}
                     </div>
                     <p className="text-gray-600">Missing Skills</p>
                   </div>
@@ -351,12 +351,12 @@ export default function SkillGapAnalysisPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-green-600">
                     <CheckCircle className="h-5 w-5" />
-                    Matching Skills ({analysis.matching_skills.length})
+                    Matching Skills ({(analysis.matching_skills || []).length})
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {analysis.matching_skills.map((skill, index) => (
+                    {(analysis.matching_skills || []).map((skill, index) => (
                       <div key={index} className="flex items-center justify-between p-2 bg-green-50 rounded">
                         <span className="font-medium text-green-800">{skill}</span>
                         <CheckCircle className="h-4 w-4 text-green-600" />
@@ -371,12 +371,12 @@ export default function SkillGapAnalysisPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-red-600">
                     <AlertCircle className="h-5 w-5" />
-                    Missing Skills ({analysis.missing_skills.length})
+                    Missing Skills ({(analysis.missing_skills || []).length})
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {analysis.missing_skills.map((skill, index) => (
+                    {(analysis.missing_skills || []).map((skill, index) => (
                       <div key={index} className="flex items-center justify-between p-2 bg-red-50 rounded">
                         <span className="font-medium text-red-800">{skill}</span>
                         <AlertCircle className="h-4 w-4 text-red-600" />
@@ -388,17 +388,17 @@ export default function SkillGapAnalysisPage() {
             </div>
 
             {/* Partially Matching Skills */}
-            {analysis.partially_matching_skills.length > 0 && (
+            {(analysis.partially_matching_skills || []).length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-yellow-600">
                     <TrendingUp className="h-5 w-5" />
-                    Skills to Improve ({analysis.partially_matching_skills.length})
+                    Skills to Improve ({(analysis.partially_matching_skills || []).length})
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {analysis.partially_matching_skills.map((skill, index) => (
+                    {(analysis.partially_matching_skills || []).map((skill, index) => (
                       <div key={index} className="p-4 border rounded-lg">
                         <div className="flex justify-between items-center mb-2">
                           <h4 className="font-semibold">{skill.skill}</h4>
@@ -430,7 +430,7 @@ export default function SkillGapAnalysisPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  {analysis.recommended_learning.map((learning, index) => (
+                  {(analysis.recommended_learning || []).map((learning, index) => (
                     <div key={index} className="border rounded-lg p-4">
                       <div className="flex justify-between items-center mb-3">
                         <h4 className="font-semibold text-lg">{learning.skill}</h4>
@@ -446,7 +446,7 @@ export default function SkillGapAnalysisPage() {
                       </div>
                       
                       <div className="space-y-2">
-                        {learning.learning_resources.map((resource, resourceIndex) => (
+                        {(learning.learning_resources || []).map((resource, resourceIndex) => (
                           <div key={resourceIndex} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                             <div className="flex items-center gap-2">
                               <BookOpen className="h-4 w-4 text-blue-600" />
@@ -468,46 +468,48 @@ export default function SkillGapAnalysisPage() {
             </Card>
 
             {/* Salary Impact */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Award className="h-5 w-5" />
-                  Potential Career Impact
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-900 mb-1">
-                      {analysis.salary_impact.current_estimate}
+            {analysis.salary_impact && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Award className="h-5 w-5" />
+                    Potential Career Impact
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-gray-900 mb-1">
+                        {analysis.salary_impact.current_estimate}
+                      </div>
+                      <p className="text-gray-600">Current Estimated Salary</p>
                     </div>
-                    <p className="text-gray-600">Current Estimated Salary</p>
+                    
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600 mb-1">
+                        +{analysis.salary_impact.potential_increase}
+                      </div>
+                      <p className="text-gray-600">Potential Increase</p>
+                    </div>
+                    
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600 mb-1">
+                        +{analysis.salary_impact.percentage_increase}%
+                      </div>
+                      <p className="text-gray-600">Percentage Increase</p>
+                    </div>
                   </div>
                   
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600 mb-1">
-                      +{analysis.salary_impact.potential_increase}
-                    </div>
-                    <p className="text-gray-600">Potential Increase</p>
+                  <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                    <p className="text-blue-800">
+                      By addressing the identified skill gaps, you could potentially increase your earning 
+                      potential by {analysis.salary_impact.percentage_increase}% and become more competitive 
+                      for {analysis.target_role} positions.
+                    </p>
                   </div>
-                  
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600 mb-1">
-                      +{analysis.salary_impact.percentage_increase}%
-                    </div>
-                    <p className="text-gray-600">Percentage Increase</p>
-                  </div>
-                </div>
-                
-                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                  <p className="text-blue-800">
-                    By addressing the identified skill gaps, you could potentially increase your earning 
-                    potential by {analysis.salary_impact.percentage_increase}% and become more competitive 
-                    for {analysis.target_role} positions.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
           </div>
         )}
       </div>
