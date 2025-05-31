@@ -35,18 +35,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setIsAuthenticated(true);
           setError(null);
         } catch (err) {
-          // Token might be expired or invalid
-          console.error('Authentication error:', err);
+          // Token might be expired or invalid - silently clear it
+          console.log('Stored token is invalid or expired, clearing authentication');
           localStorage.removeItem('auth_token');
           setIsAuthenticated(false);
           setUser(null);
           setToken(null);
-          
-          if (err instanceof ApiError) {
-            setError(err.message);
-          } else {
-            setError('Authentication failed. Please log in again.');
-          }
+          setError(null); // Don't show error for expired tokens
         }
       }
       setIsLoading(false);

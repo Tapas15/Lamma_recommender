@@ -94,7 +94,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   // Translation function for text
   const t = (key: string, options?: any): string => {
-    return translate(key, options);
+    const result = translate(key, options);
+    return typeof result === 'string' ? result : key;
   };
 
   // Translation function for images

@@ -86,6 +86,28 @@ export default function CandidateProfilePage() {
   const [newSkill, setNewSkill] = useState('');
   const [newSkillCategory, setNewSkillCategory] = useState<string>('languages_frameworks');
 
+  // Experience form states
+  const [showAddExperience, setShowAddExperience] = useState(false);
+  const [newExperience, setNewExperience] = useState<Experience>({
+    company: '',
+    title: '',
+    description: '',
+    start_date: '',
+    end_date: '',
+    current: false
+  });
+
+  // Education form states  
+  const [showAddEducation, setShowAddEducation] = useState(false);
+  const [newEducation, setNewEducation] = useState<Education>({
+    institution: '',
+    degree: '',
+    field_of_study: '',
+    start_date: '',
+    end_date: '',
+    current: false
+  });
+
   const fetchProfile = async () => {
     if (!token) return;
     
@@ -159,6 +181,58 @@ export default function CandidateProfilePage() {
       ) as any;
       setEditedProfile({ ...editedProfile, skills: updatedSkills });
     }
+  };
+
+  // Experience management functions
+  const addExperience = () => {
+    if (!newExperience.company || !newExperience.title || !newExperience.start_date) return;
+    
+    const currentExperience = editedProfile.experience || [];
+    const updatedExperience = [...currentExperience, { ...newExperience }];
+    setEditedProfile({ ...editedProfile, experience: updatedExperience });
+    
+    // Reset form
+    setNewExperience({
+      company: '',
+      title: '',
+      description: '',
+      start_date: '',
+      end_date: '',
+      current: false
+    });
+    setShowAddExperience(false);
+  };
+
+  const removeExperience = (index: number) => {
+    const currentExperience = editedProfile.experience || [];
+    const updatedExperience = currentExperience.filter((_, i) => i !== index);
+    setEditedProfile({ ...editedProfile, experience: updatedExperience });
+  };
+
+  // Education management functions
+  const addEducation = () => {
+    if (!newEducation.institution || !newEducation.degree || !newEducation.start_date) return;
+    
+    const currentEducation = editedProfile.education || [];
+    const updatedEducation = [...currentEducation, { ...newEducation }];
+    setEditedProfile({ ...editedProfile, education: updatedEducation });
+    
+    // Reset form
+    setNewEducation({
+      institution: '',
+      degree: '',
+      field_of_study: '',
+      start_date: '',
+      end_date: '',
+      current: false
+    });
+    setShowAddEducation(false);
+  };
+
+  const removeEducation = (index: number) => {
+    const currentEducation = editedProfile.education || [];
+    const updatedEducation = currentEducation.filter((_, i) => i !== index);
+    setEditedProfile({ ...editedProfile, education: updatedEducation });
   };
 
   const getProficiencyColor = (proficiency: string) => {
@@ -415,6 +489,259 @@ export default function CandidateProfilePage() {
                 />
               ) : (
                 <p className="text-gray-900">{profile?.career_goals || 'No career goals specified'}</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Experience Section */}
+        <Card className="mb-6">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <CardTitle className="flex items-center gap-2">
+                <Briefcase className="h-5 w-5" />
+                Work Experience
+              </CardTitle>
+              {editing && (
+                <Button
+                  onClick={() => setShowAddExperience(true)}
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Experience
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {/* Add Experience Form */}
+            {editing && showAddExperience && (
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg border">
+                <h3 className="font-semibold mb-4">Add Work Experience</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <Input
+                    placeholder="Company name"
+                    value={newExperience.company}
+                    onChange={(e) => setNewExperience({ ...newExperience, company: e.target.value })}
+                  />
+                  <Input
+                    placeholder="Job title"
+                    value={newExperience.title}
+                    onChange={(e) => setNewExperience({ ...newExperience, title: e.target.value })}
+                  />
+                  <Input
+                    type="date"
+                    placeholder="Start date"
+                    value={newExperience.start_date}
+                    onChange={(e) => setNewExperience({ ...newExperience, start_date: e.target.value })}
+                  />
+                  <Input
+                    type="date"
+                    placeholder="End date"
+                    value={newExperience.end_date}
+                    onChange={(e) => setNewExperience({ ...newExperience, end_date: e.target.value })}
+                    disabled={newExperience.current}
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={newExperience.current}
+                      onChange={(e) => setNewExperience({ 
+                        ...newExperience, 
+                        current: e.target.checked,
+                        end_date: e.target.checked ? '' : newExperience.end_date
+                      })}
+                    />
+                    <span className="text-sm">Currently working here</span>
+                  </label>
+                </div>
+                <Textarea
+                  placeholder="Describe your role and achievements..."
+                  value={newExperience.description}
+                  onChange={(e) => setNewExperience({ ...newExperience, description: e.target.value })}
+                  rows={3}
+                  className="mb-4"
+                />
+                <div className="flex gap-2">
+                  <Button onClick={addExperience} size="sm">
+                    Add Experience
+                  </Button>
+                  <Button 
+                    onClick={() => setShowAddExperience(false)} 
+                    variant="outline" 
+                    size="sm"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Experience List */}
+            <div className="space-y-4">
+              {(editedProfile.experience || []).map((exp, index) => (
+                <div key={index} className="border rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg">{exp.title}</h3>
+                      <p className="text-blue-600 font-medium">{exp.company}</p>
+                      <p className="text-sm text-gray-600">
+                        {exp.start_date} - {exp.current ? 'Present' : exp.end_date || 'Not specified'}
+                      </p>
+                    </div>
+                    {editing && (
+                      <Button
+                        onClick={() => removeExperience(index)}
+                        variant="outline"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  {exp.description && (
+                    <p className="text-gray-700 mt-2">{exp.description}</p>
+                  )}
+                </div>
+              ))}
+              
+              {(!editedProfile.experience || editedProfile.experience.length === 0) && (
+                <div className="text-center py-8 text-gray-500">
+                  <Briefcase className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                  <p>No work experience added yet</p>
+                  {editing && (
+                    <p className="text-sm mt-1">Click "Add Experience" to get started</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Education Section */}
+        <Card className="mb-6">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <CardTitle className="flex items-center gap-2">
+                <GraduationCap className="h-5 w-5" />
+                Education
+              </CardTitle>
+              {editing && (
+                <Button
+                  onClick={() => setShowAddEducation(true)}
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Education
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {/* Add Education Form */}
+            {editing && showAddEducation && (
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg border">
+                <h3 className="font-semibold mb-4">Add Education</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <Input
+                    placeholder="Institution name"
+                    value={newEducation.institution}
+                    onChange={(e) => setNewEducation({ ...newEducation, institution: e.target.value })}
+                  />
+                  <Input
+                    placeholder="Degree"
+                    value={newEducation.degree}
+                    onChange={(e) => setNewEducation({ ...newEducation, degree: e.target.value })}
+                  />
+                  <Input
+                    placeholder="Field of study"
+                    value={newEducation.field_of_study}
+                    onChange={(e) => setNewEducation({ ...newEducation, field_of_study: e.target.value })}
+                  />
+                  <div></div>
+                  <Input
+                    type="date"
+                    placeholder="Start date"
+                    value={newEducation.start_date}
+                    onChange={(e) => setNewEducation({ ...newEducation, start_date: e.target.value })}
+                  />
+                  <Input
+                    type="date"
+                    placeholder="End date"
+                    value={newEducation.end_date}
+                    onChange={(e) => setNewEducation({ ...newEducation, end_date: e.target.value })}
+                    disabled={newEducation.current}
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={newEducation.current}
+                      onChange={(e) => setNewEducation({ 
+                        ...newEducation, 
+                        current: e.target.checked,
+                        end_date: e.target.checked ? '' : newEducation.end_date
+                      })}
+                    />
+                    <span className="text-sm">Currently studying here</span>
+                  </label>
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={addEducation} size="sm">
+                    Add Education
+                  </Button>
+                  <Button 
+                    onClick={() => setShowAddEducation(false)} 
+                    variant="outline" 
+                    size="sm"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Education List */}
+            <div className="space-y-4">
+              {(editedProfile.education || []).map((edu, index) => (
+                <div key={index} className="border rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg">{edu.degree}</h3>
+                      <p className="text-blue-600 font-medium">{edu.institution}</p>
+                      <p className="text-gray-600">{edu.field_of_study}</p>
+                      <p className="text-sm text-gray-600">
+                        {edu.start_date} - {edu.current ? 'Present' : edu.end_date || 'Not specified'}
+                      </p>
+                    </div>
+                    {editing && (
+                      <Button
+                        onClick={() => removeEducation(index)}
+                        variant="outline"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+              
+              {(!editedProfile.education || editedProfile.education.length === 0) && (
+                <div className="text-center py-8 text-gray-500">
+                  <GraduationCap className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                  <p>No education added yet</p>
+                  {editing && (
+                    <p className="text-sm mt-1">Click "Add Education" to get started</p>
+                  )}
+                </div>
               )}
             </div>
           </CardContent>

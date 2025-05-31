@@ -2,8 +2,8 @@
  * API service for connecting to the FastAPI backend
  */
 
-// Base URL for the API - using relative URLs for same-port deployment
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+// Base URL for the API - using localhost:8000 for development
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
 
 // Types
 export interface LoginRequest {
@@ -102,12 +102,42 @@ export interface CandidateProfileData {
 }
 
 export interface EmployerProfileData {
-  company_name: string;
-  company_size: 'small' | 'medium' | 'large' | 'enterprise';
-  industry: string;
-  location: string;
-  website?: string;
-  description?: string;
+  full_name?: string;
+  position?: string;
+  bio?: string;
+  about?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  location?: string;
+  company_details?: {
+    company_name?: string;
+    company_description?: string;
+    company_website?: string;
+    company_location?: string;
+    company_size?: string;
+    industry?: string;
+    founded_year?: number;
+    company_logo?: string;
+    company_socials?: {
+      linkedin?: string;
+      twitter?: string;
+      glassdoor?: string;
+    };
+    values?: string[];
+    mission?: string;
+    vision?: string;
+  };
+  hiring_preferences?: {
+    job_roles_hiring?: string[];
+    employment_types?: string[];
+    locations_hiring?: string[];
+    salary_range_usd?: {
+      min?: number;
+      max?: number;
+    };
+    remote_friendly?: boolean;
+    tech_stack?: string[];
+  };
 }
 
 // API error class
@@ -300,6 +330,32 @@ export const jobsApi = {
     
     return handleResponse<any>(response);
   },
+
+  // Update job
+  updateJob: async (token: string, jobId: string, jobData: any): Promise<any> => {
+    const response = await fetch(`${API_BASE_URL}/jobs/${jobId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(jobData),
+    });
+    
+    return handleResponse<any>(response);
+  },
+
+  // Delete job
+  deleteJob: async (token: string, jobId: string): Promise<any> => {
+    const response = await fetch(`${API_BASE_URL}/jobs/${jobId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    return handleResponse<any>(response);
+  },
 };
 
 // Recommendations API
@@ -424,6 +480,32 @@ export const projectsApi = {
     
     return handleResponse<any>(response);
   },
+
+  // Update project
+  updateProject: async (token: string, projectId: string, projectData: any): Promise<any> => {
+    const response = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(projectData),
+    });
+    
+    return handleResponse<any>(response);
+  },
+
+  // Delete project
+  deleteProject: async (token: string, projectId: string): Promise<any> => {
+    const response = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    return handleResponse<any>(response);
+  },
 };
 
 // Candidates API
@@ -534,6 +616,32 @@ export const enhancedRecommendationsApi = {
   getProjectRecommendations: async (token: string, params?: any): Promise<any> => {
     const queryParams = new URLSearchParams(params);
     const response = await fetch(`${API_BASE_URL}/recommendations/projects?${queryParams}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    return handleResponse<any>(response);
+  },
+
+  // Get candidate recommendations for a specific job (for employers)
+  getCandidatesForJob: async (token: string, jobId: string, params?: any): Promise<any> => {
+    const queryParams = new URLSearchParams(params);
+    const response = await fetch(`${API_BASE_URL}/recommendations/candidates/${jobId}?${queryParams}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    return handleResponse<any>(response);
+  },
+
+  // Get candidate recommendations for a specific project (for employers)
+  getCandidatesForProject: async (token: string, projectId: string, params?: any): Promise<any> => {
+    const queryParams = new URLSearchParams(params);
+    const response = await fetch(`${API_BASE_URL}/recommendations/candidates-for-project/${projectId}?${queryParams}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,

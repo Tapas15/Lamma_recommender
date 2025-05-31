@@ -63,12 +63,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ userType }) => {
 
   // Employer profile data
   const [employerData, setEmployerData] = useState<Partial<EmployerProfileData>>({
-    company_name: '',
-    company_size: 'small',
-    industry: '',
-    location: '',
-    website: '',
-    description: '',
+    company_details: {
+      company_name: '',
+      company_size: 'small',
+      industry: '',
+      company_location: '',
+      company_website: '',
+      company_description: '',
+    }
   });
 
   // Define validation rules for account form
@@ -103,16 +105,16 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ userType }) => {
 
   // Define validation rules for employer form
   const employerRules: FieldRules = {
-    company_name: {
+    'company_details.company_name': {
       required: true
     },
-    industry: {
+    'company_details.industry': {
       required: true
     },
-    location: {
+    'company_details.company_location': {
       required: true
     },
-    website: {
+    'company_details.company_website': {
       customValidator: (value) => !value || validateUrl(value) || 'Please enter a valid URL'
     }
   };
@@ -146,14 +148,26 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ userType }) => {
   // Handle employer data changes
   const handleEmployerChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setEmployerData((prev) => ({ ...prev, [name]: value }));
-    clearError(name);
+    setEmployerData((prev) => ({
+      ...prev,
+      company_details: {
+        ...prev.company_details,
+        [name]: value
+      }
+    }));
+    clearError(`company_details.${name}`);
   };
 
   // Handle select value changes for employer
   const handleEmployerSelectChange = (name: string, value: string) => {
-    setEmployerData((prev) => ({ ...prev, [name]: value }));
-    clearError(name);
+    setEmployerData((prev) => ({
+      ...prev,
+      company_details: {
+        ...prev.company_details,
+        [name]: value
+      }
+    }));
+    clearError(`company_details.${name}`);
   };
 
   // Handle next step
@@ -261,12 +275,12 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ userType }) => {
           // we just need to update it with the additional details
           const updatedProfileData = {
             company_details: {
-              company_name: employerData.company_name,
-              industry: employerData.industry,
-              company_size: employerData.company_size,
-              company_location: employerData.location,
-              company_website: employerData.website,
-              company_description: employerData.description,
+              company_name: employerData.company_details?.company_name,
+              industry: employerData.company_details?.industry,
+              company_size: employerData.company_details?.company_size,
+              company_location: employerData.company_details?.company_location,
+              company_website: employerData.company_details?.company_website,
+              company_description: employerData.company_details?.company_description,
             }
           };
           
@@ -464,109 +478,115 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ userType }) => {
       </h2>
       
       <div>
-        <label htmlFor="company_name" className="block text-sm font-medium text-gray-700 mb-1">
-          Company Name
+        <label htmlFor="company_name" className="block text-sm font-medium text-gray-700 mb-2">
+          Company Name *
         </label>
         <Input
           id="company_name"
           name="company_name"
           type="text"
-          value={employerData.company_name || ''}
+          value={employerData.company_details?.company_name || ''}
           onChange={handleEmployerChange}
           placeholder="Acme Inc."
-          className={errors.company_name ? 'border-red-500' : ''}
+          className={errors['company_details.company_name'] ? 'border-red-500' : ''}
         />
-        {errors.company_name && (
-          <p className="mt-1 text-sm text-red-600">{errors.company_name}</p>
+        {errors['company_details.company_name'] && (
+          <p className="mt-1 text-sm text-red-600">{errors['company_details.company_name']}</p>
         )}
       </div>
       
       <div>
-        <label htmlFor="industry" className="block text-sm font-medium text-gray-700 mb-1">
-          Industry
+        <label htmlFor="industry" className="block text-sm font-medium text-gray-700 mb-2">
+          Industry *
         </label>
         <Select 
-          value={employerData.industry || ''} 
+          value={employerData.company_details?.industry || ''} 
           onValueChange={(value) => handleEmployerSelectChange('industry', value)}
         >
-          <SelectTrigger className={errors.industry ? 'border-red-500' : ''}>
-            <SelectValue placeholder="Select an industry" />
+          <SelectTrigger className={errors['company_details.industry'] ? 'border-red-500' : ''}>
+            <SelectValue placeholder="Select your industry" />
           </SelectTrigger>
           <SelectContent>
-            {industryOptions.map((industry) => (
-              <SelectItem key={industry} value={industry}>{industry}</SelectItem>
-            ))}
+            <SelectItem value="technology">Technology</SelectItem>
+            <SelectItem value="healthcare">Healthcare</SelectItem>
+            <SelectItem value="finance">Finance</SelectItem>
+            <SelectItem value="education">Education</SelectItem>
+            <SelectItem value="manufacturing">Manufacturing</SelectItem>
+            <SelectItem value="retail">Retail</SelectItem>
+            <SelectItem value="consulting">Consulting</SelectItem>
+            <SelectItem value="other">Other</SelectItem>
           </SelectContent>
         </Select>
-        {errors.industry && (
-          <p className="mt-1 text-sm text-red-600">{errors.industry}</p>
+        {errors['company_details.industry'] && (
+          <p className="mt-1 text-sm text-red-600">{errors['company_details.industry']}</p>
         )}
       </div>
       
       <div>
-        <label htmlFor="company_size" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="company_size" className="block text-sm font-medium text-gray-700 mb-2">
           Company Size
         </label>
         <Select 
-          value={employerData.company_size || 'small'} 
+          value={employerData.company_details?.company_size || 'small'} 
           onValueChange={(value) => handleEmployerSelectChange('company_size', value)}
         >
           <SelectTrigger>
             <SelectValue placeholder="Select company size" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="small">Small (1-50 employees)</SelectItem>
-            <SelectItem value="medium">Medium (51-250 employees)</SelectItem>
-            <SelectItem value="large">Large (251-1000 employees)</SelectItem>
+            <SelectItem value="startup">Startup (1-10 employees)</SelectItem>
+            <SelectItem value="small">Small (11-50 employees)</SelectItem>
+            <SelectItem value="medium">Medium (51-200 employees)</SelectItem>
+            <SelectItem value="large">Large (201-1000 employees)</SelectItem>
             <SelectItem value="enterprise">Enterprise (1000+ employees)</SelectItem>
           </SelectContent>
         </Select>
       </div>
       
       <div>
-        <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
-          Location
+        <label htmlFor="company_location" className="block text-sm font-medium text-gray-700 mb-2">
+          Company Location *
         </label>
         <Input
-          id="location"
-          name="location"
+          id="company_location"
+          name="company_location"
           type="text"
-          value={employerData.location || ''}
+          value={employerData.company_details?.company_location || ''}
           onChange={handleEmployerChange}
           placeholder="City, Country"
-          className={errors.location ? 'border-red-500' : ''}
+          className={errors['company_details.company_location'] ? 'border-red-500' : ''}
         />
-        {errors.location && (
-          <p className="mt-1 text-sm text-red-600">{errors.location}</p>
+        {errors['company_details.company_location'] && (
+          <p className="mt-1 text-sm text-red-600">{errors['company_details.company_location']}</p>
         )}
       </div>
       
       <div>
-        <label htmlFor="website" className="block text-sm font-medium text-gray-700 mb-1">
-          Website
+        <label htmlFor="company_website" className="block text-sm font-medium text-gray-700 mb-2">
+          Company Website
         </label>
         <Input
-          id="website"
-          name="website"
+          id="company_website"
+          name="company_website"
           type="url"
-          value={employerData.website || ''}
+          value={employerData.company_details?.company_website || ''}
           onChange={handleEmployerChange}
           placeholder="https://yourcompany.com"
-          className={errors.website ? 'border-red-500' : ''}
+          className={errors['company_details.company_website'] ? 'border-red-500' : ''}
         />
-        {errors.website && (
-          <p className="mt-1 text-sm text-red-600">{errors.website}</p>
+        {errors['company_details.company_website'] && (
+          <p className="mt-1 text-sm text-red-600">{errors['company_details.company_website']}</p>
         )}
       </div>
       
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="company_description" className="block text-sm font-medium text-gray-700 mb-2">
           Company Description
         </label>
         <Textarea
-          id="description"
-          name="description"
-          value={employerData.description || ''}
+          id="company_description"
+          name="company_description"
+          value={employerData.company_details?.company_description || ''}
           onChange={handleEmployerChange}
           placeholder="Tell us about your company..."
           rows={4}
