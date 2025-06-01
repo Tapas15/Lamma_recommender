@@ -416,6 +416,28 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
+
+# Health check endpoint
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    try:
+        # Test database connection
+        collection = Database.get_collection(USERS_COLLECTION)
+        await collection.find_one({}, {"_id": 1})
+        return {
+            "status": "healthy",
+            "timestamp": datetime.utcnow().isoformat(),
+            "database": "connected"
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy", 
+            "timestamp": datetime.utcnow().isoformat(),
+            "database": "disconnected",
+            "error": str(e)
+        }
+
 # Add language middleware
 # app.add_middleware(LanguageMiddleware)
 
@@ -872,7 +894,7 @@ async def get_jobs(current_user: dict = Depends(get_current_user)):
 
 
 
-@app.get("/jobs/public", response_model=List[Job])
+@app.get("/jobs/public")
 async def get_jobs_public():
     """Get all active jobs - public endpoint (no authentication required)"""
     jobs = (
@@ -6715,7 +6737,7 @@ async def get_jobs(current_user: dict = Depends(get_current_user)):
 
 
 
-@app.get("/jobs/public", response_model=List[Job])
+@app.get("/jobs/public")
 async def get_jobs_public():
     """Get all active jobs - public endpoint (no authentication required)"""
     jobs = (
@@ -12945,7 +12967,7 @@ async def get_jobs(current_user: dict = Depends(get_current_user)):
 
 
 
-@app.get("/jobs/public", response_model=List[Job])
+@app.get("/jobs/public")
 async def get_jobs_public():
     """Get all active jobs - public endpoint (no authentication required)"""
     jobs = (

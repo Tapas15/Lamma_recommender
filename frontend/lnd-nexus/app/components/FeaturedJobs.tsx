@@ -15,13 +15,32 @@ export default function FeaturedJobs() {
     const fetchJobs = async () => {
       try {
         setLoading(true);
+        setError(null);
+        
+        // Try to fetch jobs with timeout and retry logic
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        
         const jobsData = await jobsApi.getJobsPublic();
+        clearTimeout(timeoutId);
+        
         // Take only the first 2 jobs for featured section
         setJobs(jobsData.slice(0, 2));
         setError(null);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error fetching jobs:', err);
-        setError('Failed to load jobs');
+        
+        // Better error messaging
+        if (err.name === 'AbortError') {
+          setError('Request timed out. Please check if the backend server is running.');
+        } else if (err.message.includes('Failed to fetch')) {
+          setError('Unable to connect to server. Please ensure the backend is running at http://localhost:8000');
+        } else if (err.status === 404) {
+          setError('Jobs endpoint not found. Please check backend configuration.');
+        } else {
+          setError(`Failed to load jobs: ${err.message || 'Unknown error'}`);
+        }
+        
         // Fallback to empty array if API fails
         setJobs([]);
       } finally {

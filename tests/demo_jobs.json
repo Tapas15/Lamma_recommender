@@ -1,95 +1,318 @@
 [
   {
-    "title": "Mobile Developer",
-    "company": "Scott-Key",
-    "description": "Old purpose know than by interview. Whatever fly oil box lose sit town. Line key on world base. Forget indicate federal. Market modern quality yard third fly across inside. Gun hour government director hundred.",
+    "title": "Security Engineer",
+    "company": "Lee Inc",
+    "description": "Citizen rich religious morning. Decade network consumer month. Tend expert price yard turn.",
     "requirements": [
-      "Flask",
-      "Terraform",
+      "Kubernetes",
+      "MySQL",
+      "TypeScript",
       "Azure",
-      "Kubernetes"
+      "C#",
+      "Python",
+      "Vue.js",
+      "Node.js"
     ],
     "location": "San Francisco, CA",
     "employment_type": "Freelance",
-    "experience_level": "Entry-level",
-    "industry": "Consulting",
+    "experience_level": "Director",
+    "industry": "Media",
     "responsibilities": [
-      "Memory director edge room look positive.",
-      "Consumer size week performance born network natural.",
-      "Painting how spend dark.",
-      "Seem billion music among.",
-      "Seat agreement give upon always democratic risk.",
-      "Catch group economy."
+      "Worker official color network also old energy.",
+      "Room in fine from lay require.",
+      "Study less course turn energy anyone.",
+      "Despite still financial cost own.",
+      "Son through discover community make talk line chance.",
+      "Threat have author area.",
+      "Administration country million more.",
+      "Industry why image I."
     ],
     "preferred_qualifications": [
-      "Size foreign charge outside son use agreement.",
-      "Boy politics key.",
-      "Result possible then try.",
-      "Five charge animal may."
+      "Service significant as in ground ball week something.",
+      "Society fund employee box three every off.",
+      "Seem policy natural idea although easy.",
+      "Movement but professional first story.",
+      "Bag president actually they approach from contain.",
+      "Consumer white smile."
     ],
     "tech_stack": [
-      "Flask",
-      "Terraform",
+      "Kubernetes",
+      "MySQL",
+      "TypeScript",
       "Azure",
-      "Kubernetes"
+      "C#",
+      "Python",
+      "Vue.js",
+      "Node.js"
     ],
     "remote_option": false,
     "work_mode": [
-      "On-site",
-      "Remote",
-      "Hybrid"
+      "Hybrid",
+      "Remote"
     ],
     "salary_range": {
-      "min": 72428,
-      "max": 89535,
+      "min": 128489,
+      "max": 173490,
       "currency": "USD"
     },
     "benefits": [
-      "Company retreats",
-      "Parental leave",
-      "Flexible work hours",
+      "Health insurance",
       "Performance bonuses",
-      "401(k) matching"
+      "Professional development budget",
+      "Transit benefits",
+      "Dental insurance",
+      "Mental health benefits",
+      "Vision insurance",
+      "Parental leave",
+      "Company retreats",
+      "Unlimited PTO"
     ],
-    "application_deadline": "2025-08-07",
-    "posted_date": "2025-05-24",
-    "contact_email": "michaeldunn@example.com",
-    "id": "683161cd1afc2fe0f1127c3a",
-    "created_at": "2025-05-24T06:06:40.012481",
-    "employer_id": "68315fd88de28a0051aafb6b",
+    "application_deadline": "2025-06-23",
+    "posted_date": "2025-06-01",
+    "contact_email": "birdemily@example.com",
+    "id": "683c903b17362e94efaa1376",
+    "created_at": "2025-06-01T17:39:50.313873",
+    "employer_id": "683c903317362e94efaa1375",
     "is_active": true
   },
   {
     "title": "Site Reliability Engineer",
-    "company": "Parker, Walker and Mann",
-    "description": "Myself child this Republican plant. Provide soldier across range what cup quite. Position amount will money someone marriage. Spend area movement. Lay hard star attention team player. Case result this paper house edge appear.",
+    "company": "Adams, Macdonald and Gomez",
+    "description": "Investment explain reason future Mr throw act. Practice amount or specific amount. Hold benefit water actually discussion choice special.",
     "requirements": [
-      "Spring Boot",
+      "Azure",
       "Vue.js",
-      "Google Cloud"
+      "PostgreSQL",
+      "React",
+      "Go"
     ],
-    "location": "Amsterdam, Netherlands",
-    "employment_type": "Full-time",
-    "experience_level": "Senior",
+    "location": "San Francisco, CA",
+    "employment_type": "Internship",
+    "experience_level": "Director",
     "industry": "Manufacturing",
     "responsibilities": [
-      "Friend all remain through well provide size.",
-      "Size top tax whole after believe prepare.",
-      "Possible age small benefit glass resource side.",
-      "Page name seven about picture surface.",
-      "Just turn quality mouth."
+      "Probably sit find campaign red sure central.",
+      "With democratic adult ability face during study think.",
+      "Ever teacher role drive middle family participant.",
+      "Decide church return institution available protect.",
+      "Guy size exactly side car win feeling high.",
+      "Story painting either send.",
+      "Both what author top action.",
+      "Stage physical blue write relate."
     ],
     "preferred_qualifications": [
-      "Community see season newspaper.",
-      "Hear hear hold central marriage I near share.",
-      "Clear agree scene side whole push tell bag.",
-      "Expert home suffer age town rule whose.",
-      "Skill course dream eat huge set."
+      "Traditional hand do through hope present serve teacher.",
+      "Camera item across glass success world couple.",
+      "Father because take seek base.",
+      "Stop realize arrive medical.",
+      "Part hit else street throughout whose.",
+      "Likely ability democratic thought."
     ],
     "tech_stack": [
-      "Spring Boot",
+      "Azure",
       "Vue.js",
-      "Google Cloud"
+      "PostgreSQL",
+      "React",
+      "Go"
+    ],
+    "remote_option": true,
+    "work_mode": [
+      "On-site"
+    ],
+    "salary_range": {
+      "min": 143245,
+      "max": 208582,
+      "currency": "USD"
+    },
+    "benefits": [
+      "Parental leave",
+      "Professional development budget",
+      "Unlimited PTO",
+      "Dental insurance",
+      "Flexible work hours",
+      "Transit benefits",
+      "Home office stipend",
+      "Performance bonuses",
+      "Remote work options",
+      "Mental health benefits"
+    ],
+    "application_deadline": "2025-08-26",
+    "posted_date": "2025-06-01",
+    "contact_email": "alvinwebb@example.net",
+    "id": "683c906817362e94efaa1378",
+    "created_at": "2025-06-01T17:40:21.870417",
+    "employer_id": "683c903317362e94efaa1375",
+    "is_active": true
+  },
+  {
+    "title": "Product Manager",
+    "company": "Walters, Mejia and Joyce",
+    "description": "Nearly person movie agent citizen step white. Somebody safe picture family citizen. Air late social measure skill least matter. Dog listen minute design product job. Surface focus medical use. White peace ago star move chair describe.",
+    "requirements": [
+      "TypeScript",
+      "Rust",
+      "Terraform",
+      "Go",
+      "C#",
+      "JavaScript"
+    ],
+    "location": "London, UK",
+    "employment_type": "Contract",
+    "experience_level": "Junior",
+    "industry": "Education",
+    "responsibilities": [
+      "Measure star only sign democratic market adult.",
+      "Someone could only help.",
+      "Spring worry size.",
+      "Above as improve administration.",
+      "Or short leave audience.",
+      "Professor responsibility son much painting require near."
+    ],
+    "preferred_qualifications": [
+      "Democratic night successful me family.",
+      "You four special upon.",
+      "Get medical understand as continue there."
+    ],
+    "tech_stack": [
+      "TypeScript",
+      "Rust",
+      "Terraform",
+      "Go",
+      "C#",
+      "JavaScript"
+    ],
+    "remote_option": false,
+    "work_mode": [
+      "Remote",
+      "On-site",
+      "Hybrid"
+    ],
+    "salary_range": {
+      "min": 63665,
+      "max": 91564,
+      "currency": "USD"
+    },
+    "benefits": [
+      "Dental insurance",
+      "Company retreats",
+      "Home office stipend",
+      "Gym membership",
+      "Remote work options",
+      "Free lunch",
+      "Health insurance",
+      "Stock options"
+    ],
+    "application_deadline": "2025-08-07",
+    "posted_date": "2025-06-01",
+    "contact_email": "hallison@example.com",
+    "id": "683c908717362e94efaa137a",
+    "created_at": "2025-06-01T17:40:55.796724",
+    "employer_id": "683c903317362e94efaa1375",
+    "is_active": true
+  },
+  {
+    "title": "Security Engineer",
+    "company": "Montoya-Bennett",
+    "description": "Show main natural research capital job property. Rich believe would test success live model. High can interesting several fire agree so. Offer man side approach hit wait.",
+    "requirements": [
+      "Docker",
+      "Elasticsearch",
+      "PostgreSQL"
+    ],
+    "location": "Chicago, IL",
+    "employment_type": "Full-time",
+    "experience_level": "Entry-level",
+    "industry": "Technology",
+    "responsibilities": [
+      "Bad along suffer blue lawyer.",
+      "Successful television them true practice.",
+      "How religious set idea strong model reflect.",
+      "Century admit these customer degree open.",
+      "Coach he on likely account study risk.",
+      "Usually where stuff yard.",
+      "Although mention she environment sit kid job affect.",
+      "Far artist again college candidate coach early."
+    ],
+    "preferred_qualifications": [
+      "Audience machine relationship.",
+      "Line participant particularly always federal history.",
+      "Rock bed hard voice reflect audience.",
+      "Career bill man level beyond computer you.",
+      "Media tough stop rock number memory find.",
+      "Adult magazine serve at."
+    ],
+    "tech_stack": [
+      "Docker",
+      "Elasticsearch",
+      "PostgreSQL"
+    ],
+    "remote_option": true,
+    "work_mode": [
+      "Hybrid",
+      "On-site",
+      "Remote"
+    ],
+    "salary_range": {
+      "min": 71437,
+      "max": 91970,
+      "currency": "USD"
+    },
+    "benefits": [
+      "Company retreats",
+      "Flexible work hours",
+      "Free lunch",
+      "Home office stipend",
+      "Health insurance",
+      "Stock options",
+      "Professional development budget"
+    ],
+    "application_deadline": "2025-08-28",
+    "posted_date": "2025-06-01",
+    "contact_email": "melissa14@example.com",
+    "id": "683c90a917362e94efaa137c",
+    "created_at": "2025-06-01T17:41:38.518149",
+    "employer_id": "683c903317362e94efaa1375",
+    "is_active": true
+  },
+  {
+    "title": "DevOps Engineer",
+    "company": "Garcia and Sons",
+    "description": "Drop billion agreement store show. Capital attorney key agent special end. Hundred particular feel chair.",
+    "requirements": [
+      "Docker",
+      "AWS",
+      "Vue.js",
+      "MySQL",
+      "Java",
+      "PostgreSQL",
+      "Node.js"
+    ],
+    "location": "Vancouver, Canada",
+    "employment_type": "Freelance",
+    "experience_level": "Manager",
+    "industry": "Healthcare",
+    "responsibilities": [
+      "Serious west score structure should like itself.",
+      "Close low actually know step.",
+      "Artist area side bank.",
+      "Officer such serve policy meet.",
+      "Full start politics contain."
+    ],
+    "preferred_qualifications": [
+      "Old new security feeling.",
+      "Floor enough after bed action.",
+      "Political investment family key development.",
+      "Your box figure none.",
+      "Plan edge country what give company center."
+    ],
+    "tech_stack": [
+      "Docker",
+      "AWS",
+      "Vue.js",
+      "MySQL",
+      "Java",
+      "PostgreSQL",
+      "Node.js"
     ],
     "remote_option": false,
     "work_mode": [
@@ -98,23 +321,334 @@
       "Remote"
     ],
     "salary_range": {
-      "min": 149462,
-      "max": 206601,
+      "min": 129548,
+      "max": 203728,
       "currency": "USD"
     },
     "benefits": [
+      "Unlimited PTO",
+      "Professional development budget",
+      "Dental insurance",
+      "Vision insurance",
+      "Health insurance",
+      "Free lunch",
       "Company retreats",
+      "Gym membership",
+      "Transit benefits",
+      "Stock options"
+    ],
+    "application_deadline": "2025-06-26",
+    "posted_date": "2025-06-01",
+    "contact_email": "dsimpson@example.net",
+    "id": "683c90d417362e94efaa137e",
+    "created_at": "2025-06-01T17:42:11.253149",
+    "employer_id": "683c903317362e94efaa1375",
+    "is_active": true
+  },
+  {
+    "title": "iOS Developer",
+    "company": "Beck, Thomas and Brown",
+    "description": "Media believe receive weight development speak. Knowledge lay appear tax behavior begin. Anyone pressure cultural I above every box popular. Issue friend suffer case all cultural. Firm her ability while speech. Good table however some know wonder. Young learn contain anything.",
+    "requirements": [
+      "React",
+      "AWS",
+      "PostgreSQL",
+      "JavaScript"
+    ],
+    "location": "Boston, MA",
+    "employment_type": "Part-time",
+    "experience_level": "Manager",
+    "industry": "Technology",
+    "responsibilities": [
+      "Explain home ok particular sing ever.",
+      "Leave music investment sing role.",
+      "Board bar you than have include.",
+      "Become require side company hope radio.",
+      "Sometimes hospital according various.",
+      "Life if response could."
+    ],
+    "preferred_qualifications": [
+      "Structure culture my.",
+      "Impact skin economy apply.",
+      "Community try certain matter hand apply.",
+      "Else black budget share trouble street main.",
+      "Just hope modern."
+    ],
+    "tech_stack": [
+      "React",
+      "AWS",
+      "PostgreSQL",
+      "JavaScript"
+    ],
+    "remote_option": false,
+    "work_mode": [
+      "Remote",
+      "Hybrid",
+      "On-site"
+    ],
+    "salary_range": {
+      "min": 122924,
+      "max": 170896,
+      "currency": "USD"
+    },
+    "benefits": [
+      "Performance bonuses",
       "401(k) matching",
       "Mental health benefits",
-      "Flexible work hours",
-      "Home office stipend"
+      "Stock options",
+      "Vision insurance",
+      "Free lunch",
+      "Professional development budget",
+      "Health insurance"
     ],
-    "application_deadline": "2025-07-21",
-    "posted_date": "2025-05-24",
-    "contact_email": "walterhunter@example.org",
-    "id": "683161f21afc2fe0f1127c3c",
-    "created_at": "2025-05-24T06:07:11.444155",
-    "employer_id": "68315fd88de28a0051aafb6b",
+    "application_deadline": "2025-06-16",
+    "posted_date": "2025-06-01",
+    "contact_email": "brendamercer@example.com",
+    "id": "683c90f517362e94efaa1380",
+    "created_at": "2025-06-01T17:42:46.497561",
+    "employer_id": "683c903317362e94efaa1375",
+    "is_active": true
+  },
+  {
+    "title": "DevOps Engineer",
+    "company": "Wood Group",
+    "description": "Receive everything officer figure within give property for. Ability become coach main military family. These rule story available reason season. Type quality rate common partner. Third everybody reflect conference consider along move.",
+    "requirements": [
+      "Python",
+      "Docker",
+      "Google Cloud",
+      "Angular"
+    ],
+    "location": "Berlin, Germany",
+    "employment_type": "Internship",
+    "experience_level": "Senior",
+    "industry": "Manufacturing",
+    "responsibilities": [
+      "Continue bag address several picture world open explain.",
+      "Account executive reduce.",
+      "Tree ability fine space system choose situation.",
+      "Successful partner indicate manage.",
+      "Open and throughout season positive describe person network."
+    ],
+    "preferred_qualifications": [
+      "Thousand nor forget environment.",
+      "Will subject century along fine.",
+      "Total fine position car.",
+      "Democratic standard international future door."
+    ],
+    "tech_stack": [
+      "Python",
+      "Docker",
+      "Google Cloud",
+      "Angular"
+    ],
+    "remote_option": false,
+    "work_mode": [
+      "Hybrid"
+    ],
+    "salary_range": {
+      "min": 122884,
+      "max": 170383,
+      "currency": "USD"
+    },
+    "benefits": [
+      "Transit benefits",
+      "Free lunch",
+      "Remote work options",
+      "Health insurance",
+      "Parental leave",
+      "Stock options",
+      "Performance bonuses",
+      "Gym membership",
+      "Professional development budget"
+    ],
+    "application_deadline": "2025-08-24",
+    "posted_date": "2025-06-01",
+    "contact_email": "murrayrobert@example.org",
+    "id": "683c911817362e94efaa1382",
+    "created_at": "2025-06-01T17:43:13.376426",
+    "employer_id": "683c903317362e94efaa1375",
+    "is_active": true
+  },
+  {
+    "title": "iOS Developer",
+    "company": "Sanchez-Reed",
+    "description": "Any fact information choose. Soon simply key option leg. During likely result area environment become most industry. Expert understand decide situation yourself collection. Enter hospital join.",
+    "requirements": [
+      "Java",
+      "PostgreSQL",
+      "MongoDB",
+      "AWS",
+      "TypeScript",
+      "MySQL"
+    ],
+    "location": "Atlanta, GA",
+    "employment_type": "Internship",
+    "experience_level": "Junior",
+    "industry": "E-commerce",
+    "responsibilities": [
+      "Treatment part trouble.",
+      "Behavior just marriage human after practice.",
+      "Reason understand staff information under discuss listen.",
+      "Guess employee name rate.",
+      "Little Democrat forward have."
+    ],
+    "preferred_qualifications": [
+      "To fear vote.",
+      "Set whether world view company arrive.",
+      "Space herself baby indeed.",
+      "Talk relate marriage.",
+      "View true rise ball career."
+    ],
+    "tech_stack": [
+      "Java",
+      "PostgreSQL",
+      "MongoDB",
+      "AWS",
+      "TypeScript",
+      "MySQL"
+    ],
+    "remote_option": true,
+    "work_mode": [
+      "Hybrid"
+    ],
+    "salary_range": {
+      "min": 62213,
+      "max": 78805,
+      "currency": "USD"
+    },
+    "benefits": [
+      "Health insurance",
+      "Company retreats",
+      "Stock options",
+      "Mental health benefits",
+      "Unlimited PTO"
+    ],
+    "application_deadline": "2025-07-12",
+    "posted_date": "2025-06-01",
+    "contact_email": "hayesdorothy@example.net",
+    "id": "683c913317362e94efaa1384",
+    "created_at": "2025-06-01T17:43:37.860042",
+    "employer_id": "683c903317362e94efaa1375",
+    "is_active": true
+  },
+  {
+    "title": "AI Researcher",
+    "company": "Morrow Group",
+    "description": "Fund fear though base. Another town argue teach eat mind tree paper. Perhaps player actually heart miss a. Save hard police travel. Television less treatment teach. Second son thought reach near civil.",
+    "requirements": [
+      "MongoDB",
+      "Java",
+      "Spring Boot",
+      "Django",
+      "Elasticsearch"
+    ],
+    "location": "Denver, CO",
+    "employment_type": "Full-time",
+    "experience_level": "Lead",
+    "industry": "Consulting",
+    "responsibilities": [
+      "Factor executive room whole song capital yourself.",
+      "Day action accept tend.",
+      "Life first role special why behavior reveal.",
+      "Business point table money artist war fire.",
+      "My personal chair two campaign call environment.",
+      "Your fear energy fill upon officer image.",
+      "Even including prove."
+    ],
+    "preferred_qualifications": [
+      "Sign show down citizen start voice bag born.",
+      "Maintain win data before.",
+      "Never read save because site world since.",
+      "Son reach traditional image manager.",
+      "Stage ask he nearly."
+    ],
+    "tech_stack": [
+      "MongoDB",
+      "Java",
+      "Spring Boot",
+      "Django",
+      "Elasticsearch"
+    ],
+    "remote_option": false,
+    "work_mode": [
+      "Hybrid"
+    ],
+    "salary_range": {
+      "min": 120823,
+      "max": 186844,
+      "currency": "USD"
+    },
+    "benefits": [
+      "Performance bonuses",
+      "Free lunch",
+      "Parental leave",
+      "Mental health benefits",
+      "Professional development budget"
+    ],
+    "application_deadline": "2025-06-29",
+    "posted_date": "2025-06-01",
+    "contact_email": "joseph90@example.net",
+    "id": "683c914b17362e94efaa1386",
+    "created_at": "2025-06-01T17:44:09.088457",
+    "employer_id": "683c903317362e94efaa1375",
+    "is_active": true
+  },
+  {
+    "title": "DevOps Engineer",
+    "company": "Griffin LLC",
+    "description": "Throughout why author suffer among create hair off. Pressure describe every nature. Nearly degree check. Tree successful show feel. Structure thousand debate southern effort gun customer very. Course player according left more affect.",
+    "requirements": [
+      "MySQL",
+      "Go",
+      "Python"
+    ],
+    "location": "Boston, MA",
+    "employment_type": "Full-time",
+    "experience_level": "Entry-level",
+    "industry": "Retail",
+    "responsibilities": [
+      "Although government fund outside argue at most.",
+      "Very painting leader statement have do.",
+      "Particular store mother population section agreement positive.",
+      "Store point half peace.",
+      "Eye talk out around exist social.",
+      "Catch leave rate small perhaps."
+    ],
+    "preferred_qualifications": [
+      "To close heavy today sense age door old.",
+      "We watch anything opportunity thank dog husband institution.",
+      "Activity pay else person expert."
+    ],
+    "tech_stack": [
+      "MySQL",
+      "Go",
+      "Python"
+    ],
+    "remote_option": false,
+    "work_mode": [
+      "Hybrid",
+      "Remote"
+    ],
+    "salary_range": {
+      "min": 53067,
+      "max": 68113,
+      "currency": "USD"
+    },
+    "benefits": [
+      "Professional development budget",
+      "Flexible work hours",
+      "Company retreats",
+      "Stock options",
+      "Unlimited PTO",
+      "Health insurance"
+    ],
+    "application_deadline": "2025-08-25",
+    "posted_date": "2025-06-01",
+    "contact_email": "zwoods@example.net",
+    "id": "683c916b17362e94efaa1388",
+    "created_at": "2025-06-01T17:44:35.555024",
+    "employer_id": "683c903317362e94efaa1375",
     "is_active": true
   }
 ]
