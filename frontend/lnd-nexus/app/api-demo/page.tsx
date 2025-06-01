@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import SkillGapAnalyzer from '../components/SkillGapAnalyzer';
 import SavedProjectsManager from '../components/SavedProjectsManager';
 import AdvancedSearch from '../components/AdvancedSearch';
+import SystemDashboard from '../components/SystemDashboard';
+import MLDashboard from '../components/MLDashboard';
 
 export default function APIDemoPage() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -27,6 +29,8 @@ export default function APIDemoPage() {
     { id: 'skill-gap', label: '🎯 Skill Gap Analysis', description: 'Analyze skill gaps and get learning recommendations' },
     { id: 'saved-projects', label: '💾 Saved Projects', description: 'Manage your saved projects with priority and notes' },
     { id: 'advanced-search', label: '🔍 Advanced Search', description: 'Test enhanced search capabilities with filters' },
+    { id: 'system-dashboard', label: '🚀 System Dashboard', description: 'System, Analytics & Feedback APIs' },
+    { id: 'ml-dashboard', label: '🤖 ML Dashboard', description: 'NEW: ML Skills, Market Trends & Enhanced Career Paths' },
   ];
 
   return (
@@ -257,6 +261,18 @@ export default function APIDemoPage() {
               </div>
             </div>
           )}
+
+          {activeTab === 'system-dashboard' && (
+            <div>
+              <SystemDashboard />
+            </div>
+          )}
+
+          {activeTab === 'ml-dashboard' && (
+            <div>
+              <MLDashboard />
+            </div>
+          )}
         </div>
 
         {/* Overall Status */}
@@ -266,24 +282,24 @@ export default function APIDemoPage() {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center">
-              <div className="text-3xl font-bold text-green-600">3</div>
+              <div className="text-3xl font-bold text-green-600">8</div>
               <div className="text-sm text-gray-600">New API Services</div>
               <div className="text-xs text-gray-500 mt-1">
-                searchApi, advancedRecommendationsApi, completeApplicationsApi
+                searchApi, advancedRecommendationsApi, completeApplicationsApi, systemApi, analyticsApi, feedbackApi, mlApi, enhancedCareerApi
               </div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600">35+</div>
+              <div className="text-3xl font-bold text-blue-600">61+</div>
               <div className="text-sm text-gray-600">Backend Endpoints</div>
               <div className="text-xs text-gray-500 mt-1">
-                Ready for frontend integration
+                All connected and ready for integration
               </div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-purple-600">100%</div>
-              <div className="text-sm text-gray-600">Type Safety</div>
+              <div className="text-sm text-gray-600">TypeScript Integration</div>
               <div className="text-xs text-gray-500 mt-1">
-                Full TypeScript integration
+                Complete type safety with error handling
               </div>
             </div>
           </div>
