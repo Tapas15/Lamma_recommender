@@ -93,7 +93,7 @@ export default function EmployerCandidatesPage() {
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [minMatchScore, setMinMatchScore] = useState(70);
-  const [experienceFilter, setExperienceFilter] = useState('');
+  const [experienceFilter, setExperienceFilter] = useState('any');
   const [locationFilter, setLocationFilter] = useState('');
 
   useEffect(() => {
@@ -334,7 +334,7 @@ export default function EmployerCandidatesPage() {
     const matchesLocation = locationFilter === '' || 
       candidate.location.toLowerCase().includes(locationFilter.toLowerCase());
     
-    const matchesExperience = experienceFilter === '' || 
+    const matchesExperience = experienceFilter === 'any' || experienceFilter === '' || 
       candidate.experience_years.includes(experienceFilter);
 
     return matchesSearch && matchesScore && matchesLocation && matchesExperience;
@@ -524,7 +524,7 @@ export default function EmployerCandidatesPage() {
                       <SelectValue placeholder="Any experience" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Any experience</SelectItem>
+                      <SelectItem value="any">Any experience</SelectItem>
                       <SelectItem value="2+">2+ years</SelectItem>
                       <SelectItem value="5+">5+ years</SelectItem>
                       <SelectItem value="7+">7+ years</SelectItem>
